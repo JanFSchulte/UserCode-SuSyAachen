@@ -1,0 +1,9 @@
+<use name=FWCore/Framework>
+<use name=FWCore/PluginManager>
+<use name=FWCore/ParameterSet>
+<use name=DataFormats/Candidate>
+<flags EDM_PLUGIN=1>
+<use name=PhysicsTools/UtilAlgos>
+<export>
+   <lib name=SuSyAachenLeptonCounter>
+</export>
