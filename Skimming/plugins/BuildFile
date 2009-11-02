@@ -1,8 +1,13 @@
 <use name=FWCore/Framework>
 <use name=FWCore/ParameterSet>
 
-<library name=SuSyAachenTauAnalysisSelectors file=d0Selector.cc>
+<library name=SuSyAachenD0Selectors file=d0Selector.cc>
 	 <use name=PhysicsTools/UtilAlgos>	     
 	 <use name=DataFormats/PatCandidates>
 	 <use name=DataFormats/BeamSpot>
+</library>
+
+<library name=SuSyAachenMCSelectors file=MCSelectors.cc>
+	 <use name=PhysicsTools/UtilAlgos>	     
+	 <use name=DataFormats/HepMCCandidate>	     
 </library>

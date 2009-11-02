@@ -15,8 +15,6 @@ template<typename collectionType, typename containerType>
 struct d0Selector {
   typedef collectionType collection;
   typedef containerType container;
-  //  typedef pat::MuonCollection collection;
-  //typedef std::vector<const pat::Muon *> container;
   typedef typename container::const_iterator const_iterator;
   d0Selector ( const edm::ParameterSet & cfg ):
     d0Min_( cfg.getParameter<double>( "d0Min" ) ),
@@ -33,11 +31,23 @@ struct d0Selector {
     double d0 = 0.0;
     for(typename collection::const_iterator it = col.product()->begin(); 
 	 it != col.product()->end(); ++it ){
-      d0 = fabs( (*it).track()->dxy( beamSpotHandle->position() ));
+      
+      d0 = calcD0( *it, beamSpotHandle );
       if ( d0 < d0Min_ )
 	selected_.push_back( & (*it) );
     }
   }
+  // fast hack: this should be specialized
+  double calcD0( pat::Electron p, edm::Handle<reco::BeamSpot> beamSpotHandle)
+  {    
+    return fabs( p.gsfTrack()->dxy( beamSpotHandle->position() ));  
+  }
+  // fast hack: this should be the normal one
+  double calcD0( pat::Muon p, edm::Handle<reco::BeamSpot> beamSpotHandle )
+  {
+    return fabs( p.track()->dxy( beamSpotHandle->position() ));  
+  }
+
   
   size_t size() const { return selected_.size(); }
 private:

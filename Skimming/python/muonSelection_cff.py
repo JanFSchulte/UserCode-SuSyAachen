@@ -2,18 +2,13 @@ import FWCore.ParameterSet.Config as cms
 
 filterMuons = cms.bool(False)
 
-etaMuons = cms.EDFilter("PATMuonSelector", filter = filterMuons,
-                        src = cms.InputTag("cleanLayer1Muons"),
-                        cut = cms.string('abs( eta ) <= 2.5')
-                        )
-
-ptMuons = cms.EDFilter("PATMuonSelector", filter = filterMuons,
-                       src = cms.InputTag("etaMuons"),
-                       cut = cms.string('pt >= 10')#GeV                       
-                       )
+basicMuons = cms.EDFilter("PATMuonSelector", filter = filterMuons,
+                          src = cms.InputTag("cleanLayer1Muons"),
+                          cut = cms.string('abs( eta ) <= 2.5 & pt >= 10')#GeV
+                          )
 
 globalMuons = cms.EDFilter("PATMuonSelector", filter = filterMuons,
-                       src = cms.InputTag("ptMuons"),
+                       src = cms.InputTag("basicMuons"),
                        cut = cms.string('muonID( "AllGlobalMuons" )')
                        )
 
@@ -39,5 +34,5 @@ isoMuons = cms.EDFilter("PATMuonSelector", filter = filterMuons,
                            cut = cms.string('(trackIso + ecalIso + hcalIso) / pt < 0.2')
                            )
 
-seqMuons = cms.Sequence(etaMuons + ptMuons + globalMuons + qualityMuons + d0Muons + cleanMuons +
+seqMuons = cms.Sequence(basicMuons + globalMuons + qualityMuons + d0Muons + cleanMuons +
                         isoMuons)
