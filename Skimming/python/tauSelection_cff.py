@@ -27,5 +27,5 @@ isoTaus = cms.EDFilter("PATTauSelector", filter = filterTaus,
   cut = cms.string('isolationPFChargedHadrCandsPtSum <= 1 & isolationPFChargedHadrCandsPtSum/pt <= 0.05')
 )
 
-seqTaus = cms.Sequence(basicTaus + qualityTaus + cleanTaus +
+seqTaus = cms.Sequence(basicTaus * qualityTaus * cleanTaus *
                         isoTaus)

@@ -10,4 +10,10 @@
 <library name=SuSyAachenMCSelectors file=MCSelectors.cc>
 	 <use name=PhysicsTools/UtilAlgos>	     
 	 <use name=DataFormats/HepMCCandidate>	     
+	 <use name=DataFormats/PatCandidates>
+</library>
+
+<library name=SuSyAachenJetSelectors file=jetSelectors.cc>
+	 <use name=PhysicsTools/UtilAlgos>	     
+	 <use name=DataFormats/PatCandidates>
 </library>

@@ -34,5 +34,5 @@ isoMuons = cms.EDFilter("PATMuonSelector", filter = filterMuons,
                            cut = cms.string('(trackIso + ecalIso + hcalIso) / pt < 0.2')
                            )
 
-seqMuons = cms.Sequence(basicMuons + globalMuons + qualityMuons + d0Muons + cleanMuons +
+seqMuons = cms.Sequence(basicMuons * globalMuons * qualityMuons * d0Muons * cleanMuons *
                         isoMuons)

@@ -3,7 +3,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process('Analysis')
 
 process.options = cms.untracked.PSet(
-    wantSummary = cms.untracked.bool(False)
+    wantSummary = cms.untracked.bool(True)
     )
 process.MessageLogger = cms.Service('MessageLogger',
                                     tauPlots = cms.untracked.PSet(
@@ -34,75 +34,36 @@ process.MessageLogger = cms.Service('MessageLogger',
     ),
     threshold = cms.untracked.string('INFO')
     ),
-                                    destinations = cms.untracked.vstring('tauPlots', 'cout')
-                                    )
+    destinations = cms.untracked.vstring('tauPlots', 'cout')
+    )
 
 process.source = cms.Source('PoolSource',
                             duplicateCheckMode = cms.untracked.string('noDuplicateCheck'),
                             fileNames = cms.untracked.vstring(
-    'file:/user/edelhoff/mcData/CMSSW_313/LM0-313-SUSYPAT-V00-04-07.root')
+#    'file:/user/edelhoff/mcData/CMSSW_313/LM0-313-SUSYPAT-V00-04-07.root'
+    'file:/user/edelhoff/mcData/CMSSW_314/LM0-314-SUSYPAT-V00-04-11.root'
+#    'file:/user/edelhoff/mcData/CMSSW_314/RelValZTT_314_SUSYPAT_V00-04-12_1000ev.root'
+)
                             )
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100))
 
-###########------ Histos -------#############
-import SuSyAachen.Histograms.leptonCounter_cfi 
 
-#---- All reco particles
-process.anyRecoLeptonCounter = SuSyAachen.Histograms.leptonCounter_cfi.leptonCounter.clone(
-  electronSource = "cleanLayer1Electrons",
-  muonSource = "cleanLayer1Muons",
-  tauSource = "cleanLayer1Taus",
-) 
-
-#---- isolated reco particles
-process.isoRecoLeptonCounter = SuSyAachen.Histograms.leptonCounter_cfi.leptonCounter.clone(
-  electronSource = "isoElectrons",
-  muonSource = "isoMuons",
-  tauSource = "isoTaus",
-) 
-
-#---- All gen particles
-process.anyGenLeptonExclusiveCounter = SuSyAachen.Histograms.leptonCounter_cfi.leptonCounter.clone(
-  method = 'exclusive',
-  electronSource = "electronGenParticles",
-  muonSource = "muonGenParticles",
-  tauSource = "tauGenParticles",
-)
-
-process.anyGenLeptonInclusiveCounter = process.anyGenLeptonExclusiveCounter.clone(
-  method = "inclusive"
-)
-
-#---- Cut Gen Particles
-process.basicGenLeptonCounter = SuSyAachen.Histograms.leptonCounter_cfi.leptonCounter.clone(
-  method = 'exclusive',
-  electronSource = "electronBasicGenParticles",
-  muonSource = "muonBasicGenParticles",
-  tauSource = "tauBasicGenParticles",
-)
-
-process.seqLeptonCounter = cms.Sequence( 
-  process.anyRecoLeptonCounter 
-  + process.isoRecoLeptonCounter 
-  + process.anyGenLeptonExclusiveCounter + process.anyGenLeptonInclusiveCounter 
-  + process.basicGenLeptonCounter
-)
 ###########------ Tools -------#############
 process.dump = cms.EDAnalyzer('EventContentAnalyzer')
 
 process.printTree = cms.EDAnalyzer("ParticleTreeDrawer",
-    src = cms.InputTag("tauGenParticles"),#genParticles"),#genTausWithHistory"),#
+    src = cms.InputTag("genTausWithHistory"),#tauGenParticles"),#genParticles"),#
     printP4 = cms.untracked.bool(False),
     printPtEtaPhi = cms.untracked.bool(False),
     printVertex = cms.untracked.bool(False),    
     printStatus = cms.untracked.bool(True),
     printIndex = cms.untracked.bool(False),
-    status = cms.untracked.vint32( 1, 2,3 )
+    status = cms.untracked.vint32( 1, 2 )
   )   
 
 process.printDecay = cms.EDAnalyzer("ParticleDecayDrawer",
-    src = cms.InputTag("hadronicGenTaus"),#genParticles"),
+    src = cms.InputTag("genParticles"),#hadronicGenTaus"),#
     printP4 = cms.untracked.bool(False),
     printPtEtaPhi = cms.untracked.bool(False),
     printVertex = cms.untracked.bool(False)
@@ -114,24 +75,29 @@ process.TFileService = cms.Service('TFileService', fileName = cms.string('tauPlo
 process.load('SuSyAachen.Skimming.electronSelection_cff')
 process.load('SuSyAachen.Skimming.muonSelection_cff')
 process.load('SuSyAachen.Skimming.tauSelection_cff')
+process.load('SuSyAachen.Skimming.jetMETSelection_cff')
+
 process.load('SuSyAachen.Skimming.genSelection_cff')
 
 process.GenParticles = cms.Path(
     process.seqGenParticles
-    + process.seqBasicGenParticles
+    * process.seqBasicGenParticles
+    * process.seqMatchedParticles
 )
 
 process.Leptons = cms.Path(
     process.seqMuons
     + process.seqElectrons
     + process.seqTaus
+    + process.seqSelectJetMET
 #    + process.dump
-#    + seqSelectJetMET
     )
+###########------ Histos -------#############
+process.load('SuSyAachen.Histograms.leptonCounter_cff')
 
 process.Histograms = cms.Path(
     process.seqLeptonCounter
-#    process.printTree
+#    + process.printTree
 #    + process.printDecay
 )
 
@@ -144,12 +110,14 @@ process.out = cms.OutputModule("PoolOutputModule",
                                #SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('GenParticles') ),
                                # save PAT Layer 1 output; you need a '*' to
                                # unpack the list of commands 'patEventContent'
-                               outputCommands = cms.untracked.vstring('keep *' ) 
+                               outputCommands = cms.untracked.vstring('drop *',
+                                                                      'keep patTaus_*_*_*',
+                                                                      'keep recoGenParticles_*_*_*') 
                                )
 process.outpath = cms.EndPath(process.out)
 
-process.schedule = cms.Schedule( process.GenParticles, process.Leptons,
+process.schedule = cms.Schedule( process.Leptons, process.GenParticles,
                                  process.Histograms
-#, process.outpath 
+, process.outpath 
 )
 

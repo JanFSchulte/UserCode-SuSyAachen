@@ -29,5 +29,5 @@ isoElectrons = cms.EDFilter("PATElectronSelector", filter = filterElectrons,
   cut = cms.string('(trackIso + ecalIso + hcalIso) / pt < 0.2')
 )
 
-seqElectrons = cms.Sequence(basicElectrons + qualityElectrons + d0Electrons + cleanElectrons +
+seqElectrons = cms.Sequence(basicElectrons * qualityElectrons * d0Electrons * cleanElectrons *
                         isoElectrons)
