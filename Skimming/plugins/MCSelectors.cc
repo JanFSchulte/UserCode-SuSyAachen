@@ -4,6 +4,7 @@
 
 #include "SuSyAachen/Skimming/interface/PdgDaughterExcluder.h"
 #include "SuSyAachen/Skimming/interface/matchedSelector.h"
+#include "SuSyAachen/Skimming/interface/matchedTauJetSelector.h"
 
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
@@ -15,9 +16,13 @@ typedef SingleObjectSelector< pat::ElectronCollection, MatchedSelector<pat::Elec
 typedef SingleObjectSelector< pat::MuonCollection, MatchedSelector<pat::Muon> > PATMuonMatchedSelector;
 typedef SingleObjectSelector< pat::TauCollection, MatchedSelector<pat::Tau> > PATTauMatchedSelector;
 
+typedef SingleObjectSelector< pat::TauCollection, MatchedTauJetSelector > PATTauJetMatchedSelector;
+
 
 DEFINE_FWK_MODULE(GenDaughterExcluder);
 //--
 DEFINE_FWK_MODULE(PATElectronMatchedSelector);
 DEFINE_FWK_MODULE(PATMuonMatchedSelector);
 DEFINE_FWK_MODULE(PATTauMatchedSelector);
+//
+DEFINE_FWK_MODULE(PATTauJetMatchedSelector);
