@@ -79,6 +79,15 @@ hadronicGenTaus = cms.EDFilter("GenDaughterExcluder", filter = filterGenTaus,
 )
 
 tauGenParticles = cms.EDFilter( "GenParticlePruner", filter = filterGenTaus,
+    src = cms.InputTag("genParticles"),
+    select = cms.vstring(
+    "drop  *", # this is the default
+    "keep pdgId = {tau+} | pdgId = {tau-}",
+    "drop  status = 3"
+    )
+)
+
+hadronicTauGenParticles = cms.EDFilter( "GenParticlePruner", filter = filterGenTaus,
     src = cms.InputTag("hadronicGenTaus"),
     select = cms.vstring(
     "drop  *", # this is the default
@@ -87,28 +96,49 @@ tauGenParticles = cms.EDFilter( "GenParticlePruner", filter = filterGenTaus,
     )
 )
 
+# require generated tau to decay hadronically
+from PhysicsTools.JetMCAlgos.TauGenJets_cfi import tauGenJets
+hadronicGenTauJets = cms.EDFilter("TauGenJetDecayModeSelector",
+   src = cms.InputTag("tauGenJets"),
+   select = cms.vstring('oneProng0Pi0', 'oneProng1Pi0', 'oneProng2Pi0', 'oneProngOther',
+                        'threeProng0Pi0', 'threeProng1Pi0', 'threeProngOther', 'rare'),
+   filter = cms.bool(False)
+)
+
+
+nutauGenParticles = cms.EDFilter( "GenParticlePruner", filter = filterGenTaus,
+  src = cms.InputTag("genParticles"),
+  select = cms.vstring(
+    "drop  *", # this is the default
+    "keep ( pdgId = {nu_tau} & status = 1)  | (pdgId = {nu_taubar} & status = 1)",
+  )
+)
+
 import SuSyAachen.Skimming.tauSelection_cff as tauSelection
 tauBasicGenParticles = cms.EDFilter("GenParticleSelector", filter = filterGenTaus,
    src = cms.InputTag("tauGenParticles"),
-   cut = tauSelection.basicTaus.cut                       
+   cut = cms.string("abs(eta) <= 2.5 & pt >= 10")#tauSelection.basicTaus.cut                       
 )
 
 anyTauMatchedParticles = patMatchers.patMatchedTauSelector.clone( filter = filterGenTaus,
 )
 
-basicTauMatchedParticles = patMatchers.patMatchedTauSelector.clone( filter = filterGenTaus,
+anyTauJetMatchedParticles = patMatchers.patJetMatchedTauSelector.clone( filter = filterGenTaus,
+)
+
+basicTauJetMatchedParticles = patMatchers.patMatchedTauSelector.clone( filter = filterGenTaus,
    src = cms.InputTag("basicTaus"),
 )
 
-isoTauMatchedParticles = patMatchers.patMatchedTauSelector.clone( filter = filterGenTaus,
+isoTauJetMatchedParticles = patMatchers.patMatchedTauSelector.clone( filter = filterGenTaus,
    src = cms.InputTag("isoTaus"),
 )
 #------------ Sequences
-seqGenParticles = cms.Sequence( electronGenParticles + muonGenParticles + 
-                                (genTausWithHistory * hadronicGenTaus * tauGenParticles) )
+seqGenParticles = cms.Sequence( electronGenParticles + muonGenParticles + tauGenParticles +nutauGenParticles + (tauGenJets*hadronicGenTauJets)
+                                + (genTausWithHistory * hadronicGenTaus * hadronicTauGenParticles) )
 seqBasicGenParticles = cms.Sequence( muonBasicGenParticles + electronBasicGenParticles + tauBasicGenParticles)
 
-seqMatchedParticles = cms.Sequence( isoElectronMatchedParticles + isoMuonMatchedParticles + isoTauMatchedParticles 
-                                    + anyElectronMatchedParticles + anyMuonMatchedParticles+ anyTauMatchedParticles
-                                    + basicElectronMatchedParticles + basicMuonMatchedParticles+ basicTauMatchedParticles)
+seqMatchedParticles = cms.Sequence( isoElectronMatchedParticles + isoMuonMatchedParticles + isoTauJetMatchedParticles 
+                                    + anyElectronMatchedParticles + anyMuonMatchedParticles+ anyTauMatchedParticles +anyTauJetMatchedParticles
+                                    + basicElectronMatchedParticles + basicMuonMatchedParticles+ basicTauJetMatchedParticles)
                                     

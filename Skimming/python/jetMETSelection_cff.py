@@ -1,13 +1,14 @@
 import FWCore.ParameterSet.Config as cms
 
 filterJets = cms.bool(False)
+filterMET = cms.bool(True)
 
 basicJets = cms.EDProducer("PATJetSelector", filter = filterJets,
   src = cms.InputTag("cleanLayer1JetsAK5"),
-  cut = cms.string("pt > 20 & abs( eta ) < 2.5")
+  cut = cms.string("pt > 50 & abs( eta ) < 2.5")
 )
 
-METFilter =  cms.EDProducer("PATMETSelector", filter = cms.bool(True),
+METFilter =  cms.EDProducer("PATMETSelector", filter = filterMET,
   src = cms.InputTag("layer1METsAK5"),
   cut = cms.string("pt > 100")
 )
@@ -25,4 +26,4 @@ jetFilterLow = patJetCountFilter.clone( filter = filterJets,
     cut = "pt > 50"
 )
 
-seqSelectJetMET = cms.Sequence( METFilter + basicJets * ( jetFilterHigh + jetFilterLow) )
+seqSelectJetMET = cms.Sequence( METFilter  +basicJets * ( cms.ignore(jetFilterHigh) + cms.ignore(jetFilterLow)) )

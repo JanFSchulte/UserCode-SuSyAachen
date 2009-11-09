@@ -4,7 +4,7 @@ filterMuons = cms.bool(False)
 
 basicMuons = cms.EDFilter("PATMuonSelector", filter = filterMuons,
                           src = cms.InputTag("cleanLayer1Muons"),
-                          cut = cms.string('abs( eta ) <= 2.5 & pt >= 10')#GeV
+                          cut = cms.string('abs( eta ) <= 2.0 & pt >= 10')#GeV
                           )
 
 globalMuons = cms.EDFilter("PATMuonSelector", filter = filterMuons,
@@ -14,7 +14,7 @@ globalMuons = cms.EDFilter("PATMuonSelector", filter = filterMuons,
 
 qualityMuons = cms.EDFilter("PATMuonSelector", filter = filterMuons,
                             src = cms.InputTag("globalMuons"),
-                            cut = cms.string('globalTrack.normalizedChi2 < 10. & track.numberOfValidHits >= 11.')
+                            cut = cms.string('globalTrack.normalizedChi2 <= 10. & track.numberOfValidHits >= 11.')
                             )
 
 d0Muons = cms.EDFilter("PATMuonD0Selector", filter = filterMuons,

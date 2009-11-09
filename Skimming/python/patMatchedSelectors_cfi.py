@@ -20,3 +20,7 @@ patMatchedTauSelector = cms.EDFilter("PATTauMatchedSelector",
    status = cms.uint32(0),
    autoCharge = cms.bool(True)
 )
+
+patJetMatchedTauSelector = cms.EDFilter("PATTauJetMatchedSelector", 
+   src = cms.InputTag("cleanLayer1Taus"),
+)
