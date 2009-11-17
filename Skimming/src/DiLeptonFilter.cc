@@ -13,7 +13,7 @@
 //
 // Original Author:  Matthias Edelhoff
 //         Created:  Mon Nov 16 11:26:19 CET 2009
-// $Id$
+// $Id: DiLeptonFilter.cc,v 1.1 2009/11/17 15:12:52 edelhoff Exp $
 //
 //
 
@@ -168,7 +168,7 @@ DiLeptonFilter::beginJob()
 {
 }
 
-^// ------------ method called once each job just after ending the event loop  ------------
+// ------------ method called once each job just after ending the event loop  ------------
 void 
 DiLeptonFilter::endJob() {
 }
