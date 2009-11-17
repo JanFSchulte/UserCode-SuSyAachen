@@ -2,6 +2,7 @@
 <use name=DataFormats/BeamSpot>
 <use name=FWCore/Framework>
 <use name=FWCore/ParameterSet>
+<flags EDM_PLUGIN=1>
 <use name=PhysicsTools/UtilAlgos>
 <export>
 <lib name = SuSyAachenSkimming>

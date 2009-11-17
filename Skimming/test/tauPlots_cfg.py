@@ -43,23 +43,24 @@ process.source = cms.Source('PoolSource',
 #    'file:/user/edelhoff/mcData/CMSSW_313/LM0-313-SUSYPAT-V00-04-07.root'
     'file:/user/edelhoff/mcData/CMSSW_314/LM0-314-SUSYPAT-V00-04-11.root'
 #    'file:/user/edelhoff/mcData/CMSSW_314/RelValZTT_314_SUSYPAT_V00-04-12_1000ev.root'
+#    'file:/user/edelhoff/mcData/CMSSW_314/RelVal_314_ZTT/RelValZTT_314_SUSYPAT_V00-04-12_4.root',
 )
-                            )
+)
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000))
 
 
 ###########------ Tools -------#############
 process.dump = cms.EDAnalyzer('EventContentAnalyzer')
 
 process.printTree = cms.EDAnalyzer("ParticleTreeDrawer",
-    src = cms.InputTag("genTausWithHistory"),#tauGenParticles"),#genParticles"),#
+    src = cms.InputTag("genParticles"),#genTausWithHistory"),#tauGenParticles"),#genParticles"),#
     printP4 = cms.untracked.bool(False),
     printPtEtaPhi = cms.untracked.bool(False),
     printVertex = cms.untracked.bool(False),    
     printStatus = cms.untracked.bool(True),
     printIndex = cms.untracked.bool(False),
-    status = cms.untracked.vint32( 1, 2 )
+    status = cms.untracked.vint32( 1, 2, 3 )
   )   
 
 process.printDecay = cms.EDAnalyzer("ParticleDecayDrawer",
@@ -79,6 +80,8 @@ process.load('SuSyAachen.Skimming.jetMETSelection_cff')
 
 process.load('SuSyAachen.Skimming.genSelection_cff')
 
+process.load('SuSyAachen.Skimming.diLeptonFilter_cff')
+
 process.GenParticles = cms.Path(
     process.seqGenParticles
     * process.seqBasicGenParticles
@@ -89,14 +92,17 @@ process.Leptons = cms.Path(
     process.seqMuons
     + process.seqElectrons
     + process.seqTaus
-    + process.seqSelectJetMET
+#    + process.SSTauTau
+    + process.seqSSDiLeptons
+#    + process.seqSelectJetMET
 #    + process.dump
     )
 ###########------ Histos -------#############
 process.load('SuSyAachen.Histograms.leptonCounter_cff')
 
 process.Histograms = cms.Path(
-    process.seqLeptonCounter
+    process.anyRecoLeptonCounter 
+#    process.seqLeptonCounter
 #    + process.printTree
 #    + process.printDecay
 )
@@ -112,7 +118,8 @@ process.out = cms.OutputModule("PoolOutputModule",
                                # unpack the list of commands 'patEventContent'
                                outputCommands = cms.untracked.vstring('drop *',
                                                                       'keep patTaus_*_*_*',
-                                                                      'keep recoGenParticles_*_*_*') 
+                                                                      'keep recoGenParticles_*_*_*',
+                                                                      'drop *_genParticles_*_*') 
                                )
 process.outpath = cms.EndPath(process.out)
 
