@@ -13,7 +13,7 @@
 //
 // Original Author:  Matthias Edelhoff
 //         Created:  Mon Nov 16 11:26:19 CET 2009
-// $Id: DiLeptonFilter.cc,v 1.1 2009/11/17 15:12:52 edelhoff Exp $
+// $Id: DiLeptonFilter.cc,v 1.2 2009/11/17 15:40:57 edelhoff Exp $
 //
 //
 
@@ -144,15 +144,20 @@ bool DiLeptonFilter::inclusiveFilter( const collection &primary, const collectio
     for(collection::const_iterator iSec = secondary.begin(); iSec != secondary.end() ; ++iSec, ++countSec){
       if( ( !(primaryTag_ == secondaryTag_) || countPrime != countSec)
 	  && ( (!matching_) ||different( (*iPrime), (*iSec) ) )
-	  &&( (*iPrime).charge() != 0 && (*iSec).charge() != 0 ) ){
+	  && ( fabs((*iPrime).charge()) == 1 && fabs((*iSec).charge()) == 1 ) ){
 	if( sameSign_ ){
 	  result = result || ( (*iPrime).charge() == (*iSec).charge() );
 	}
 	else
 	  result = result || ( (*iPrime).charge() != (*iSec).charge() );
+	//	std::cout << (*iPrime).charge() << (*iSec).charge() <<"| ";
+      }else{
+	//	std::cout << "O| ";
       }
     }
+    //    std::cout << "   ";
   }
+  //  std::cout << primary.size()<<" result: "<< result;
   return result;
 }
 
