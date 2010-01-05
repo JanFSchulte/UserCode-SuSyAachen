@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: LeptonCounter.cc,v 1.1 2009/11/02 09:29:44 edelhoff Exp $
+// $Id: LeptonCounter.cc,v 1.2 2009/11/03 21:32:53 edelhoff Exp $
 //
 //
 
@@ -128,7 +128,7 @@ LeptonCounter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   //Taus
   edm::Handle< collection > taus;
   iEvent.getByLabel(tauTag_, taus);
-  
+
   if(method_ == "inclusive") fillInclusive( *electrons, *muons, *taus);
   if(method_ == "exclusive") {
     int sumLeptons = electrons->size() + muons->size() + taus->size(); 
@@ -140,6 +140,7 @@ LeptonCounter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   leptonCount_[e]->Fill(electrons->size());
   leptonCount_[mu]->Fill(muons->size());
   leptonCount_[tau]->Fill(taus->size());
+
 }
 
 void LeptonCounter::fillInclusive( const collection &electrons, const collection &muons, const collection &taus )
@@ -158,13 +159,14 @@ void LeptonCounter::fillCombination(int combination, const collection &input)
   int nPlus = 0;
   int nMinus = 0;
   countByCharge(input, nPlus, nMinus);
-
   if( nPlus >= 1 && nMinus >= 1) {
     oppositeSignLeptons_->Fill( combination );
   }
   if( nPlus >= 2 || nMinus >= 2) {
     sameSignLeptons_->Fill( combination );
+    // if (combination == 2)std::cout << "count"<<std::endl;
   }
+  //  if (combination == 2) std::cout << nPlus << ":"<<nMinus<< std::endl;
 }
 
 void LeptonCounter::fillCombination(int combination, const collection &input1, const collection &input2)
@@ -181,7 +183,6 @@ void LeptonCounter::fillCombination(int combination, const collection &input1, c
   if( (n1Plus >= 1 && n2Plus >=1) || (n1Minus >= 1 && n2Minus >=1)) {
     sameSignLeptons_->Fill( combination );
   }
-
 }
 
 void LeptonCounter::countByCharge( const collection &input, int &nPlus, int &nMinus)

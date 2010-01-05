@@ -43,12 +43,14 @@ process.source = cms.Source('PoolSource',
 #    'file:/user/edelhoff/mcData/CMSSW_313/LM0-313-SUSYPAT-V00-04-07.root'
     'file:/user/edelhoff/mcData/CMSSW_314/LM0-314-SUSYPAT-V00-04-11.root'
 #    'file:/user/edelhoff/mcData/CMSSW_314/RelValZTT_314_SUSYPAT_V00-04-12_1000ev.root'
+#defective:    'file:/user/edelhoff/mcData/CMSSW_314/RelVal_314_ZTT/RelValZTT_314_SUSYPAT_V00-04-12_1.root',
+#    'file:/user/edelhoff/mcData/CMSSW_314/RelVal_314_ZTT/RelValZTT_314_SUSYPAT_V00-04-12_2.root',
+#    'file:/user/edelhoff/mcData/CMSSW_314/RelVal_314_ZTT/RelValZTT_314_SUSYPAT_V00-04-12_3.root',
 #    'file:/user/edelhoff/mcData/CMSSW_314/RelVal_314_ZTT/RelValZTT_314_SUSYPAT_V00-04-12_4.root',
 )
 )
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000))
-
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10))
 
 ###########------ Tools -------#############
 process.dump = cms.EDAnalyzer('EventContentAnalyzer')
@@ -92,17 +94,16 @@ process.Leptons = cms.Path(
     process.seqMuons
     + process.seqElectrons
     + process.seqTaus
-#    + process.SSTauTau
     + process.seqSSDiLeptons
 #    + process.seqSelectJetMET
-#    + process.dump
+    + process.dump
     )
 ###########------ Histos -------#############
 process.load('SuSyAachen.Histograms.leptonCounter_cff')
 
 process.Histograms = cms.Path(
-    process.anyRecoLeptonCounter 
-#    process.seqLeptonCounter
+    cms.ignore(process.SSTauTau) +
+    process.seqLeptonCounter
 #    + process.printTree
 #    + process.printDecay
 )
@@ -117,8 +118,11 @@ process.out = cms.OutputModule("PoolOutputModule",
                                # save PAT Layer 1 output; you need a '*' to
                                # unpack the list of commands 'patEventContent'
                                outputCommands = cms.untracked.vstring('drop *',
+                                                                      'keep patElectrons_*_*_*',
+                                                                      'keep patMuons_*_*_*',
                                                                       'keep patTaus_*_*_*',
                                                                       'keep recoGenParticles_*_*_*',
+                                                                      'keep recoGenJets_*_*_*',
                                                                       'drop *_genParticles_*_*') 
                                )
 process.outpath = cms.EndPath(process.out)
