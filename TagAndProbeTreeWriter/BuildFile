@@ -1,0 +1,10 @@
+<use name=FWCore/Framework>
+<use name=FWCore/PluginManager>
+<use name=PhysicsTools/UtilAlgos>
+<use name=DataFormats/TrackReco>
+<use name=DataFormats/EgammaReco>
+<use name=FWCore/ParameterSet>
+<flags EDM_PLUGIN=1>
+<export>
+   <lib name=SuSyAachenTagAndProbeTreeWriter>
+</export>
