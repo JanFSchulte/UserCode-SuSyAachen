@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id$
+// $Id: TagAndProbeTreeWriter.cc,v 1.1 2010/01/05 15:27:05 nmohr Exp $
 //
 //
 
@@ -35,9 +35,12 @@
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "PhysicsTools/UtilAlgos/interface/TFileService.h"
-
 #include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
+
+#include "DataFormats/Candidate/interface/Candidate.h"
+#include "DataFormats/Candidate/interface/CandidateFwd.h"
 
 #include "DataFormats/PatCandidates/interface/PATObject.h"
 #include "DataFormats/PatCandidates/interface/Particle.h"
@@ -63,7 +66,7 @@ class TagAndProbeTreeWriter : public edm::EDAnalyzer {
         virtual void analyze(const edm::Event&, const edm::EventSetup&);
         virtual void endJob() ;
 
-        virtual void TnP(const edm::Handle< std::vector<T> >&,const edm::Handle< std::vector<P> >&);
+        virtual void TnP(const edm::Handle< std::vector<T> >&,const edm::Handle< P >&);
         virtual void mcAnalysis(const edm::Handle< std::vector<T> >&,const edm::Handle< std::vector<reco::GenParticle> >&);
 
         // ----------member data ---------------------------
@@ -167,9 +170,9 @@ TagAndProbeTreeWriter<T,P>::~TagAndProbeTreeWriter()
 // member functions
 
 template< typename T, typename P > 
-void TagAndProbeTreeWriter<T,P>::TnP(const edm::Handle< std::vector<T> >& tags, const edm::Handle< std::vector<P> >& probes){
+void TagAndProbeTreeWriter<T,P>::TnP(const edm::Handle< std::vector<T> >& tags, const edm::Handle< P >& probes){
     for (typename std::vector<T>::const_iterator tag_i = tags->begin(); tag_i != tags->end(); ++tag_i){
-        for (typename std::vector<P>::const_iterator pb_j = probes->begin(); pb_j != probes->end(); ++pb_j){
+        for (typename P::const_iterator pb_j = probes->begin(); pb_j != probes->end(); ++pb_j){
             nMatchProbe = 0;
             invM = 0.;
             ptProbe = pb_j->pt();
@@ -222,7 +225,7 @@ void TagAndProbeTreeWriter<T,P>::analyze(const edm::Event& iEvent, const edm::Ev
     iEvent.getByLabel(tagSrc, tags);
   
     //Probes
-    edm::Handle< std::vector<P> > probes;
+    edm::Handle< P > probes;
     iEvent.getByLabel(probeSrc, probes);
    
     //Jets
@@ -259,7 +262,7 @@ void TagAndProbeTreeWriter<T,P>::endJob() {
 }
 
 //define this as a plug-in
-typedef TagAndProbeTreeWriter< pat::Muon, reco::Track > MuonTnPTreeWriter;
-typedef TagAndProbeTreeWriter< pat::Electron, reco::Candidate > ElectronTnPTreeWriter;
+typedef TagAndProbeTreeWriter< pat::Muon, reco::TrackCollection > MuonTnPTreeWriter;
+typedef TagAndProbeTreeWriter< pat::Electron, reco::CandidateCollection > ElectronTnPTreeWriter;
 DEFINE_FWK_MODULE(MuonTnPTreeWriter);
 DEFINE_FWK_MODULE(ElectronTnPTreeWriter);
