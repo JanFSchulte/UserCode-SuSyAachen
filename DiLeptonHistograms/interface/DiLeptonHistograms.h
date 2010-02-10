@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2008/12/9 08:07:03 $
- *  $Revision: 1.4 $
+ *  $Date: 2009/11/04 04:16:27 $
+ *  $Revision: 1.1 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -50,6 +50,7 @@
 #include "DataFormats/PatCandidates/interface/Lepton.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
+#include "DataFormats/PatCandidates/interface/Tau.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
 #include "DataFormats/PatCandidates/interface/Flags.h"
@@ -89,6 +90,10 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH1F**       hMuonTrackIso;
     TH1F**       hMuonCaloIso;
 
+    TH1F**       hTauIso;
+    TH1F**       hTauTrackIso;
+    TH1F**       hTauCaloIso;
+
     TH1F**       hMissingET;
     TH1F**       hMissingETmc;
     TH1F**       hEtSum;
@@ -122,6 +127,8 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH1F**       hInvMMuonSS;
     TH1F**       hInvMElectron;
     TH1F**       hInvMElectronSS;
+    TH1F**       hInvMTau;
+    TH1F**       hInvMTauSS;
     TH1F**       hInvMassMC;
     TH1F**       hInvMassZMC;
     
@@ -184,6 +191,15 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH1F**       hElectrondeltaEtaIn;
     TH2F**       hElectronIsod0;
     TH2F**       hElectronEtaPhi;
+    
+    TH1F**       hTauPt;
+    TH1F**       hTau1Pt;
+    TH1F**       hTau2Pt;
+    TH1F**       hTauEta;
+    TH1F**       hTau1Eta;
+    TH1F**       hTau2Eta;
+    TH1F**       hTauPhi; 
+    TH2F**       hTauEtaPhi;
 
     TH2F**       h2dMuonEtaPt;
     TH2F**       h2dMatchedMuonEtaPt;
@@ -191,6 +207,8 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH2F**       h2dElectronEtaPt;
     TH2F**       h2dMatchedElectronEtaPt;
     TH2F**       h2dGenElectronEtaPt;
+    TH2F**       h2dTauEtaPt;
+    TH2F**       h2dMatchedTauEtaPt;
         
     TH2F**       h2dTnPProbeSigEtaPt;
     TH2F**       h2dTnPPassSigEtaPt;
@@ -239,6 +257,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     edm::InputTag beamSpotSrc;
     edm::InputTag muonSrc;
     edm::InputTag electronSrc;
+    edm::InputTag tauSrc;
     edm::InputTag metSrc;
     edm::InputTag jetSrc;
     edm::InputTag jetObj;
@@ -289,22 +308,25 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     int numTotEvents;
     int numTotElectrons;
     int numTotMuons;
+    int numTotTaus;
     int numTotJets;
 
     inline void InitHisto(TFileDirectory *fs, const int process);
     inline void ReadEfficiency();
 
 
-    virtual void Analysis(const edm::Handle< std::vector<pat::Muon> >&, const edm::Handle< std::vector<pat::Electron> >&, const edm::Handle< std::vector<pat::Jet> >&, const edm::Handle< std::vector<pat::MET> >&, double weight, const int process);
+    virtual void Analysis(const edm::Handle< std::vector<pat::Muon> >&, const edm::Handle< std::vector<pat::Electron> >&, const edm::Handle< std::vector<pat::Tau> >& , const edm::Handle< std::vector<pat::Jet> >&, const edm::Handle< std::vector<pat::MET> >&, double weight, const int process);
 
     virtual void TriggerMonitor(const edm::Handle< edm::TriggerResults >&, double weight, const int process);
   
     virtual void ElectronMonitor(const pat::Electron*, const int, double, const int);
     virtual void MuonMonitor(const pat::Muon*, const int, double, const int);
+    virtual void TauMonitor(const pat::Tau*, const int, double, const int);
 
     virtual void MuonInvMonitor(const double, const double, const double, const double, const double, const double, double, const int);
     virtual void OFOSInvMonitor(const double, const double, const double, const double, const double, const double, double, const int);
     virtual void ElectronInvMonitor(const double, const double, const double, const double, const double, const double, double, const int);
+    virtual void TauInvMonitor(const double, const double, const double, const double, const double, const double, double, const int);
   
     virtual bool MCAnalysis(const edm::Handle< std::vector<pat::Muon> >&, const edm::Handle< std::vector<pat::Electron> >&, const edm::Handle< std::vector<reco::GenParticle> >& , double weight, const int process); 
 

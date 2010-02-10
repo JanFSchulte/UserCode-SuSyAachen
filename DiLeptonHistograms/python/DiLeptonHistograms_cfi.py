@@ -9,6 +9,7 @@ mcSource = cms.InputTag("genParticles"),
 backmapSource = cms.InputTag("genParticles"),
 muonSource = cms.InputTag("selectedLayer1Muons"),
 electronSource = cms.InputTag("selectedLayer1Electrons"),
+tauSource = cms.InputTag("selectedLayer1Taus"),
 metSource = cms.InputTag("selectedLayer1METs"),
 jetSource = cms.InputTag("selectedLayer1Jets"),
 
