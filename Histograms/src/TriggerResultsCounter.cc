@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: TriggerResultsCounter.cc,v 1.3 2010/01/05 16:40:08 edelhoff Exp $
+// $Id: TriggerResultsCounter.cc,v 1.1 2010/02/08 22:23:08 edelhoff Exp $
 //
 //
 
@@ -142,11 +142,6 @@ TriggerResultsCounter::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	}
       }
     }
-//    std::string result = "failed";
-//    if( triggerResults->accept(i) ) result = "passed";
-//    std::cout << triggerNames.triggerName(i)<< "("<<i<< ") index: " 
-//	      << triggerNames.triggerIndex(triggerNames.triggerName(i))
-//      	      <<" result: "<<result <<std::endl;    
   }
 
 }

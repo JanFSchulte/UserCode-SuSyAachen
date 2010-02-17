@@ -2,13 +2,13 @@ from PhysicsTools.PatAlgos.patTemplate_cfg import *
 process.setName_("TEST")
 
 process.MessageLogger.categories.append('PATSummaryTables')
-#process.MessageLogger.cerr.FwkReport.reportEvery = 100
+process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
 process.source = cms.Source('PoolSource', fileNames = cms.untracked.vstring() )
-process.source.fileNames.append('file:/user/edelhoff/mcData/CMSSW_336patch1/diLepton/LM1AndMimic_v1.baseCuts.SUSY_LM1_FastSim_PAT.EDM.root')
-
+#process.source.fileNames.append('file:/user/edelhoff/mcData/CMSSW_336patch1/diLepton/LM1AndMimic_v1.baseCuts.SUSY_LM1_FastSim_PAT.EDM.root')
+process.source.fileNames.append('file:/user/edelhoff/mcData/CMSSW_336patch1/diLepton/LM1AndMimic_v1.baseCuts.SUSY_LM1_mimic1_FastSim_PAT.EDM.root')
 process.source.duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
-process.maxEvents.input = 100
+process.maxEvents.input = -1
 
 process.load('Configuration.StandardSequences.Services_cff')
 process.add_( cms.Service( "TFileService",
