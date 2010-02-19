@@ -19,6 +19,14 @@ genJetSelector = cms.EDProducer("CandViewSelector",
            cut = cms.string("pt > 100")
 )
 
+from SuSyAachen.Skimming.jetSelectors_cfi import patJetFlagFilter
+patJetFlagSelector =  patJetFlagFilter.clone(
+           filter = cms.bool(True),
+           src = cms.InputTag("cleanLayer1JetsAK5"),
+           cut = cms.string("pat::Flags::Overlap::Electrons")
+)
+
+
 from SuSyAachen.Skimming.jetSelectors_cfi import candViewCountFilter 
 genJetCountSelector = candViewCountFilter.clone(
            filter = cms.bool(True),

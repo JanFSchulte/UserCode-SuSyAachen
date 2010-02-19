@@ -7,6 +7,11 @@
 	 <use name=DataFormats/BeamSpot>
 </library>
 
+<library name=SuSyAachenPatFlagSelectors file=patFlagSelector.cc>
+	 <use name=PhysicsTools/UtilAlgos>	     
+	 <use name=DataFormats/PatCandidates>
+</library>
+
 <library name=SuSyAachenMCSelectors file=MCSelectors.cc>
 	 <use name=PhysicsTools/UtilAlgos>	     
 	 <use name=DataFormats/HepMCCandidate>	     

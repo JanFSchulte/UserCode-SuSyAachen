@@ -12,3 +12,8 @@ candViewCountFilter = cms.EDFilter("CandViewJetCountFilter", filter = cms.bool(F
   minNumber = cms.uint32(1),
   cut = cms.string(""),
 )
+
+patJetFlagFilter = cms.EDFilter("PATJetFlagSelector", filter = cms.bool(False),
+  src = cms.InputTag("basicJets"),
+  cut = cms.string("")
+)
