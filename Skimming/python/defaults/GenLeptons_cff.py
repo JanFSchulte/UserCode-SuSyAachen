@@ -19,7 +19,7 @@ def GenLeptons(process):
         )
     )
 
-    process.genTausWithHistory = cms.EDFilter( "GenParticlePruner", 
+    process.genTausWithFuture = cms.EDFilter( "GenParticlePruner", 
         src = cms.InputTag("genParticles"),
         select = cms.vstring(
         "drop  *", # this is the default
@@ -29,7 +29,7 @@ def GenLeptons(process):
     )
 
     process.hadronicGenTaus = cms.EDFilter("GenDaughterExcluder", 
-        src = cms.InputTag("genTausWithHistory"),
+        src = cms.InputTag("genTausWithFuture"),
         daughterIds = cms.vint32( 11,-11, 13,-13) #e+ e- mu+ mu-
     )
     
@@ -55,39 +55,47 @@ def GenLeptons(process):
 ########## --- Prompt selections
     from SuSyAachen.Skimming.GenPromptSelector_cfi import GenPromptSelector
 
-    process.genEWithHistory = cms.EDFilter( "GenParticlePruner", 
-	    src = cms.InputTag("genParticles"),
-	    select = cms.vstring(
-	    "drop  *", # this is the default
-	    "++keep (pdgId = {e+} &status=1)| (pdgId = {e-}  &status=1)",
-	    )
+    process.promptParticles = GenPromptSelector.clone(
+        src = "genParticles"
+        )
+ 
+    process.promptElectrons = cms.EDFilter( "GenParticlePruner", 
+            src = cms.InputTag("promptParticles"),
+            select = cms.vstring(
+            "drop  *", # this is the default
+            "keep pdgId = {e+} | pdgId = {e-} "
+            )
     )
-    process.promptElectrons = GenPromptSelector.clone(
-        src = "genEWithHistory"
+    process.promptMuons = cms.EDFilter( "GenParticlePruner", 
+            src = cms.InputTag("promptParticles"),
+            select = cms.vstring(
+            "drop  *", # this is the default
+            "keep pdgId = {mu+} | pdgId = {mu-}"
+            )
+    )
+    process.promptTaus = cms.EDFilter( "GenParticlePruner", 
+            src = cms.InputTag("promptParticles"),
+            select = cms.vstring(
+            "drop  *", # this is the default
+            "keep pdgId = {tau+} | pdgId = {tau-}"
+            )
     )
 
-    process.genMuWithHistory = cms.EDFilter( "GenParticlePruner", 
-	    src = cms.InputTag("genParticles"),
-	    select = cms.vstring(
-	    "drop  *", # this is the default
-	    "++keep (pdgId = {mu+} &status=1)| (pdgId = {mu-}  &status=1)",
-	    )
-    )
-    process.promptMuons = GenPromptSelector.clone(
-        src = "genMuWithHistory"
-    )
+    process.printTree = cms.EDAnalyzer("ParticleTreeDrawer",
+        src = cms.InputTag("genParticles"),#"genEWithHistory"),#genTausWithHistory"),#tauGenParticles"),#genParticles"),#
+        printP4 = cms.untracked.bool(False),
+        printPtEtaPhi = cms.untracked.bool(False),
+        printVertex = cms.untracked.bool(False),    
+        printStatus = cms.untracked.bool(True),
+        printIndex = cms.untracked.bool(False),
+        status = cms.untracked.vint32( 1,2, 3 )
+      ) 
+    process.dump = cms.EDAnalyzer('EventContentAnalyzer') 
 
-    #process.printTree = cms.EDAnalyzer("ParticleTreeDrawer",
-    #    src = cms.InputTag("genEWithHistory"),#genTausWithHistory"),#tauGenParticles"),#genParticles"),#
-    #    printP4 = cms.untracked.bool(False),
-    #    printPtEtaPhi = cms.untracked.bool(False),
-    #    printVertex = cms.untracked.bool(False),    
-    #    printStatus = cms.untracked.bool(True),
-    #    printIndex = cms.untracked.bool(False),
-    #    status = cms.untracked.vint32( 1, 2, 3 )
-    #  ) 
+
 
     process.seqGenLeptons = cms.Sequence(process.electronGenParticles + process.muonGenParticles + process.tauGenParticles
-                                         + (process.genTausWithHistory * process.hadronicGenTaus * process.hadronicTauGenParticles)
-                                         + (process.genEWithHistory * process.promptElectrons) + (process.genMuWithHistory * process.promptMuons)
+                                         + (process.genTausWithFuture * process.hadronicGenTaus * process.hadronicTauGenParticles)
+                                         + process.promptParticles * ( process.promptElectrons + process.promptMuons + process.promptTaus)
+                                         + process.printTree
                                          )
