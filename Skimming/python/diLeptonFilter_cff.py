@@ -32,7 +32,23 @@ SSMuTau = diLeptonFilter.clone(
     secondarySrc = "cleanLayer1Taus",
 )
 
+SSanyEMu =diLeptonFilter.clone(
+    combinations = ["ss","pp","ps"],
+    primarySrc = "cleanLayer1Muons",
+    secondarySrc = "cleanLayer1Electrons",
+)
+
+SSanyTau = diLeptonFilter.clone(
+    combinations = ["st","pt","tt"],
+    primarySrc = "cleanLayer1Muons",
+    secondarySrc = "cleanLayer1Electrons",
+    tertiarySrc = "cleanLayer1Taus",
+)
+
+
+
 seqSSDiLeptons = cms.Sequence( 
     cms.ignore( SSEE ) + cms.ignore( SSMuMu ) + cms.ignore( SSTauTau )
     + cms.ignore( SSEMu ) + cms.ignore( SSETau ) + cms.ignore( SSMuTau )
+    + cms.ignore( SSanyEMu ) + cms.ignore(SSanyTau)
     )
