@@ -13,7 +13,7 @@
 //
 // Original Author:  Matthias Edelhoff
 //         Created:  Mon Nov 16 11:26:19 CET 2009
-// $Id: DiLeptonFilter.cc,v 1.2 2009/11/17 15:40:57 edelhoff Exp $
+// $Id: DiLeptonFilter.cc,v 1.3 2009/11/18 10:58:25 edelhoff Exp $
 //
 //
 
@@ -143,8 +143,8 @@ bool DiLeptonFilter::inclusiveFilter( const collection &primary, const collectio
     int countSec = 0;
     for(collection::const_iterator iSec = secondary.begin(); iSec != secondary.end() ; ++iSec, ++countSec){
       if( ( !(primaryTag_ == secondaryTag_) || countPrime != countSec)
-	  && ( (!matching_) ||different( (*iPrime), (*iSec) ) )
-	  && ( fabs((*iPrime).charge()) == 1 && fabs((*iSec).charge()) == 1 ) ){
+	  &&( different( (*iPrime), (*iSec) ) ) 
+	  &&( fabs((*iPrime).charge()) == 1 && fabs((*iSec).charge()) == 1 ) ){
 	if( sameSign_ ){
 	  result = result || ( (*iPrime).charge() == (*iSec).charge() );
 	}
@@ -163,8 +163,11 @@ bool DiLeptonFilter::inclusiveFilter( const collection &primary, const collectio
 
 bool DiLeptonFilter::different(const cand &a, const cand &b)
 {
-  return reco::deltaR<const cand, const cand>( a, b) > minDR_ 
-  && fabs( a.pt() - b.pt() ) > minDpt_ ;
+  if(matching_)
+    return &a != &b;
+  else
+    return reco::deltaR<const cand, const cand>( a, b) > minDR_ 
+      && fabs( a.pt() - b.pt() ) > minDpt_ ;
 }
 
 // ------------ method called once each job just before starting event loop  ------------
