@@ -97,5 +97,5 @@ def GenLeptons(process):
     process.seqGenLeptons = cms.Sequence(process.electronGenParticles + process.muonGenParticles + process.tauGenParticles
                                          + (process.genTausWithFuture * process.hadronicGenTaus * process.hadronicTauGenParticles)
                                          + process.promptParticles * ( process.promptElectrons + process.promptMuons + process.promptTaus)
-                               #          + process.printTree
+                                         + process.printTree
                                          )
