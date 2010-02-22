@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2009/11/04 04:16:27 $
- *  $Revision: 1.1 $ for CMSSW 3_3_X
+ *  $Date: 2010/02/10 13:15:47 $
+ *  $Revision: 1.2 $ for CMSSW 3_3_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -24,6 +24,8 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     //Monte carlo information
     mcInfo            = iConfig.getUntrackedParameter<bool>   ("mcInfo",false);
 
+    // how many tauDiscriminators to take
+    maxTauDiscriminators_ = 20; //TODO read from config
     //Input collections
     mcSrc             = iConfig.getParameter<edm::InputTag> ("mcSource");
     beamSpotSrc        = iConfig.getParameter<edm::InputTag> ("beamSpotSource");
@@ -172,6 +174,10 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hTauPhi = new TH1F * [nHistos];
     hTauEtaPhi = new TH2F * [nHistos];
 
+    hTauDiscriminators = new TH1F * [nHistos];
+    hGenTauPt = new TH1F * [nHistos];
+    hGenTauVisPt = new TH1F * [nHistos];
+
     h2dMuonEtaPt = new TH2F * [nHistos];
     h2dMatchedMuonEtaPt = new TH2F * [nHistos];
     h2dGenMuonEtaPt = new TH2F * [nHistos];
@@ -257,6 +263,10 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     unmatched = 2;
     promt = 3;
     decay = 4;
+    tauInitialized_ =  new bool[nHistos];
+    for(int i =0; i< nHistos; ++i){
+      tauInitialized_[i] = false;
+    }
 
     InitHisto(&General,general);
     InitHisto(&Effcor,effcor);
@@ -385,6 +395,9 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hTauIso[process] = Taus.make<TH1F>( "TauIso", "Isolation of taus", 300, 0.0, 3.0);
     hTauTrackIso[process] = Taus.make<TH1F>( "TauTrackIso", "Isolation of taus in tracker", 1000, 0.0, 10.0);
     hTauCaloIso[process] = Taus.make<TH1F>( "TauCaloIso", "Isolation of taus in calorimeter", 1000, 0.0, 10.0);
+    hGenTauPt[process] = Taus.make<TH1F>( "GenTauPt", "matched gen tau pt", 1000, 0.0, 1000.0);
+    hGenTauVisPt[process] = Taus.make<TH1F>( "GenTauVisPt", "matched gen tau visible pt", 1000, 0.0, 1000.0);
+    hTauDiscriminators[process] = Taus.make<TH1F>( "TauDiscriminators", "Tau ID discriminators", maxTauDiscriminators_+1, 0.0, maxTauDiscriminators_+1);
     
     //TnP
     TFileDirectory TnP = theFile->mkdir("TnP"); 
@@ -1072,8 +1085,34 @@ void DiLeptonHistograms::MuonMonitor(const pat::Muon* muon,const int n_Muon, dou
     }
 }
 
+void DiLeptonHistograms::InitTauHistos( const pat::Tau& tau, const int process)
+{
+  std::vector< pat::Tau::IdPair  > tauIds = tau.tauIDs();
+  int binNr = 1;
+  hTauDiscriminators[process]->GetXaxis()->SetBinLabel(binNr,"None");
+  assert( maxTauDiscriminators_ > tauIds.size());// std::cerr << "maxTauDiscriminators too small: "<< tauIds.size() << std::endl;
+  for(std::vector< pat::Tau::IdPair  >::iterator it = tauIds.begin(); it != tauIds.end() && binNr <= maxTauDiscriminators_; ++it){
+    binNr++;
+    hTauDiscriminators[process]->GetXaxis()->SetBinLabel(binNr,(*it).first.c_str());
+  }
+  tauInitialized_[process] = true;
+}
+
 //Fill all tau related quantities
 void DiLeptonHistograms::TauMonitor(const pat::Tau* tau,const int n_Tau, double weight, const int process){
+    if(!tauInitialized_[process]) InitTauHistos(*tau, process);
+    std::vector< pat::Tau::IdPair  > tauIds = tau->tauIDs();
+    hTauDiscriminators[process]->Fill("None", weight);
+    for(std::vector< pat::Tau::IdPair  >::iterator it = tauIds.begin(); it != tauIds.end(); ++it){
+      std::cout << it->first << " "<< it->second<<std::endl;
+      if((*it).second > 0.5 ) // TODO make this configurable
+      	hTauDiscriminators[process]->Fill( (*it).first.c_str(), weight);
+    }
+    if(mcInfo && tau->genJet() != 0 && tau->genParticle() != 0){
+      hGenTauPt[process]->Fill(tau->genParticle()->pt(), weight);
+      hGenTauVisPt[process]->Fill(tau->genJet()->pt(), weight);
+    }
+	
     h2dTauEtaPt[process]->Fill(tau->pt(),tau->eta(),weight);
     //Tau base plots
     hTauPt[process]->Fill(tau->pt(),weight);

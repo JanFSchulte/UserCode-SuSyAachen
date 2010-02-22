@@ -10,7 +10,7 @@ process.source.fileNames.append(
 #'file:/tmp/edelhoff/SUSYPAT.root'
 )
 process.source.duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
-process.maxEvents.input = 10
+process.maxEvents.input = 100
 
 process.load('Configuration.StandardSequences.Services_cff')
 process.add_( cms.Service( "TFileService",

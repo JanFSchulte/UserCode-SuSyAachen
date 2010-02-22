@@ -7,11 +7,11 @@ mcInfo = cms.untracked.bool(True),
 
 mcSource = cms.InputTag("genParticles"),
 backmapSource = cms.InputTag("genParticles"),
-muonSource = cms.InputTag("selectedLayer1Muons"),
-electronSource = cms.InputTag("selectedLayer1Electrons"),
-tauSource = cms.InputTag("selectedLayer1Taus"),
-metSource = cms.InputTag("selectedLayer1METs"),
-jetSource = cms.InputTag("selectedLayer1Jets"),
+muonSource = cms.InputTag("cleanLayer1Muons"),
+electronSource = cms.InputTag("cleanLayer1Electrons"),
+tauSource = cms.InputTag("cleanLayer1Taus"),
+metSource = cms.InputTag("layer1METsAK5"),
+jetSource = cms.InputTag("cleanLayer1JetsAK5"),
 
 CSA_weighted = cms.untracked.bool(False),
 

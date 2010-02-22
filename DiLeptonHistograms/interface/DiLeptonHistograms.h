@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2009/11/04 04:16:27 $
- *  $Revision: 1.1 $
+ *  $Date: 2010/02/10 13:15:47 $
+ *  $Revision: 1.2 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -201,6 +201,10 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH1F**       hTauPhi; 
     TH2F**       hTauEtaPhi;
 
+    TH1F**       hTauDiscriminators;
+    TH1F**       hGenTauPt;
+    TH1F**       hGenTauVisPt;
+
     TH2F**       h2dMuonEtaPt;
     TH2F**       h2dMatchedMuonEtaPt;
     TH2F**       h2dGenMuonEtaPt;
@@ -283,6 +287,9 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     double eff_Electron_Scale;
     double eff_Muon_Scale;
     double jet_Scale;
+
+    bool* tauInitialized_;
+    unsigned int maxTauDiscriminators_;
     
     std::string bJetAlgo;
 
@@ -322,6 +329,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     virtual void ElectronMonitor(const pat::Electron*, const int, double, const int);
     virtual void MuonMonitor(const pat::Muon*, const int, double, const int);
     virtual void TauMonitor(const pat::Tau*, const int, double, const int);
+    void InitTauHistos( const pat::Tau& tau, const int process);
 
     virtual void MuonInvMonitor(const double, const double, const double, const double, const double, const double, double, const int);
     virtual void OFOSInvMonitor(const double, const double, const double, const double, const double, const double, double, const int);
