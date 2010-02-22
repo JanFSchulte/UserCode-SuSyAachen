@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/02/10 13:15:47 $
- *  $Revision: 1.2 $ for CMSSW 3_3_X
+ *  $Date: 2010/02/22 16:17:52 $
+ *  $Revision: 1.3 $ for CMSSW 3_3_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -296,15 +296,15 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     //histograms for the invariant mass of the leptons
     hInvMSFOS[process] = InvMass.make<TH1F>( "Invariant mass of SFOS lepton pairs", "Invariant mass of SFOS lepton pairs", 300, 0, 300);
     hInvMOFOS[process] = InvMass.make<TH1F>( "Invariant mass of OFOS lepton pairs", "Invariant mass of OFOS lepton pairs", 300, 0, 300);
-    hInvMass[process] = InvMass.make<TH1F>( "Invariant mass of lepton pairs", "Invariant mass of lepton pairs", 300, 0, 300);
+    hInvMass[process] = InvMass.make<TH1F>( "Invariant mass of Fsubtracted OS lepton pairs", "Invariant mass of flavor subtracted opposite sign lepton pairs", 300, 0, 300);
     hDileptonPt[process] = InvMass.make<TH1F>( "pt of lepton pairs", "pt of lepton pairs", 500, 0, 500);
     hJZB[process] = InvMass.make<TH1F>( "JZB", "JZB of lepton pairs", 1000, -500, 500);
-    hInvMElectron[process] = InvMass.make<TH1F>( "Invariant mass of electron pairs", "Invariant mass of electron pairs", 300, 0, 300);
-    hInvMElectronSS[process] = InvMass.make<TH1F>( "Invariant mass of same sign electron pairs", "Invariant mass of same sign electron pairs", 300, 0, 300);
-    hInvMMuon[process] = InvMass.make<TH1F>( "Invariant mass of muon pairs", "Invariant mass of muon pairs", 300, 0, 300);
-    hInvMMuonSS[process] = InvMass.make<TH1F>( "Invariant mass of same sign muon pairs", "Invariant mass of same sign muon pairs", 300, 0, 300);
-    hInvMTau[process] = InvMass.make<TH1F>( "Invariant mass of tau pairs", "Invariant mass of tau pairs", 300, 0, 300);
-    hInvMTauSS[process] = InvMass.make<TH1F>( "Invariant mass of same sign tau pairs", "Invariant mass of same sign tau pairs", 300, 0, 300);
+    hInvMElectron[process] = InvMass.make<TH1F>( "Invariant mass of OS electron pairs", "Invariant mass of opposite sign electron pairs", 300, 0, 300);
+    hInvMElectronSS[process] = InvMass.make<TH1F>( "Invariant mass of SS electron pairs", "Invariant mass of same sign electron pairs", 300, 0, 300);
+    hInvMMuon[process] = InvMass.make<TH1F>( "Invariant mass of OS muon pairs", "Invariant mass of opposite sign muon pairs", 300, 0, 300);
+    hInvMMuonSS[process] = InvMass.make<TH1F>( "Invariant mass of SS muon pairs", "Invariant mass of same sign muon pairs", 300, 0, 300);
+    hInvMTau[process] = InvMass.make<TH1F>( "Invariant mass of OS tau pairs", "Invariant mass of opposite sign tau pairs", 300, 0, 300);
+    hInvMTauSS[process] = InvMass.make<TH1F>( "Invariant mass of SS tau pairs", "Invariant mass of same sign tau pairs", 300, 0, 300);
     hInvMassMC[process] = InvMass.make<TH1F>( "Invariant mass of signal decays", "Invariant mass of signal decays", 300, 0, 300);
     hInvMassZMC[process] = InvMass.make<TH1F>( "Invariant mass of Z decays", "Invariant mass of Z decays", 300, 0, 300);
  
@@ -346,13 +346,13 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hMuonIsod0[process] = Muons.make<TH2F>( "muon iso d0", "muon iso d0", 300, 0.0 , 3.0, 200, 0.0, 0.2);
     hMuonEtaPhi[process] = Muons.make<TH2F>( "muon eta phi", "muon eta phi", 250, -2.5 , 2.5, 350, -3.5, 3.5);
     //histograms for lepton isolation cuts
-    hMuonIso[process] = Muons.make<TH1F>( "MuonIso", "Isolation of muons", 300, 0.0, 3.0);
-    hMuonTrackIso[process] = Muons.make<TH1F>( "MuonTrackIso", "Isolation of muons in tracker", 1000, 0.0, 10.0);
-    hMuonCaloIso[process] = Muons.make<TH1F>( "MuonCaloIso", "Isolation of muons in calorimeter", 1000, 0.0, 10.0);
-    hGenMuonPt[process] = Muons.make<TH1F>( "Generator muon pt", "Generator muon pt", 1000, 0.0, 1000.0);
-    hGenMuonEta[process] = Muons.make<TH1F>( "Generator muon eta", "Generator muon eta", 250, -2.5, 2.5);
+    hMuonIso[process] = Muons.make<TH1F>( "muon iso", "Isolation of muons", 300, 0.0, 3.0);
+    hMuonTrackIso[process] = Muons.make<TH1F>( "muon track iso", "Isolation of muons in tracker", 1000, 0.0, 10.0);
+    hMuonCaloIso[process] = Muons.make<TH1F>( "muon calo iso", "Isolation of muons in calorimeter", 1000, 0.0, 10.0);
+    hGenMuonPt[process] = Muons.make<TH1F>( "generator muon pt", "Generator muon pt", 1000, 0.0, 1000.0);
+    hGenMuonEta[process] = Muons.make<TH1F>( "generator muon eta", "Generator muon eta", 250, -2.5, 2.5);
 
-    hMuonResolution[process] = Muons.make<TH1F>( "Muon resolution", "Resolution of muons", 1000, -5.0, 5.0);
+    hMuonResolution[process] = Muons.make<TH1F>( "muon resolution", "Resolution of muons", 1000, -5.0, 5.0);
     
     TFileDirectory Electrons = theFile->mkdir("Electrons"); 
     //electron histograms
@@ -366,11 +366,11 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hElectronPhi[process] = Electrons.make<TH1F>( "electron phi", "electron phi", 350, -3.5, 3.5);
     hElectrond0[process] = Electrons.make<TH1F>( "electron track d0", "electron track d0", 400, -0.2, 0.2);
     //histograms for lepton isolation cuts
-    hElectronIso[process] = Electrons.make<TH1F>( "ElectronIso", "Isolation of electrons", 300, 0.0, 3.0);
-    hElectronTrackIso[process] = Electrons.make<TH1F>( "ElectronTrackIso", "Isolation of electrons in tracker", 1000, 0.0, 10.0); 
-    hElectronCaloIso[process] = Electrons.make<TH1F>( "ElectronCaloIso", "Isolation of electrons in calorimeter", 1000, 0.0, 10.0); 
-    hGenElectronPt[process] = Electrons.make<TH1F>( "Generator electron pt", "Generator electron pt", 1000, 0.0, 1000.0);
-    hGenElectronEta[process] = Electrons.make<TH1F>( "Generator electron eta", "Generator electron eta", 250, -2.5, 2.5);
+    hElectronIso[process] = Electrons.make<TH1F>( "electron iso", "Isolation of electrons", 300, 0.0, 3.0);
+    hElectronTrackIso[process] = Electrons.make<TH1F>( "electron track iso", "Isolation of electrons in tracker", 1000, 0.0, 10.0); 
+    hElectronCaloIso[process] = Electrons.make<TH1F>( "electron calo iso", "Isolation of electrons in calorimeter", 1000, 0.0, 10.0); 
+    hGenElectronPt[process] = Electrons.make<TH1F>( "generator electron pt", "Generator electron pt", 1000, 0.0, 1000.0);
+    hGenElectronEta[process] = Electrons.make<TH1F>( "generator electron eta", "Generator electron eta", 250, -2.5, 2.5);
     //electron variables
     hElectronEoverP[process] = Electrons.make<TH1F>( "electron E over P", "electron E over P", 250, 0.0, 2.5);
     hElectronfBrem[process] = Electrons.make<TH1F>( "electron fBrem", "electron fBrem", 110, 0.0, 1.1);
@@ -380,7 +380,7 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hElectronIsod0[process] = Electrons.make<TH2F>( "electron iso d0", "electron iso d0", 300, 0.0 , 3.0, 200, 0.0, 0.2);
     hElectronEtaPhi[process] = Electrons.make<TH2F>( "electron eta phi", "electron eta phi", 250, -2.5 , 2.5, 350, -3.5, 3.5);
 
-    hElectronResolution[process] = Electrons.make<TH1F>( "Electron resolution", "Resolution of electrons", 1000, -5.0, 5.0);
+    hElectronResolution[process] = Electrons.make<TH1F>( "electron resolution", "Resolution of electrons", 1000, -5.0, 5.0);
     
     TFileDirectory Taus = theFile->mkdir("Taus"); 
     //tau histograms
@@ -392,12 +392,12 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hTau2Eta[process] = Taus.make<TH1F>( "tau 2 eta", "tau 2 eta", 250, -2.5, 2.5);
     hTauPhi[process] = Taus.make<TH1F>( "tau phi", "tau phi", 350, -3.5, 3.5);
     hTauEtaPhi[process] = Taus.make<TH2F>( "tau eta phi", "tau eta phi", 250, -2.5 , 2.5, 350, -3.5, 3.5);
-    hTauIso[process] = Taus.make<TH1F>( "TauIso", "Isolation of taus", 300, 0.0, 3.0);
-    hTauTrackIso[process] = Taus.make<TH1F>( "TauTrackIso", "Isolation of taus in tracker", 1000, 0.0, 10.0);
-    hTauCaloIso[process] = Taus.make<TH1F>( "TauCaloIso", "Isolation of taus in calorimeter", 1000, 0.0, 10.0);
-    hGenTauPt[process] = Taus.make<TH1F>( "GenTauPt", "matched gen tau pt", 1000, 0.0, 1000.0);
-    hGenTauVisPt[process] = Taus.make<TH1F>( "GenTauVisPt", "matched gen tau visible pt", 1000, 0.0, 1000.0);
-    hTauDiscriminators[process] = Taus.make<TH1F>( "TauDiscriminators", "Tau ID discriminators", maxTauDiscriminators_+1, 0.0, maxTauDiscriminators_+1);
+    hTauIso[process] = Taus.make<TH1F>( "tau iso", "Isolation of taus", 300, 0.0, 3.0);
+    hTauTrackIso[process] = Taus.make<TH1F>( "tau track iso", "Isolation of taus in tracker", 1000, 0.0, 10.0);
+    hTauCaloIso[process] = Taus.make<TH1F>( "tau calo iso", "Isolation of taus in calorimeter", 1000, 0.0, 10.0);
+    hGenTauPt[process] = Taus.make<TH1F>( "generator tau pt", "matched gen tau pt", 1000, 0.0, 1000.0);
+    hGenTauVisPt[process] = Taus.make<TH1F>( "generator tau vis pt", "matched gen tau visible pt", 1000, 0.0, 1000.0);
+    hTauDiscriminators[process] = Taus.make<TH1F>( "tau discriminators", "Tau ID discriminators", maxTauDiscriminators_+1, 0.0, maxTauDiscriminators_+1);
     
     //TnP
     TFileDirectory TnP = theFile->mkdir("TnP"); 
@@ -431,8 +431,8 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
  
     //histograms for Missing ET
     TFileDirectory MET = theFile->mkdir("MET"); 
-    hMissingET[process] = MET.make<TH1F>( "Missing transverse energy", "Missing transverse energy", 1000, 0.0, 1000.0);
-    hMissingETmc[process] =  MET.make<TH1F>( "Missing transverse energy MC", "Missing transverse energy MC", 1000, 0.0, 1000.0);
+    hMissingET[process] = MET.make<TH1F>( "MET", "Missing transverse energy", 1000, 0.0, 1000.0);
+    hMissingETmc[process] =  MET.make<TH1F>( "MET MC", "Missing transverse energy MC", 1000, 0.0, 1000.0);
     halphaT[process] = MET.make<TH1F>( "alphaT", "alphaT", 100, 0.0, 1.0);
     hEtSum[process] = MET.make<TH1F>( "ETsum", "Transverse energy sum ET", 2000, 0.0, 2000.0);
     hHT[process] = MET.make<TH1F>( "HT", "Transverse energy sum HT", 2000, 0.0, 2000.0);
@@ -448,10 +448,10 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hJetEt[process] = Jets.make<TH1F>( "jet pt", "jet pt", 1500, 0.0, 1500.0);
     hJetEta[process] = Jets.make<TH1F>( "jet eta", "jet eta", 300, -3., 3.);
     hJetPhi[process] = Jets.make<TH1F>( "jet phi", "jet phi", 350, -3.5, 3.5);
-    hEtJet1[process] = Jets.make<TH1F>( "Pt first jet", "Pt spectrum of the 1st jet", 1500, 0.0, 1500.0);
-    hEtJet2[process] = Jets.make<TH1F>( "Pt second jet", "Pt spectrum of the 2nd jet", 1500, 0.0, 1500.0);
-    hEtJet3[process] = Jets.make<TH1F>( "Pt third jet", "Pt spectrum of the 3rd jet", 1500, 0.0, 1500.0);
-    hEtJet4[process] = Jets.make<TH1F>( "Pt fourth jet", "Pt spectrum of the 4th jet", 1500, 0.0, 1500.0);
+    hEtJet1[process] = Jets.make<TH1F>( "pt first jet", "Pt spectrum of the 1st jet", 1500, 0.0, 1500.0);
+    hEtJet2[process] = Jets.make<TH1F>( "pt second jet", "Pt spectrum of the 2nd jet", 1500, 0.0, 1500.0);
+    hEtJet3[process] = Jets.make<TH1F>( "pt third jet", "Pt spectrum of the 3rd jet", 1500, 0.0, 1500.0);
+    hEtJet4[process] = Jets.make<TH1F>( "pt fourth jet", "Pt spectrum of the 4th jet", 1500, 0.0, 1500.0);
     hJet1Eta[process] = Jets.make<TH1F>( "jet 1 eta", "jet 1 eta", 300, -3., 3.);
     hJet2Eta[process] = Jets.make<TH1F>( "jet 2 eta", "jet 2 eta", 300, -3., 3.);
     hJet3Eta[process] = Jets.make<TH1F>( "jet 3 eta", "jet 3 eta", 300, -3., 3.);
