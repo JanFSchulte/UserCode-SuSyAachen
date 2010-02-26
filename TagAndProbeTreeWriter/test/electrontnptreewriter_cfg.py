@@ -21,6 +21,7 @@ mcInfoAvailable = cms.untracked.bool(True),
 mcSource = cms.InputTag("genParticles"),
 tagSource = cms.InputTag("cleanLayer1Electrons"),
 probeSource = cms.InputTag("cleanLayer1Electrons"),
+passProbeSource = cms.InputTag("cleanLayer1Electrons"),
 jetSource = cms.InputTag("cleanLayer1JetsAK5"),
 
 )
