@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/02/22 16:17:52 $
- *  $Revision: 1.3 $ for CMSSW 3_3_X
+ *  $Date: 2010/02/22 16:28:01 $
+ *  $Revision: 1.4 $ for CMSSW 3_3_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -1088,7 +1088,7 @@ void DiLeptonHistograms::MuonMonitor(const pat::Muon* muon,const int n_Muon, dou
 void DiLeptonHistograms::InitTauHistos( const pat::Tau& tau, const int process)
 {
   std::vector< pat::Tau::IdPair  > tauIds = tau.tauIDs();
-  int binNr = 1;
+  unsigned int binNr = 1;
   hTauDiscriminators[process]->GetXaxis()->SetBinLabel(binNr,"None");
   assert( maxTauDiscriminators_ > tauIds.size());// std::cerr << "maxTauDiscriminators too small: "<< tauIds.size() << std::endl;
   for(std::vector< pat::Tau::IdPair  >::iterator it = tauIds.begin(); it != tauIds.end() && binNr <= maxTauDiscriminators_; ++it){
@@ -1104,7 +1104,7 @@ void DiLeptonHistograms::TauMonitor(const pat::Tau* tau,const int n_Tau, double 
     std::vector< pat::Tau::IdPair  > tauIds = tau->tauIDs();
     hTauDiscriminators[process]->Fill("None", weight);
     for(std::vector< pat::Tau::IdPair  >::iterator it = tauIds.begin(); it != tauIds.end(); ++it){
-      std::cout << it->first << " "<< it->second<<std::endl;
+      if(debug) std::cout << it->first << " "<< it->second<<std::endl;
       if((*it).second > 0.5 ) // TODO make this configurable
       	hTauDiscriminators[process]->Fill( (*it).first.c_str(), weight);
     }
