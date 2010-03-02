@@ -70,8 +70,10 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
 
     // book histograms for multiplicities of leptons and jets
     hLeptonMult = new TH1F * [nHistos];
+    hLightLeptonMult = new TH1F * [nHistos];
     hElectronMult = new TH1F * [nHistos];
     hMuonMult = new TH1F * [nHistos];
+    hTauMult = new TH1F * [nHistos];
     hJetMult = new TH1F * [nHistos];
     hbJetMult = new TH1F * [nHistos];
 
@@ -166,6 +168,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     
     //Tau histograms
     hTauPt = new TH1F * [nHistos];
+    hTauSumPt = new TH1F * [nHistos];
     hTau1Pt = new TH1F * [nHistos];
     hTau2Pt = new TH1F * [nHistos];
     hTauEta = new TH1F * [nHistos];
@@ -285,11 +288,13 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
 {
     //Multiplicity plots
     TFileDirectory Multiplicity = theFile->mkdir("Multiplicity"); 
-    hLeptonMult[process] = Multiplicity.make<TH1F>( "LeptonMultiplicity", "Multiplicity of electrons + muons", 15, 0.0, 15.0);
-    hElectronMult[process] = Multiplicity.make<TH1F>( "ElectronMultiplicity", "Multiplicity of electrons", 10, 0.0, 10.0);
-    hMuonMult[process] = Multiplicity.make<TH1F>( "MuonMultiplicity", "Multiplicity of muons", 10, 0.0, 10.0);
-    hJetMult[process] = Multiplicity.make<TH1F>( "JetMultiplicity", "Multiplicity of jets", 30, 0.0, 30.0);
-    hbJetMult[process] = Multiplicity.make<TH1F>( "bJetMultiplicity", "Multiplicity of b jets", 15, 0.0, 15.0);
+    hLeptonMult[process] = Multiplicity.make<TH1F>( "LeptonMultiplicity", "Multiplicity of electrons + muons + taus", 15, -0.5, 14.5);
+    hLightLeptonMult[process] = Multiplicity.make<TH1F>( "LightLeptonMultiplicity", "Multiplicity of electrons + muons", 15, -0.5, 14.5);
+    hElectronMult[process] = Multiplicity.make<TH1F>( "ElectronMultiplicity", "Multiplicity of electrons", 10, -0.5, 9.5);
+    hMuonMult[process] = Multiplicity.make<TH1F>( "MuonMultiplicity", "Multiplicity of muons", 10, -0.5, 9.5);
+    hTauMult[process] = Multiplicity.make<TH1F>( "TauMultiplicity", "Multiplicity of taus", 10, -0.5, 9.5);
+    hJetMult[process] = Multiplicity.make<TH1F>( "JetMultiplicity", "Multiplicity of jets", 30, -0.5, 29.5);
+    hbJetMult[process] = Multiplicity.make<TH1F>( "bJetMultiplicity", "Multiplicity of b jets", 15, -0.5, 14.5);
 
         
     TFileDirectory InvMass = theFile->mkdir("Invariant Mass"); 
@@ -385,6 +390,7 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     TFileDirectory Taus = theFile->mkdir("Taus"); 
     //tau histograms
     hTauPt[process] = Taus.make<TH1F>( "tau pt", "tau pt", 1000, 0.0, 1000.0);
+    hTauSumPt[process] = Muons.make<TH1F>( "sum tau pt", "sum tau pt", 1000, 0.0, 1000.0);
     hTau1Pt[process] = Taus.make<TH1F>( "tau 1 pt", "pt of first tau", 1000, 0.0, 1000.0);
     hTau2Pt[process] = Taus.make<TH1F>( "tau 2 pt", "pt of second tau", 1000, 0.0, 1000.0);
     hTauEta[process] = Taus.make<TH1F>( "tau eta", "tau eta", 250, -2.5, 2.5);
@@ -890,8 +896,10 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
     
     //Loop over taus 
     int n_Taus = 0;
+    float tauPt = 0.;
     for (std::vector<pat::Tau>::const_iterator tau_i = taus->begin(); tau_i != taus->end(); ++tau_i){
         if (debug) std::cout <<"tau eta = "<< tau_i->eta() << std::endl;
+        tauPt += tau_i->pt();
         ++numTotTaus;
 	    ++n_Taus;
    	    TauMonitor(&(*tau_i),n_Taus,weight,general); 
@@ -920,8 +928,12 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
     //Electron multiplicity 
     hElectronMult[general]->Fill(n_Electrons,weight);
     hElectronSumPt[general]->Fill(elePt,weight);
+    //Tau multipilcity
+    hTauMult[general]->Fill(n_Taus,weight);
+    hTauSumPt[general]->Fill(tauPt,weight);
     //Lepton multiplicity
-    hLeptonMult[general]->Fill(n_Muons+n_Electrons,weight);
+    hLightLeptonMult[general]->Fill(n_Electrons+n_Muons, weight);
+    hLeptonMult[general]->Fill(n_Electrons+n_Muons+n_Taus, weight);
 }
 
 //Fill all muon inv mass related quantities
@@ -1088,7 +1100,7 @@ void DiLeptonHistograms::MuonMonitor(const pat::Muon* muon,const int n_Muon, dou
 void DiLeptonHistograms::InitTauHistos( const pat::Tau& tau, const int process)
 {
   std::vector< pat::Tau::IdPair  > tauIds = tau.tauIDs();
-  unsigned int binNr = 1;
+  int binNr = 1;
   hTauDiscriminators[process]->GetXaxis()->SetBinLabel(binNr,"None");
   assert( maxTauDiscriminators_ > tauIds.size());// std::cerr << "maxTauDiscriminators too small: "<< tauIds.size() << std::endl;
   for(std::vector< pat::Tau::IdPair  >::iterator it = tauIds.begin(); it != tauIds.end() && binNr <= maxTauDiscriminators_; ++it){
@@ -1104,7 +1116,6 @@ void DiLeptonHistograms::TauMonitor(const pat::Tau* tau,const int n_Tau, double 
     std::vector< pat::Tau::IdPair  > tauIds = tau->tauIDs();
     hTauDiscriminators[process]->Fill("None", weight);
     for(std::vector< pat::Tau::IdPair  >::iterator it = tauIds.begin(); it != tauIds.end(); ++it){
-      if(debug) std::cout << it->first << " "<< it->second<<std::endl;
       if((*it).second > 0.5 ) // TODO make this configurable
       	hTauDiscriminators[process]->Fill( (*it).first.c_str(), weight);
     }
