@@ -4,7 +4,7 @@
 // for track collection, that clones together with Tracks, 
 // also TrackExtras and RecHits
 //#include "PhysicsTools/RecoAlgos/interface/TrackSelector.h"
-#include "PhysicsTools/UtilAlgos/interface/ObjectSelector.h"
+#include "CommonTools/UtilAlgos/interface/ObjectSelector.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 
 #include "SuSyAachen/Skimming/interface/patFlagSelector.h"

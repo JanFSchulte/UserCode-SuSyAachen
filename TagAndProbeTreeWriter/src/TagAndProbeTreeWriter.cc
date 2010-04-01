@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: TagAndProbeTreeWriter.cc,v 1.2 2010/01/14 10:46:53 nmohr Exp $
+// $Id: TagAndProbeTreeWriter.cc,v 1.3 2010/02/26 13:57:47 nmohr Exp $
 //
 //
 
@@ -34,7 +34,7 @@
 #include "FWCore/ParameterSet/interface/InputTag.h"
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
-#include "PhysicsTools/UtilAlgos/interface/TFileService.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"

@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: LeptonCounter.cc,v 1.2 2009/11/03 21:32:53 edelhoff Exp $
+// $Id: LeptonCounter.cc,v 1.3 2010/01/05 16:40:08 edelhoff Exp $
 //
 //
 
@@ -31,7 +31,7 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
-#include "PhysicsTools/UtilAlgos/interface/TFileService.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include <DataFormats/Candidate/interface/Candidate.h>
 //#include <DataFormats/PatCandidates/interface/Electron.h>
