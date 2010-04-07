@@ -20,5 +20,5 @@ typedef ObjectCountFilter< edm::View<reco::Candidate>,
 
 
 // declare the module as plugin
-//DEFINE_FWK_MODULE( PATJetCountFilter );
-//DEFINE_FWK_MODULE( CandViewJetCountFilter );
+DEFINE_FWK_MODULE( PATJetCountFilter );
+DEFINE_FWK_MODULE( CandViewJetCountFilter );

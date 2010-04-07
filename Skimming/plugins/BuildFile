@@ -2,28 +2,28 @@
 <use name=FWCore/ParameterSet>
 
 <library name=SuSyAachenD0Selectors file=d0Selector.cc>
-	 <use name=PhysicsTools/UtilAlgos>	     
+	 <use name=CommonTools/UtilAlgos>	     
 	 <use name=DataFormats/PatCandidates>
 	 <use name=DataFormats/BeamSpot>
 </library>
 
 <library name=SuSyAachenPatFlagSelectors file=patFlagSelector.cc>
-	 <use name=PhysicsTools/UtilAlgos>	     
+	 <use name=CommonTools/UtilAlgos>	     
 	 <use name=DataFormats/PatCandidates>
 </library>
 
 <library name=SuSyAachenMCSelectors file=MCSelectors.cc>
-	 <use name=PhysicsTools/UtilAlgos>	     
+	 <use name=CommonTools/UtilAlgos>	     
 	 <use name=DataFormats/HepMCCandidate>	     
 	 <use name=DataFormats/PatCandidates>
 </library>
 
 <library name=SuSyAachenJetSelectors file=jetSelectors.cc>
-	 <use name=PhysicsTools/UtilAlgos>	     
+	 <use name=CommonTools/UtilAlgos>	     
 	 <use name=DataFormats/PatCandidates>
 </library>
 
 <library name=SuSyAachenTrackSelectors file=trackSelectors.cc>
-	 <use name=PhysicsTools/UtilAlgos>	     
+	 <use name=CommonTools/UtilAlgos>	     
 	 <use name=DataFormats/TrackReco>
 </library>
