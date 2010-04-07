@@ -8,6 +8,7 @@
 
 #include "DataFormats/TrackReco/interface/Track.h"
 
+
 // define your producer name
 typedef SingleObjectSelector< std::vector<reco::Track>,
                    StringCutObjectSelector<reco::Track>
@@ -15,3 +16,4 @@ typedef SingleObjectSelector< std::vector<reco::Track>,
 
 // declare the module as plugin
 DEFINE_FWK_MODULE( GenericTrackSelector );
+

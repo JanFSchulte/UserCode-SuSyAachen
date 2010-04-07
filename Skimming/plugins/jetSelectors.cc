@@ -1,11 +1,11 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
-#include "PhysicsTools/UtilAlgos/interface/ObjectCountFilter.h"
-#include "PhysicsTools/UtilAlgos/interface/StringCutObjectSelector.h"
+#include "CommonTools/UtilAlgos/interface/ObjectCountFilter.h"
+#include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 //#include "PhysicsTools/UtilAlgos/interface/MinNumberSelector.h"
 //#include "PhysicsTools/UtilAlgos/interface/MaxNumberSelector.h"
 //#include "PhysicsTools/UtilAlgos/interface/AndSelector.h"
-#include "PhysicsTools/UtilAlgos/interface/AnySelector.h"
+#include "CommonTools/UtilAlgos/interface/AnySelector.h"
 
 #include "DataFormats/PatCandidates/interface/Jet.h"
 
@@ -20,5 +20,5 @@ typedef ObjectCountFilter< edm::View<reco::Candidate>,
 
 
 // declare the module as plugin
-DEFINE_FWK_MODULE( PATJetCountFilter );
-DEFINE_FWK_MODULE( CandViewJetCountFilter );
+//DEFINE_FWK_MODULE( PATJetCountFilter );
+//DEFINE_FWK_MODULE( CandViewJetCountFilter );
