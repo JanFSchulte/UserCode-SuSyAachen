@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: TriggerResultsCounter.cc,v 1.2 2010/02/17 19:50:01 edelhoff Exp $
+// $Id: TriggerResultsCounter.cc,v 1.3 2010/04/01 09:36:57 sprenger Exp $
 //
 //
 
@@ -35,7 +35,7 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
-#include "FWCore/Framework/interface/TriggerNames.h"
+#include "FWCore/Common/interface/TriggerNames.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 //#include <FWCore/Framework/interface/TriggerReport.h>
 
@@ -129,8 +129,7 @@ TriggerResultsCounter::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     return;
   }
 
-  edm::TriggerNames triggerNames;  
-  triggerNames.init(*triggerResults);
+  const edm::TriggerNames & triggerNames = iEvent.triggerNames(*triggerResults);
   //  triggerNames.triggerIndex(HLTPathsByName_[trig]);
   for(unsigned int i = 0; i < triggerNames.size(); ++i){
     for(std::map<std::string, std::vector<std::string> >::iterator iNameVec = triggerNames_.begin();

@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/03/02 16:57:57 $
- *  $Revision: 1.4 $
+ *  $Date: 2010/04/01 09:36:56 $
+ *  $Revision: 1.5 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -56,7 +56,7 @@
 #include "DataFormats/PatCandidates/interface/Flags.h"
 
 #include "DataFormats/Common/interface/TriggerResults.h"
-#include "FWCore/Framework/interface/TriggerNames.h"
+#include "FWCore/Common/interface/TriggerNames.h"
 
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
@@ -87,14 +87,17 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
 
     TH1F**       hElectronIso;
     TH1F**       hElectronTrackIso;
-    TH1F**       hElectronCaloIso;
+    TH1F**       hElectronEcalIso;
+    TH1F**       hElectronHcalIso;
     TH1F**       hMuonIso;
     TH1F**       hMuonTrackIso;
-    TH1F**       hMuonCaloIso;
+    TH1F**       hMuonEcalIso;
+    TH1F**       hMuonHcalIso;
 
     TH1F**       hTauIso;
     TH1F**       hTauTrackIso;
-    TH1F**       hTauCaloIso;
+    TH1F**       hTauEcalIso;
+    TH1F**       hTauHcalIso;
 
     TH1F**       hMissingET;
     TH1F**       hMissingETmc;
@@ -191,6 +194,10 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH1F**       hElectronHoverE;
     TH1F**       hElectrondeltaPhiIn;
     TH1F**       hElectrondeltaEtaIn;
+    TH1F**       hElectrone25Maxoe55;
+    TH1F**       hElectrone15oe55;
+    TH1F**       hElectronsigmaEtaEta;
+    TH1F**       hElectronsigmaIetaIeta;
     TH2F**       hElectronIsod0;
     TH2F**       hElectronEtaPhi;
     
@@ -327,7 +334,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
 
     virtual void Analysis(const edm::Handle< std::vector<pat::Muon> >&, const edm::Handle< std::vector<pat::Electron> >&, const edm::Handle< std::vector<pat::Tau> >& , const edm::Handle< std::vector<pat::Jet> >&, const edm::Handle< std::vector<pat::MET> >&, double weight, const int process);
 
-    virtual void TriggerMonitor(const edm::Handle< edm::TriggerResults >&, double weight, const int process);
+    virtual void TriggerMonitor(const edm::Handle< edm::TriggerResults >&, const edm::TriggerNames &, double weight, const int process);
   
     virtual void ElectronMonitor(const pat::Electron*, const int, double, const int);
     virtual void MuonMonitor(const pat::Muon*, const int, double, const int);

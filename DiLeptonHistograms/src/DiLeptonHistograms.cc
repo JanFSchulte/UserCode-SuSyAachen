@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/02/22 16:28:01 $
- *  $Revision: 1.4 $ for CMSSW 3_3_X
+ *  $Date: 2010/03/02 16:57:57 $
+ *  $Revision: 1.6 $ for CMSSW 3_3_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -80,13 +80,16 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     //histograms for lepton isolation cuts
     hElectronIso = new TH1F * [nHistos];
     hElectronTrackIso = new TH1F * [nHistos];
-    hElectronCaloIso = new TH1F * [nHistos];
+    hElectronEcalIso = new TH1F * [nHistos];
+    hElectronHcalIso = new TH1F * [nHistos];
     hMuonIso = new TH1F * [nHistos];
     hMuonTrackIso = new TH1F * [nHistos];
-    hMuonCaloIso = new TH1F * [nHistos];
+    hMuonEcalIso = new TH1F * [nHistos];
+    hMuonHcalIso = new TH1F * [nHistos];
     hTauIso = new TH1F * [nHistos];
     hTauTrackIso = new TH1F * [nHistos];
-    hTauCaloIso = new TH1F * [nHistos];
+    hTauEcalIso = new TH1F * [nHistos];
+    hTauHcalIso = new TH1F * [nHistos];
     
     //histograms for the invariant mass of the leptons
     hInvMSFOS = new TH1F * [nHistos];
@@ -163,6 +166,11 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hElectronHoverE = new TH1F * [nHistos];
     hElectrondeltaPhiIn = new TH1F * [nHistos];
     hElectrondeltaEtaIn = new TH1F * [nHistos];
+    hElectrone25Maxoe55 = new TH1F * [nHistos];
+    hElectrone15oe55 = new TH1F * [nHistos];
+    hElectronsigmaEtaEta = new TH1F * [nHistos];
+    hElectronsigmaIetaIeta = new TH1F * [nHistos];
+    hElectronsigmaIetaIeta = new TH1F * [nHistos];
     hElectronEtaPhi = new TH2F * [nHistos];
     hElectronIsod0 = new TH2F * [nHistos];
     
@@ -353,7 +361,8 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     //histograms for lepton isolation cuts
     hMuonIso[process] = Muons.make<TH1F>( "muon iso", "Isolation of muons", 300, 0.0, 3.0);
     hMuonTrackIso[process] = Muons.make<TH1F>( "muon track iso", "Isolation of muons in tracker", 1000, 0.0, 10.0);
-    hMuonCaloIso[process] = Muons.make<TH1F>( "muon calo iso", "Isolation of muons in calorimeter", 1000, 0.0, 10.0);
+    hMuonEcalIso[process] = Muons.make<TH1F>( "muon ecal iso", "Isolation of muons in electromagnetic calorimeter", 1000, 0.0, 10.0);
+    hMuonHcalIso[process] = Muons.make<TH1F>( "muon hcal iso", "Isolation of muons in hadronic calorimeter", 1000, 0.0, 10.0);
     hGenMuonPt[process] = Muons.make<TH1F>( "generator muon pt", "Generator muon pt", 1000, 0.0, 1000.0);
     hGenMuonEta[process] = Muons.make<TH1F>( "generator muon eta", "Generator muon eta", 250, -2.5, 2.5);
 
@@ -373,7 +382,8 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     //histograms for lepton isolation cuts
     hElectronIso[process] = Electrons.make<TH1F>( "electron iso", "Isolation of electrons", 300, 0.0, 3.0);
     hElectronTrackIso[process] = Electrons.make<TH1F>( "electron track iso", "Isolation of electrons in tracker", 1000, 0.0, 10.0); 
-    hElectronCaloIso[process] = Electrons.make<TH1F>( "electron calo iso", "Isolation of electrons in calorimeter", 1000, 0.0, 10.0); 
+    hElectronEcalIso[process] = Electrons.make<TH1F>( "electron ecal iso", "Isolation of electrons in electromagnetic calorimeter", 1000, 0.0, 10.0); 
+    hElectronHcalIso[process] = Electrons.make<TH1F>( "electron hcal iso", "Isolation of electrons in hadronic calorimeter", 1000, 0.0, 10.0); 
     hGenElectronPt[process] = Electrons.make<TH1F>( "generator electron pt", "Generator electron pt", 1000, 0.0, 1000.0);
     hGenElectronEta[process] = Electrons.make<TH1F>( "generator electron eta", "Generator electron eta", 250, -2.5, 2.5);
     //electron variables
@@ -382,6 +392,10 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hElectronHoverE[process] = Electrons.make<TH1F>( "electron H over E", "electron H over E", 200, 0.0, 0.2);
     hElectrondeltaPhiIn[process] = Electrons.make<TH1F>( "electron deltaPhiIn", "electron deltaPhiIn", 200, -0.1, 0.1);
     hElectrondeltaEtaIn[process] = Electrons.make<TH1F>( "electron deltaEtaIn", "electron deltaEtaIn", 400, -0.2, 0.2);
+    hElectrone25Maxoe55[process] = Electrons.make<TH1F>( "electron e25Maxoe55", "electron e25Maxoe55", 100, -1, 2);
+    hElectrone15oe55[process] = Electrons.make<TH1F>( "electron e15oe55", "electron e15oe55", 100, -1, 2);
+    hElectronsigmaEtaEta[process] = Electrons.make<TH1F>( "electron sigma eta eta", "electron sigma eta eta", 100, 0, 0.04);
+    hElectronsigmaIetaIeta[process] = Electrons.make<TH1F>( "electron sigma Ieta Ieta", "electron sigma Ieta Ieta", 100, 0, 0.04);
     hElectronIsod0[process] = Electrons.make<TH2F>( "electron iso d0", "electron iso d0", 300, 0.0 , 3.0, 200, 0.0, 0.2);
     hElectronEtaPhi[process] = Electrons.make<TH2F>( "electron eta phi", "electron eta phi", 250, -2.5 , 2.5, 350, -3.5, 3.5);
 
@@ -400,7 +414,8 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hTauEtaPhi[process] = Taus.make<TH2F>( "tau eta phi", "tau eta phi", 250, -2.5 , 2.5, 350, -3.5, 3.5);
     hTauIso[process] = Taus.make<TH1F>( "tau iso", "Isolation of taus", 300, 0.0, 3.0);
     hTauTrackIso[process] = Taus.make<TH1F>( "tau track iso", "Isolation of taus in tracker", 1000, 0.0, 10.0);
-    hTauCaloIso[process] = Taus.make<TH1F>( "tau calo iso", "Isolation of taus in calorimeter", 1000, 0.0, 10.0);
+    hTauEcalIso[process] = Taus.make<TH1F>( "tau ecal iso", "Isolation of taus in electromagnetc calorimeter", 1000, 0.0, 10.0);
+    hTauHcalIso[process] = Taus.make<TH1F>( "tau hcal iso", "Isolation of taus in hadronic calorimeter", 1000, 0.0, 10.0);
     hGenTauPt[process] = Taus.make<TH1F>( "generator tau pt", "matched gen tau pt", 1000, 0.0, 1000.0);
     hGenTauVisPt[process] = Taus.make<TH1F>( "generator tau vis pt", "matched gen tau visible pt", 1000, 0.0, 1000.0);
     hTauDiscriminators[process] = Taus.make<TH1F>( "tau discriminators", "Tau ID discriminators", maxTauDiscriminators_+1, 0.0, maxTauDiscriminators_+1);
@@ -980,10 +995,10 @@ void DiLeptonHistograms::OFOSInvMonitor(const double inv,const double MET,const 
 }
 
 //Fill all the trigger related quantities
-void DiLeptonHistograms::TriggerMonitor(const edm::Handle< edm::TriggerResults>& trigger, double weight, const int process){
+void DiLeptonHistograms::TriggerMonitor(const edm::Handle< edm::TriggerResults>& trigger, const edm::TriggerNames & names, double weight, const int process){
     //const int nFilters = trigger->size();
     //int nAccept = 0;
-    edm::TriggerNames names(*trigger);
+
     std::vector< std::string > hlNames;
     for (edm::TriggerNames::Strings::const_iterator j = names.triggerNames().begin(); j !=names.triggerNames().end(); ++j ) { 
         hlNames.push_back(*j);
@@ -1022,7 +1037,8 @@ void DiLeptonHistograms::ElectronMonitor(const pat::Electron* electron,const int
     double IsoValue = CalcIso(*electron);
     hElectronIso[process]->Fill(IsoValue,weight);
     hElectronTrackIso[process]->Fill(electron->trackIso(),weight);
-    hElectronCaloIso[process]->Fill(electron->caloIso(),weight);
+    hElectronEcalIso[process]->Fill(electron->ecalIso(),weight);
+    hElectronHcalIso[process]->Fill(electron->hcalIso(),weight);
     h2dElectronEtaPt[process]->Fill(electron->pt(),electron->eta(),weight);
   	
     double eOverP = electron->eSuperClusterOverP();
@@ -1031,7 +1047,10 @@ void DiLeptonHistograms::ElectronMonitor(const pat::Electron* electron,const int
     //double eSeedOverPin = eSeed/pin; 
     double pout = electron->trackMomentumOut().R(); 
     double fBrem = (pin-pout)/pin;
-    
+    double e25Maxoe55 = electron->e2x5Max()/electron->e5x5();  
+    double e15oe55 = electron->e1x5()/electron->e5x5();  
+    double sigmaEtaEta = electron->sigmaEtaEta();  
+    double sigmaIetaIeta = electron->sigmaIetaIeta();  
       
     double hOverE = electron->hadronicOverEm();
     //double sigmaee = sqrt((shapeRef)->covEtaEta());
@@ -1043,6 +1062,10 @@ void DiLeptonHistograms::ElectronMonitor(const pat::Electron* electron,const int
     hElectronHoverE[process]->Fill(hOverE,weight); 
     hElectrondeltaPhiIn[process]->Fill(deltaPhiIn,weight); 
     hElectrondeltaEtaIn[process]->Fill(deltaEtaIn,weight);
+    hElectrone25Maxoe55[process]->Fill(e25Maxoe55,weight);
+    hElectrone15oe55[process]->Fill(e15oe55,weight);
+    hElectronsigmaEtaEta[process]->Fill(sigmaEtaEta,weight);
+    hElectronsigmaIetaIeta[process]->Fill(sigmaIetaIeta,weight);
     if(!electron->gsfTrack().isNull()){
         //impact parameter
         double d0tobs = electron->gsfTrack()->dxy(bs);
@@ -1080,7 +1103,8 @@ void DiLeptonHistograms::MuonMonitor(const pat::Muon* muon,const int n_Muon, dou
     double IsoValue = CalcIso(*muon);
     hMuonIso[process]->Fill(IsoValue,weight);
     hMuonTrackIso[process]->Fill(muon->trackIso(),weight);
-    hMuonCaloIso[process]->Fill(muon->caloIso(),weight);
+    hMuonEcalIso[process]->Fill(muon->ecalIso(),weight);
+    hMuonHcalIso[process]->Fill(muon->hcalIso(),weight);
 
     if(!muon->innerTrack().isNull()){
         double d0tobs = muon->innerTrack()->dxy(bs);
@@ -1100,7 +1124,7 @@ void DiLeptonHistograms::MuonMonitor(const pat::Muon* muon,const int n_Muon, dou
 void DiLeptonHistograms::InitTauHistos( const pat::Tau& tau, const int process)
 {
   std::vector< pat::Tau::IdPair  > tauIds = tau.tauIDs();
-  int binNr = 1;
+  unsigned int binNr = 1;
   hTauDiscriminators[process]->GetXaxis()->SetBinLabel(binNr,"None");
   assert( maxTauDiscriminators_ > tauIds.size());// std::cerr << "maxTauDiscriminators too small: "<< tauIds.size() << std::endl;
   for(std::vector< pat::Tau::IdPair  >::iterator it = tauIds.begin(); it != tauIds.end() && binNr <= maxTauDiscriminators_; ++it){
@@ -1144,7 +1168,8 @@ void DiLeptonHistograms::TauMonitor(const pat::Tau* tau,const int n_Tau, double 
     double IsoValue = CalcIso(*tau);
     hTauIso[process]->Fill(IsoValue,weight);
     hTauTrackIso[process]->Fill(tau->trackIso(),weight);
-    hTauCaloIso[process]->Fill(tau->caloIso(),weight);
+    hTauEcalIso[process]->Fill(tau->ecalIso(),weight);
+    hTauHcalIso[process]->Fill(tau->hcalIso(),weight);
 
     if (mcInfo){
         if(tau->genLepton()){
@@ -1198,6 +1223,7 @@ void DiLeptonHistograms::analyze(const edm::Event &iEvent, const edm::EventSetup
     //Trigger 
     edm::Handle< edm::TriggerResults > trigger;
     iEvent.getByLabel("TriggerResults", trigger);
+    const edm::TriggerNames & triggerNames = iEvent.triggerNames(*trigger);
 
     bool signal = false;
     ++numTotEvents;
@@ -1208,11 +1234,11 @@ void DiLeptonHistograms::analyze(const edm::Event &iEvent, const edm::EventSetup
         signal = MCAnalysis(muons,electrons,genParticles,weight,general);
     }
     if (signal&&Signal_Analysis){   
-        TriggerMonitor(trigger,weight,general);
+        TriggerMonitor(trigger,triggerNames,weight,general);
         Analysis(muons, electrons, taus, jets, met, weight, general);
     }
     if(!Signal_Analysis){
-        TriggerMonitor(trigger,weight,general);
+        TriggerMonitor(trigger,triggerNames,weight,general);
         Analysis(muons, electrons, taus, jets, met, weight, general);
     }
      
