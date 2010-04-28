@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/04/01 09:36:56 $
- *  $Revision: 1.5 $
+ *  $Date: 2010/04/27 12:52:05 $
+ *  $Revision: 1.6 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -160,6 +160,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH2F**       h2dIsoInvMassOFOS;
 
     TH1F**       hMuonPt;
+    TH1F**       hMuonCharge;
     TH1F**       hMuonSumPt;
     TH1F**       hMuon1Pt;
     TH1F**       hMuon2Pt;
@@ -178,6 +179,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH2F**       hMuonEtaPhi;
         
     TH1F**       hElectronPt;
+    TH1F**       hElectronCharge;
     TH1F**       hElectronSumPt;
     TH1F**       hElectron1Pt;
     TH1F**       hElectron2Pt;
@@ -202,6 +204,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH2F**       hElectronEtaPhi;
     
     TH1F**       hTauPt;
+    TH1F**       hTauCharge;
     TH1F**       hTauSumPt;
     TH1F**       hTau1Pt;
     TH1F**       hTau2Pt;

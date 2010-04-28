@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/03/02 16:57:57 $
- *  $Revision: 1.6 $ for CMSSW 3_3_X
+ *  $Date: 2010/04/27 12:52:06 $
+ *  $Revision: 1.7 $ for CMSSW 3_3_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -133,6 +133,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
 
     //muon histograms
     hMuonPt = new TH1F * [nHistos];
+    hMuonCharge = new TH1F * [nHistos];
     hMuonSumPt = new TH1F * [nHistos];
     hMuon1Pt = new TH1F * [nHistos];
     hMuon2Pt = new TH1F * [nHistos];
@@ -151,6 +152,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
 
     //electron histograms
     hElectronPt = new TH1F * [nHistos];
+    hElectronCharge = new TH1F * [nHistos];
     hElectronSumPt = new TH1F * [nHistos];
     hElectron1Pt = new TH1F * [nHistos];
     hElectron2Pt = new TH1F * [nHistos];
@@ -176,6 +178,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     
     //Tau histograms
     hTauPt = new TH1F * [nHistos];
+    hTauCharge = new TH1F * [nHistos];
     hTauSumPt = new TH1F * [nHistos];
     hTau1Pt = new TH1F * [nHistos];
     hTau2Pt = new TH1F * [nHistos];
@@ -344,6 +347,7 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     TFileDirectory Muons = theFile->mkdir("Muons"); 
     //muon histograms
     hMuonPt[process] = Muons.make<TH1F>( "muon pt", "muon pt", 1000, 0.0, 1000.0);
+    hMuonCharge[process] = Muons.make<TH1F>( "muon charge", "muon charge", 8, -2.0, 2.0);
     hMuonSumPt[process] = Muons.make<TH1F>( "sum muon pt", "sum muon pt", 1000, 0.0, 1000.0);
     hMuon1Pt[process] = Muons.make<TH1F>( "muon 1 pt", "pt of first muon", 1000, 0.0, 1000.0);
     hMuon2Pt[process] = Muons.make<TH1F>( "muon 2 pt", "pt of second muon", 1000, 0.0, 1000.0);
@@ -371,6 +375,7 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     TFileDirectory Electrons = theFile->mkdir("Electrons"); 
     //electron histograms
     hElectronPt[process] = Electrons.make<TH1F>( "electron pt", "electron pt", 1000, 0.0, 1000.0);
+    hElectronCharge[process] = Electrons.make<TH1F>( "electron charge", "electron charge", 8, -2.0, 2.0);
     hElectronSumPt[process] = Electrons.make<TH1F>( "sum electron pt", "sum electron pt", 1000, 0.0, 1000.0);
     hElectron1Pt[process] = Electrons.make<TH1F>( "electron 1 pt", "pt of first electron", 1000, 0.0, 1000.0);
     hElectron2Pt[process] = Electrons.make<TH1F>( "electron 2 pt", "pt of second electron", 1000, 0.0, 1000.0);
@@ -404,7 +409,8 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     TFileDirectory Taus = theFile->mkdir("Taus"); 
     //tau histograms
     hTauPt[process] = Taus.make<TH1F>( "tau pt", "tau pt", 1000, 0.0, 1000.0);
-    hTauSumPt[process] = Muons.make<TH1F>( "sum tau pt", "sum tau pt", 1000, 0.0, 1000.0);
+    hTauCharge[process] = Taus.make<TH1F>( "tau charge", "tau charge", 8, -2.0, 2.0);
+    hTauSumPt[process] = Taus.make<TH1F>( "sum tau pt", "sum tau pt", 1000, 0.0, 1000.0);
     hTau1Pt[process] = Taus.make<TH1F>( "tau 1 pt", "pt of first tau", 1000, 0.0, 1000.0);
     hTau2Pt[process] = Taus.make<TH1F>( "tau 2 pt", "pt of second tau", 1000, 0.0, 1000.0);
     hTauEta[process] = Taus.make<TH1F>( "tau eta", "tau eta", 250, -2.5, 2.5);
@@ -1022,6 +1028,7 @@ void DiLeptonHistograms::ElectronMonitor(const pat::Electron* electron,const int
     if(process==effcor){weight=getElectronWeight(electron);}
     //Electron base plot
     hElectronPt[process]->Fill(electron->pt(),weight);
+    hElectronCharge[process]->Fill(electron->charge(),weight);
     if(n_Electron == 1){
         hElectron1Pt[process]->Fill(electron->pt(),weight);
         hElectron1Eta[process]->Fill(electron->eta(),weight);
@@ -1086,6 +1093,7 @@ void DiLeptonHistograms::MuonMonitor(const pat::Muon* muon,const int n_Muon, dou
     h2dMuonEtaPt[process]->Fill(muon->pt(),muon->eta(),weight);
     //Muon base plots
     hMuonPt[process]->Fill(muon->pt(),weight);
+    hMuonCharge[process]->Fill(muon->charge(),weight);
 	
     if(n_Muon == 1){
         hMuon1Pt[process]->Fill(muon->pt(),weight);
@@ -1151,6 +1159,7 @@ void DiLeptonHistograms::TauMonitor(const pat::Tau* tau,const int n_Tau, double 
     h2dTauEtaPt[process]->Fill(tau->pt(),tau->eta(),weight);
     //Tau base plots
     hTauPt[process]->Fill(tau->pt(),weight);
+    hTauCharge[process]->Fill(tau->charge(),weight);
 	
     if(n_Tau == 1){
         hTau1Pt[process]->Fill(tau->pt(),weight);
