@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/04/27 12:52:06 $
- *  $Revision: 1.7 $ for CMSSW 3_3_X
+ *  $Date: 2010/04/28 08:43:22 $
+ *  $Revision: 1.8 $ for CMSSW 3_3_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -82,14 +82,26 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hElectronTrackIso = new TH1F * [nHistos];
     hElectronEcalIso = new TH1F * [nHistos];
     hElectronHcalIso = new TH1F * [nHistos];
+    hElectronPfIso = new TH1F * [nHistos];
+    hElectronChargedHadronIso = new TH1F * [nHistos];
+    hElectronPhotonIso = new TH1F * [nHistos];
+    hElectronNeutralHadronIso = new TH1F * [nHistos];
     hMuonIso = new TH1F * [nHistos];
     hMuonTrackIso = new TH1F * [nHistos];
     hMuonEcalIso = new TH1F * [nHistos];
     hMuonHcalIso = new TH1F * [nHistos];
+    hMuonPfIso = new TH1F * [nHistos];
+    hMuonChargedHadronIso = new TH1F * [nHistos];
+    hMuonPhotonIso = new TH1F * [nHistos];
+    hMuonNeutralHadronIso = new TH1F * [nHistos];
     hTauIso = new TH1F * [nHistos];
     hTauTrackIso = new TH1F * [nHistos];
     hTauEcalIso = new TH1F * [nHistos];
     hTauHcalIso = new TH1F * [nHistos];
+    hTauPfIso = new TH1F * [nHistos];
+    hTauChargedHadronIso = new TH1F * [nHistos];
+    hTauPhotonIso = new TH1F * [nHistos];
+    hTauNeutralHadronIso = new TH1F * [nHistos];
     
     //histograms for the invariant mass of the leptons
     hInvMSFOS = new TH1F * [nHistos];
@@ -367,6 +379,10 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hMuonTrackIso[process] = Muons.make<TH1F>( "muon track iso", "Isolation of muons in tracker", 1000, 0.0, 10.0);
     hMuonEcalIso[process] = Muons.make<TH1F>( "muon ecal iso", "Isolation of muons in electromagnetic calorimeter", 1000, 0.0, 10.0);
     hMuonHcalIso[process] = Muons.make<TH1F>( "muon hcal iso", "Isolation of muons in hadronic calorimeter", 1000, 0.0, 10.0);
+    hMuonPfIso[process] = Muons.make<TH1F>( "muon pf iso", "Isolation of pf muons", 300, 0.0, 3.0);
+    hMuonChargedHadronIso[process] = Muons.make<TH1F>( "muon charged hadron iso", "Isolation of muons from charged hadrons", 1000, 0.0, 10.0);
+    hMuonPhotonIso[process] = Muons.make<TH1F>( "muon photon iso", "Isolation of muons from photons", 1000, 0.0, 10.0);
+    hMuonNeutralHadronIso[process] = Muons.make<TH1F>( "muon neutral hadron iso", "Isolation of muons from neutral hadrons", 1000, 0.0, 10.0);
     hGenMuonPt[process] = Muons.make<TH1F>( "generator muon pt", "Generator muon pt", 1000, 0.0, 1000.0);
     hGenMuonEta[process] = Muons.make<TH1F>( "generator muon eta", "Generator muon eta", 250, -2.5, 2.5);
 
@@ -389,6 +405,10 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hElectronTrackIso[process] = Electrons.make<TH1F>( "electron track iso", "Isolation of electrons in tracker", 1000, 0.0, 10.0); 
     hElectronEcalIso[process] = Electrons.make<TH1F>( "electron ecal iso", "Isolation of electrons in electromagnetic calorimeter", 1000, 0.0, 10.0); 
     hElectronHcalIso[process] = Electrons.make<TH1F>( "electron hcal iso", "Isolation of electrons in hadronic calorimeter", 1000, 0.0, 10.0); 
+    hElectronPfIso[process] = Electrons.make<TH1F>( "electron pf iso", "Isolation of pf electrons", 300, 0.0, 3.0);
+    hElectronChargedHadronIso[process] = Electrons.make<TH1F>( "electron charged hadron iso", "Isolation of electrons from charged hadrons", 1000, 0.0, 10.0);
+    hElectronPhotonIso[process] = Electrons.make<TH1F>( "electron photon iso", "Isolation of electron from photons", 1000, 0.0, 10.0);
+    hElectronNeutralHadronIso[process] = Electrons.make<TH1F>( "electron neutral hadron iso", "Isolation of electrons from neutral hadrons", 1000, 0.0, 10.0);
     hGenElectronPt[process] = Electrons.make<TH1F>( "generator electron pt", "Generator electron pt", 1000, 0.0, 1000.0);
     hGenElectronEta[process] = Electrons.make<TH1F>( "generator electron eta", "Generator electron eta", 250, -2.5, 2.5);
     //electron variables
@@ -422,6 +442,10 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hTauTrackIso[process] = Taus.make<TH1F>( "tau track iso", "Isolation of taus in tracker", 1000, 0.0, 10.0);
     hTauEcalIso[process] = Taus.make<TH1F>( "tau ecal iso", "Isolation of taus in electromagnetc calorimeter", 1000, 0.0, 10.0);
     hTauHcalIso[process] = Taus.make<TH1F>( "tau hcal iso", "Isolation of taus in hadronic calorimeter", 1000, 0.0, 10.0);
+    hTauPfIso[process] = Taus.make<TH1F>( "tau pf iso", "Isolation of pf taus", 300, 0.0, 3.0);
+    hTauChargedHadronIso[process] = Taus.make<TH1F>( "tau charged hadron iso", "Isolation of taus from charged hadrons", 1000, 0.0, 10.0);
+    hTauPhotonIso[process] = Taus.make<TH1F>( "tau photon iso", "Isolation of taus from photons", 1000, 0.0, 10.0);
+    hTauNeutralHadronIso[process] = Taus.make<TH1F>( "tau neutral hadron iso", "Isolation of taus from neutral hadrons", 1000, 0.0, 10.0);
     hGenTauPt[process] = Taus.make<TH1F>( "generator tau pt", "matched gen tau pt", 1000, 0.0, 1000.0);
     hGenTauVisPt[process] = Taus.make<TH1F>( "generator tau vis pt", "matched gen tau visible pt", 1000, 0.0, 1000.0);
     hTauDiscriminators[process] = Taus.make<TH1F>( "tau discriminators", "Tau ID discriminators", maxTauDiscriminators_+1, 0.0, maxTauDiscriminators_+1);
@@ -538,6 +562,13 @@ double CalcIso(const T & lepton)
     /*double value =  (lepton.trackerIsoDeposit()->depositWithin(cut_ConeSize)+
                     lepton.ecalIsoDeposit()->depositWithin(cut_ConeSize)+
                     lepton.hcalIsoDeposit()->depositWithin(cut_ConeSize))/lepton.pt();*/
+    return value;
+}
+
+template < class T > 
+double CalcPfIso(const T & lepton)
+{
+    double value = (lepton.chargedHadronIso()+lepton.photonIso()+lepton.neutralHadronIso()/3.)/lepton.pt();
     return value;
 }
 
@@ -1042,10 +1073,15 @@ void DiLeptonHistograms::ElectronMonitor(const pat::Electron* electron,const int
     hElectronEtaPhi[process]->Fill(electron->eta(),electron->phi(),weight);
     //Electron isolation
     double IsoValue = CalcIso(*electron);
+    double pfIsoValue = CalcPfIso(*electron);
     hElectronIso[process]->Fill(IsoValue,weight);
     hElectronTrackIso[process]->Fill(electron->trackIso(),weight);
     hElectronEcalIso[process]->Fill(electron->ecalIso(),weight);
     hElectronHcalIso[process]->Fill(electron->hcalIso(),weight);
+    hElectronPfIso[process]->Fill(pfIsoValue,weight);
+    hElectronChargedHadronIso[process]->Fill(electron->chargedHadronIso(),weight);
+    hElectronPhotonIso[process]->Fill(electron->photonIso(),weight);
+    hElectronNeutralHadronIso[process]->Fill(electron->neutralHadronIso(),weight);
     h2dElectronEtaPt[process]->Fill(electron->pt(),electron->eta(),weight);
   	
     double eOverP = electron->eSuperClusterOverP();
@@ -1109,10 +1145,15 @@ void DiLeptonHistograms::MuonMonitor(const pat::Muon* muon,const int n_Muon, dou
     
     //Muon isolation
     double IsoValue = CalcIso(*muon);
+    double pfIsoValue = CalcPfIso(*muon);
     hMuonIso[process]->Fill(IsoValue,weight);
     hMuonTrackIso[process]->Fill(muon->trackIso(),weight);
     hMuonEcalIso[process]->Fill(muon->ecalIso(),weight);
     hMuonHcalIso[process]->Fill(muon->hcalIso(),weight);
+    hMuonPfIso[process]->Fill(pfIsoValue,weight);
+    hMuonChargedHadronIso[process]->Fill(muon->chargedHadronIso(),weight);
+    hMuonPhotonIso[process]->Fill(muon->photonIso(),weight);
+    hMuonNeutralHadronIso[process]->Fill(muon->neutralHadronIso(),weight);
 
     if(!muon->innerTrack().isNull()){
         double d0tobs = muon->innerTrack()->dxy(bs);
@@ -1175,10 +1216,15 @@ void DiLeptonHistograms::TauMonitor(const pat::Tau* tau,const int n_Tau, double 
     
     //Tau isolation
     double IsoValue = CalcIso(*tau);
+    double pfIsoValue = CalcPfIso(*tau);
     hTauIso[process]->Fill(IsoValue,weight);
     hTauTrackIso[process]->Fill(tau->trackIso(),weight);
     hTauEcalIso[process]->Fill(tau->ecalIso(),weight);
     hTauHcalIso[process]->Fill(tau->hcalIso(),weight);
+    hTauPfIso[process]->Fill(pfIsoValue,weight);
+    hTauChargedHadronIso[process]->Fill(tau->chargedHadronIso(),weight);
+    hTauPhotonIso[process]->Fill(tau->photonIso(),weight);
+    hTauNeutralHadronIso[process]->Fill(tau->neutralHadronIso(),weight);
 
     if (mcInfo){
         if(tau->genLepton()){
