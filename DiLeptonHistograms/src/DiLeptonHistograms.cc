@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/04/28 08:43:22 $
- *  $Revision: 1.8 $ for CMSSW 3_3_X
+ *  $Date: 2010/05/04 19:14:50 $
+ *  $Revision: 1.9 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -24,11 +24,14 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     //Monte carlo information
     mcInfo            = iConfig.getUntrackedParameter<bool>   ("mcInfo",false);
 
+    //tree information for unbinned fit
+    treeInfo          = iConfig.getUntrackedParameter<bool>   ("treeInfo",false);
     // how many tauDiscriminators to take
     maxTauDiscriminators_ = 20; //TODO read from config
     //Input collections
     mcSrc             = iConfig.getParameter<edm::InputTag> ("mcSource");
     beamSpotSrc        = iConfig.getParameter<edm::InputTag> ("beamSpotSource");
+    primaryVertexSrc  = iConfig.getParameter<edm::InputTag> ("primaryVertexSource");
     muonSrc           = iConfig.getParameter<edm::InputTag> ("muonSource");
     electronSrc       = iConfig.getParameter<edm::InputTag> ("electronSource");
     tauSrc            = iConfig.getParameter<edm::InputTag> ("tauSource");
@@ -156,11 +159,14 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hGenMuonPt = new TH1F * [nHistos];
     hGenMuonEta = new TH1F * [nHistos];
     hMuonChi2 = new TH1F * [nHistos];
-    hMuond0 = new TH1F * [nHistos];
-    hMuond0Sig = new TH1F * [nHistos];
+    hMuond0Pv = new TH1F * [nHistos];
+    hMuond0Bs = new TH1F * [nHistos];
+    hMuond0SigPv = new TH1F * [nHistos];
+    hMuond0SigBs = new TH1F * [nHistos];
     hMuonnHits = new TH1F * [nHistos];
     hMuonEtaPhi = new TH2F * [nHistos];
-    hMuonIsod0 = new TH2F * [nHistos];
+    hMuonIsod0Pv = new TH2F * [nHistos];
+    hMuonIsod0Bs = new TH2F * [nHistos];
 
     //electron histograms
     hElectronPt = new TH1F * [nHistos];
@@ -172,9 +178,13 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hElectron1Eta = new TH1F * [nHistos];
     hElectron2Eta = new TH1F * [nHistos];
     hElectronPhi = new TH1F * [nHistos];
-    hElectrond0 = new TH1F * [nHistos];
+    hElectrond0Pv = new TH1F * [nHistos];
+    hElectrond0Bs = new TH1F * [nHistos];
+    hElectrond0SigPv = new TH1F * [nHistos];
+    hElectrond0SigBs = new TH1F * [nHistos];
     hGenElectronPt = new TH1F * [nHistos];
     hGenElectronEta = new TH1F * [nHistos];
+    hElectronMva = new TH1F * [nHistos];
     hElectronEoverP = new TH1F * [nHistos];
     hElectronfBrem = new TH1F * [nHistos];
     hElectronHoverE = new TH1F * [nHistos];
@@ -186,7 +196,8 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hElectronsigmaIetaIeta = new TH1F * [nHistos];
     hElectronsigmaIetaIeta = new TH1F * [nHistos];
     hElectronEtaPhi = new TH2F * [nHistos];
-    hElectronIsod0 = new TH2F * [nHistos];
+    hElectronIsod0Pv = new TH2F * [nHistos];
+    hElectronIsod0Bs = new TH2F * [nHistos];
     
     //Tau histograms
     hTauPt = new TH1F * [nHistos];
@@ -213,26 +224,6 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     h2dTauEtaPt = new TH2F * [nHistos];
     h2dMatchedTauEtaPt = new TH2F * [nHistos];
   
-    //TnP
-    h2dTnPProbeSigEtaPt = new TH2F * [nHistos];
-    h2dTnPPassSigEtaPt = new TH2F * [nHistos];
-    h2dTnPProbeSSSigEtaPt = new TH2F * [nHistos];
-    h2dTnPPassSSSigEtaPt = new TH2F * [nHistos];
-    h2dTnPProbeSB1EtaPt = new TH2F * [nHistos];
-    h2dTnPPassSB1EtaPt = new TH2F * [nHistos];
-    h2dTnPProbeSSSB1EtaPt = new TH2F * [nHistos];
-    h2dTnPPassSSSB1EtaPt = new TH2F * [nHistos];
-    h2dTnPProbeSB2EtaPt = new TH2F * [nHistos];
-    h2dTnPPassSB2EtaPt = new TH2F * [nHistos];
-    h2dTnPProbeSSSB2EtaPt = new TH2F * [nHistos];
-    h2dTnPPassSSSB2EtaPt = new TH2F * [nHistos];
-    hTnPProbeInvMass = new TH1F * [nHistos];
-    hTnPPassInvMass = new TH1F * [nHistos];
-    hTnPSSInvMass = new TH1F * [nHistos];
-    h2dTnPProbeDRPt = new TH2F * [nHistos];
-    h2dTnPProbenMatchPt = new TH2F * [nHistos];
-    h2dTnPProbeChargePt = new TH2F * [nHistos];
- 
     //histograms for Missing ET
     hMissingET = new TH1F * [nHistos];
     hMissingETmc =  new TH1F * [nHistos];
@@ -270,19 +261,21 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     TFileDirectory Decay = theFile->mkdir( "Decay" );
 
     //Trees for unbinned maximum likelihood fit
-    TFileDirectory Tree = theFile->mkdir( "Trees" );
-    treeOFOS = Tree.make<TTree>("OFOS tree", "OFOS tree"); 
-    treeOFOS->Branch("inv",&invMOFOS,"invMOFOS/F");
-    treeOFOS->Branch("weight",&invweight,"invweight/F");
-    treeSFOS = Tree.make<TTree>("SFOS tree", "SFOS tree"); 
-    treeSFOS->Branch("inv",&invMSFOS,"invMSFOS/F");
-    treeSFOS->Branch("weight",&invweight,"invweight/F");
-    treeElec = Tree.make<TTree>("Electron tree", "Electron tree"); 
-    treeElec->Branch("inv",&invMElec,"invMElec/F");
-    treeElec->Branch("weight",&invweight,"invweight/F");
-    treeMuon = Tree.make<TTree>("Muon tree", "Muon tree"); 
-    treeMuon->Branch("inv",&invMMuon,"invMMuon/F");
-    treeMuon->Branch("weight",&invweight,"invweight/F");
+    if (treeInfo){
+        TFileDirectory Tree = theFile->mkdir( "Trees" );
+        treeOFOS = Tree.make<TTree>("OFOS tree", "OFOS tree"); 
+        treeOFOS->Branch("inv",&invMOFOS,"invMOFOS/F");
+        treeOFOS->Branch("weight",&invweight,"invweight/F");
+        treeSFOS = Tree.make<TTree>("SFOS tree", "SFOS tree"); 
+        treeSFOS->Branch("inv",&invMSFOS,"invMSFOS/F");
+        treeSFOS->Branch("weight",&invweight,"invweight/F");
+        treeElec = Tree.make<TTree>("Electron tree", "Electron tree"); 
+        treeElec->Branch("inv",&invMElec,"invMElec/F");
+        treeElec->Branch("weight",&invweight,"invweight/F");
+        treeMuon = Tree.make<TTree>("Muon tree", "Muon tree"); 
+        treeMuon->Branch("inv",&invMMuon,"invMMuon/F");
+        treeMuon->Branch("weight",&invweight,"invweight/F");
+    }
    
     general = 0;
     effcor = 1;
@@ -368,11 +361,14 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hMuon2Eta[process] = Muons.make<TH1F>( "muon 2 eta", "muon 2 eta", 250, -2.5, 2.5);
     hMuonPhi[process] = Muons.make<TH1F>( "muon phi", "muon phi", 350, -3.5, 3.5);
     //Muon quality variables
-    hMuonChi2[process] = Muons.make<TH1F>( "muon track chi2 / dof", "muon track chi2 / dof", 200, 0.0, 20.0);
-    hMuond0[process] = Muons.make<TH1F>( "muon track d0", "muon track d0", 400, -0.2, 0.2);
-    hMuond0Sig[process] = Muons.make<TH1F>( "muon track d0 significance", "muon track d0 significance", 1000, 0.0, 100.0);
+    hMuonChi2[process] = Muons.make<TH1F>( "muon track chi2 per dof", "muon track chi2 / dof", 200, 0.0, 20.0);
+    hMuond0Pv[process] = Muons.make<TH1F>( "muon track d0 pv", "muon track d0 pv", 400, -0.2, 0.2);
+    hMuond0Bs[process] = Muons.make<TH1F>( "muon track d0 bs", "muon track d0 bs", 400, -0.2, 0.2);
+    hMuond0SigPv[process] = Muons.make<TH1F>( "muon track d0 significance pv", "muon track d0 significance pv", 100, -50., 50.0);
+    hMuond0SigBs[process] = Muons.make<TH1F>( "muon track d0 significance bs", "muon track d0 significance bs", 100, -50., 50.0);
     hMuonnHits[process] = Muons.make<TH1F>( "muon track hits", "muon track number of valid hits", 50, 0.0, 50.0);
-    hMuonIsod0[process] = Muons.make<TH2F>( "muon iso d0", "muon iso d0", 300, 0.0 , 3.0, 200, 0.0, 0.2);
+    hMuonIsod0Pv[process] = Muons.make<TH2F>( "muon iso d0 pv", "muon iso d0 pv", 300, 0.0 , 3.0, 200, -0.2, 0.2);
+    hMuonIsod0Bs[process] = Muons.make<TH2F>( "muon iso d0 bs", "muon iso d0 bs", 300, 0.0 , 3.0, 200, -0.2, 0.2);
     hMuonEtaPhi[process] = Muons.make<TH2F>( "muon eta phi", "muon eta phi", 250, -2.5 , 2.5, 350, -3.5, 3.5);
     //histograms for lepton isolation cuts
     hMuonIso[process] = Muons.make<TH1F>( "muon iso", "Isolation of muons", 300, 0.0, 3.0);
@@ -399,7 +395,10 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hElectron1Eta[process] = Electrons.make<TH1F>( "electron 1 eta", "electron 1 eta", 250, -2.5, 2.5);
     hElectron2Eta[process] = Electrons.make<TH1F>( "electron 2 eta", "electron 2 eta", 250, -2.5, 2.5);
     hElectronPhi[process] = Electrons.make<TH1F>( "electron phi", "electron phi", 350, -3.5, 3.5);
-    hElectrond0[process] = Electrons.make<TH1F>( "electron track d0", "electron track d0", 400, -0.2, 0.2);
+    hElectrond0Pv[process] = Electrons.make<TH1F>( "electron track d0 pv", "electron track d0 pv", 400, -0.2, 0.2);
+    hElectrond0Bs[process] = Electrons.make<TH1F>( "electron track d0 bs", "electron track d0 bs", 400, -0.2, 0.2);
+    hElectrond0SigPv[process] = Electrons.make<TH1F>( "electron track d0 significance pv", "electron track d0 significance pv", 100, -50., 50.0);
+    hElectrond0SigBs[process] = Electrons.make<TH1F>( "electron track d0 significance bs", "electron track d0 significance bs", 100, -50., 50.0);
     //histograms for lepton isolation cuts
     hElectronIso[process] = Electrons.make<TH1F>( "electron iso", "Isolation of electrons", 300, 0.0, 3.0);
     hElectronTrackIso[process] = Electrons.make<TH1F>( "electron track iso", "Isolation of electrons in tracker", 1000, 0.0, 10.0); 
@@ -412,6 +411,7 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hGenElectronPt[process] = Electrons.make<TH1F>( "generator electron pt", "Generator electron pt", 1000, 0.0, 1000.0);
     hGenElectronEta[process] = Electrons.make<TH1F>( "generator electron eta", "Generator electron eta", 250, -2.5, 2.5);
     //electron variables
+    hElectronMva[process] = Electrons.make<TH1F>( "electron mva", "electron mva", 200, -1., 1.);
     hElectronEoverP[process] = Electrons.make<TH1F>( "electron E over P", "electron E over P", 250, 0.0, 2.5);
     hElectronfBrem[process] = Electrons.make<TH1F>( "electron fBrem", "electron fBrem", 110, 0.0, 1.1);
     hElectronHoverE[process] = Electrons.make<TH1F>( "electron H over E", "electron H over E", 200, 0.0, 0.2);
@@ -421,7 +421,8 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hElectrone15oe55[process] = Electrons.make<TH1F>( "electron e15oe55", "electron e15oe55", 100, -1, 2);
     hElectronsigmaEtaEta[process] = Electrons.make<TH1F>( "electron sigma eta eta", "electron sigma eta eta", 100, 0, 0.04);
     hElectronsigmaIetaIeta[process] = Electrons.make<TH1F>( "electron sigma Ieta Ieta", "electron sigma Ieta Ieta", 100, 0, 0.04);
-    hElectronIsod0[process] = Electrons.make<TH2F>( "electron iso d0", "electron iso d0", 300, 0.0 , 3.0, 200, 0.0, 0.2);
+    hElectronIsod0Pv[process] = Electrons.make<TH2F>( "electron iso d0 pv", "electron iso d0 pv", 300, 0.0 , 3.0, 200, -0.2, 0.2);
+    hElectronIsod0Bs[process] = Electrons.make<TH2F>( "electron iso d0 bs", "electron iso d0 bs", 300, 0.0 , 3.0, 200, -0.2, 0.2);
     hElectronEtaPhi[process] = Electrons.make<TH2F>( "electron eta phi", "electron eta phi", 250, -2.5 , 2.5, 350, -3.5, 3.5);
 
     hElectronResolution[process] = Electrons.make<TH1F>( "electron resolution", "Resolution of electrons", 1000, -5.0, 5.0);
@@ -450,36 +451,15 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hGenTauVisPt[process] = Taus.make<TH1F>( "generator tau vis pt", "matched gen tau visible pt", 1000, 0.0, 1000.0);
     hTauDiscriminators[process] = Taus.make<TH1F>( "tau discriminators", "Tau ID discriminators", maxTauDiscriminators_+1, 0.0, maxTauDiscriminators_+1);
     
-    //TnP
-    TFileDirectory TnP = theFile->mkdir("TnP"); 
-    h2dMuonEtaPt[process] = TnP.make<TH2F>( "Eta-Pt of muons", "Eta - Pt of muons", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dMatchedMuonEtaPt[process] = TnP.make<TH2F>( "Eta-Pt of matched muons", "Eta - Pt of matched muons", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dGenMuonEtaPt[process] = TnP.make<TH2F>( "Eta-Pt of MC muons", "Eta - Pt of generator muons", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dElectronEtaPt[process] = TnP.make<TH2F>( "Eta-Pt of electrons", "Eta - Pt of electrons", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dMatchedElectronEtaPt[process] = TnP.make<TH2F>( "Eta-Pt of matched electrons", "Eta - Pt of matched electrons", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dGenElectronEtaPt[process] = TnP.make<TH2F>( "Eta-Pt of MC electrons", "Eta - Pt of generator electrons", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dTauEtaPt[process] = TnP.make<TH2F>( "Eta-Pt of taus", "Eta - Pt of taus", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dMatchedTauEtaPt[process] = TnP.make<TH2F>( "Eta-Pt of matched taus", "Eta - Pt of matched taus", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
+    h2dMuonEtaPt[process] = Muons.make<TH2F>( "Eta-Pt of muons", "Eta - Pt of muons", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
+    h2dMatchedMuonEtaPt[process] = Muons.make<TH2F>( "Eta-Pt of matched muons", "Eta - Pt of matched muons", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
+    h2dGenMuonEtaPt[process] = Muons.make<TH2F>( "Eta-Pt of MC muons", "Eta - Pt of generator muons", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
+    h2dElectronEtaPt[process] = Electrons.make<TH2F>( "Eta-Pt of electrons", "Eta - Pt of electrons", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
+    h2dMatchedElectronEtaPt[process] = Electrons.make<TH2F>( "Eta-Pt of matched electrons", "Eta - Pt of matched electrons", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
+    h2dGenElectronEtaPt[process] = Electrons.make<TH2F>( "Eta-Pt of MC electrons", "Eta - Pt of generator electrons", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
+    h2dTauEtaPt[process] = Taus.make<TH2F>( "Eta-Pt of taus", "Eta - Pt of taus", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
+    h2dMatchedTauEtaPt[process] = Taus.make<TH2F>( "Eta-Pt of matched taus", "Eta - Pt of matched taus", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
   
-    h2dTnPProbeSigEtaPt[process] = TnP.make<TH2F>( "Eta-Pt TnP signal probes", "Eta - Pt of TnP signal probes", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dTnPPassSigEtaPt[process] = TnP.make<TH2F>( "Eta-Pt TnP signal passed probes", "Eta - Pt of TnP signal passed probes", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dTnPProbeSSSigEtaPt[process] = TnP.make<TH2F>( "Eta-Pt TnP signal SS probes", "Eta - Pt of TnP signal SS probes", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dTnPPassSSSigEtaPt[process] = TnP.make<TH2F>( "Eta-Pt TnP signal passed SS probes", "Eta - Pt of TnP signal passed SS probes", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dTnPProbeSB1EtaPt[process] = TnP.make<TH2F>( "Eta-Pt TnP SB1 probes", "Eta - Pt of TnP SB1 probes", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dTnPPassSB1EtaPt[process] = TnP.make<TH2F>( "Eta-Pt TnP SB1 passed probes", "Eta - Pt of TnP SB1 passed probes", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dTnPProbeSSSB1EtaPt[process] = TnP.make<TH2F>( "Eta-Pt TnP SB1 SS probes", "Eta - Pt of TnP SB1 SS probes", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dTnPPassSSSB1EtaPt[process] = TnP.make<TH2F>( "Eta-Pt TnP SB1 passed SS probes", "Eta - Pt of TnP SB1 passed SS probes", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dTnPProbeSB2EtaPt[process] = TnP.make<TH2F>( "Eta-Pt TnP SB2 probes", "Eta - Pt of TnP SB2 probes", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dTnPPassSB2EtaPt[process] = TnP.make<TH2F>( "Eta-Pt TnP SB2 passed probes", "Eta - Pt of TnP SB2 passed probes", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dTnPProbeSSSB2EtaPt[process] = TnP.make<TH2F>( "Eta-Pt TnP SB2 SS probes", "Eta - Pt of TnP SB2 SS probes", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dTnPPassSSSB2EtaPt[process] = TnP.make<TH2F>( "Eta-Pt TnP SB2 passed SS probes", "Eta - Pt of TnP SB2 passed SS probes", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    hTnPProbeInvMass[process] = TnP.make<TH1F>( "Invariant mass of probes", "Invariant mass of probes", 300, 0, 300);
-    hTnPPassInvMass[process] = TnP.make<TH1F>( "Invariant mass of passed probes", "Invariant mass of passed probes", 300, 0, 300);
-    hTnPSSInvMass[process] = TnP.make<TH1F>( "Invariant mass of SS probes", "Invariant mass of SS probes", 300, 0, 300);
-    h2dTnPProbeDRPt[process] = TnP.make<TH2F>( "dR-Pt of probes", "dR - Pt of probes", 1000, 0.0, 1000.0, 600,0, 6.); 
-    h2dTnPProbenMatchPt[process] = TnP.make<TH2F>( "nMatch-Pt of probes", "nMatch - Pt of probes", 1000, 0.0, 1000.0, 25,0, 25); 
-    h2dTnPProbeChargePt[process] = TnP.make<TH2F>( "Charge-Pt of probes", "Charge - Pt of probes", 1000, 0.0, 1000.0, 20,-2., 2.); 
- 
     //histograms for Missing ET
     TFileDirectory MET = theFile->mkdir("MET"); 
     hMissingET[process] = MET.make<TH1F>( "MET", "Missing transverse energy", 1000, 0.0, 1000.0);
@@ -854,8 +834,8 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
                 invMSFOS = (mu_i->p4()+mu_j->p4()).M();
                 invMMuon = (mu_i->p4()+mu_j->p4()).M();
                 invweight = weightcorr;
-                treeSFOS->Fill();
-                treeMuon->Fill();
+                if (treeInfo) treeSFOS->Fill();
+                if (treeInfo) treeMuon->Fill();
 	            if(n_bJet>=2){
 		            for(std::vector<pat::Jet>::const_iterator bjet_i = bJets.begin(); bjet_i!=bJets.end(); ++bjet_i){
                         for(std::vector<pat::Jet>::const_iterator bjet_j = bJets.begin(); bjet_j!=bJets.end();++bjet_j){
@@ -880,7 +860,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
                     hJZB[general]->Fill(JPt.pt()-dileptonPt,weight);
                     invMOFOS = (mu_i->p4()+ele_j->p4()).M();
                     invweight = weightcorr;
-                    treeOFOS->Fill();
+                    if (treeInfo) treeOFOS->Fill();
                 }
 	            if(n_bJet>=2){
 	                for(std::vector<pat::Jet>::const_iterator bjet_i = bJets.begin(); bjet_i!=bJets.end(); ++bjet_i){
@@ -932,8 +912,8 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
                 invMSFOS = inv;
                 invMElec = inv;
                 invweight = weightcorr;
-                treeSFOS->Fill();
-                treeElec->Fill();
+                if (treeInfo) treeSFOS->Fill();
+                if (treeInfo) treeElec->Fill();
                 if(n_bJet>=2){
 		            for(std::vector<pat::Jet>::const_iterator bjet_i = bJets.begin(); bjet_i!=bJets.end(); ++bjet_i){
                 	    for(std::vector<pat::Jet>::const_iterator bjet_j = bJets.begin(); bjet_j!=bJets.end();++bjet_j){
@@ -1100,6 +1080,7 @@ void DiLeptonHistograms::ElectronMonitor(const pat::Electron* electron,const int
     double deltaPhiIn = electron->deltaPhiSuperClusterTrackAtVtx();
     double deltaEtaIn = electron->deltaEtaSuperClusterTrackAtVtx();
   
+    hElectronMva[process]->Fill(electron->mva(),weight); 
     hElectronEoverP[process]->Fill(eOverP,weight); 
     hElectronfBrem[process]->Fill(fBrem,weight); 
     hElectronHoverE[process]->Fill(hOverE,weight); 
@@ -1112,8 +1093,14 @@ void DiLeptonHistograms::ElectronMonitor(const pat::Electron* electron,const int
     if(!electron->gsfTrack().isNull()){
         //impact parameter
         double d0tobs = electron->gsfTrack()->dxy(bs);
-        hElectrond0[process]->Fill(d0tobs,weight);
-        hElectronIsod0[process]->Fill(IsoValue,fabs(d0tobs),weight);
+        double d0topv = electron->gsfTrack()->dxy(pv);
+        double d0Err = electron->gsfTrack()->dxyError();
+        hElectrond0Pv[process]->Fill(d0topv,weight);
+        hElectrond0SigPv[process]->Fill(d0topv/d0Err,weight);
+        hElectronIsod0Pv[process]->Fill(IsoValue,d0topv,weight);
+        hElectrond0Bs[process]->Fill(d0tobs,weight);
+        hElectrond0SigBs[process]->Fill(d0tobs/d0Err,weight);
+        hElectronIsod0Bs[process]->Fill(IsoValue,d0tobs,weight);
     }
     if (mcInfo){
         if(electron->genLepton()){
@@ -1157,11 +1144,16 @@ void DiLeptonHistograms::MuonMonitor(const pat::Muon* muon,const int n_Muon, dou
 
     if(!muon->innerTrack().isNull()){
         double d0tobs = muon->innerTrack()->dxy(bs);
+        double d0topv = muon->innerTrack()->dxy(pv);
+        double d0Err = muon->innerTrack()->dxyError();
     	hMuonChi2[process]->Fill(muon->innerTrack()->normalizedChi2(),weight);
-        hMuond0[process]->Fill(d0tobs,weight);
-	hMuond0Sig[process]->Fill(fabs(d0tobs)/muon->innerTrack()->dxyError(),weight);
-	hMuonnHits[process]->Fill(muon->innerTrack()->numberOfValidHits(),weight);
-        hMuonIsod0[process]->Fill(IsoValue,fabs(d0tobs),weight);
+	    hMuonnHits[process]->Fill(muon->innerTrack()->numberOfValidHits(),weight);
+        hMuond0Pv[process]->Fill(d0topv,weight);
+	    hMuond0SigPv[process]->Fill(d0topv/d0Err,weight);
+        hMuonIsod0Pv[process]->Fill(IsoValue,d0topv,weight);
+        hMuond0Bs[process]->Fill(d0tobs,weight);
+	    hMuond0SigBs[process]->Fill(d0tobs/d0Err,weight);
+        hMuonIsod0Bs[process]->Fill(IsoValue,d0tobs,weight);
     }
     if (mcInfo){
         if(muon->genLepton()){
@@ -1246,13 +1238,12 @@ void DiLeptonHistograms::analyze(const edm::Event &iEvent, const edm::EventSetup
     iEvent.getByLabel(beamSpotSrc, beamSpotHandle);
     bs = beamSpotHandle->position();
 
-    /*edm::Handle<reco::VertexCollection> Vertices;
-    iEvent.getByLabel(beamSpotSrc, Vertices);
+    edm::Handle<reco::VertexCollection> Vertices;
+    iEvent.getByLabel(primaryVertexSrc, Vertices);
     for (reco::VertexCollection::const_iterator it = Vertices->begin(); it != Vertices->end(); ++it) {
-        bs = it->position();
+        pv = it->position();
         break;
-    }*/
-    
+    }
   
     // retrieve the PAT-objects
     //Muons

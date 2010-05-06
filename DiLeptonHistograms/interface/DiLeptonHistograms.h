@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/04/28 08:43:22 $
- *  $Revision: 1.7 $
+ *  $Date: 2010/05/04 19:14:50 $
+ *  $Revision: 1.8 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -185,10 +185,13 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH1F**       hGenMuonEta;
         
     TH1F**       hMuonChi2;
-    TH1F**       hMuond0;
-    TH1F**       hMuond0Sig;
+    TH1F**       hMuond0Pv;
+    TH1F**       hMuond0Bs;
+    TH1F**       hMuond0SigPv;
+    TH1F**       hMuond0SigBs;
     TH1F**       hMuonnHits;
-    TH2F**       hMuonIsod0;
+    TH2F**       hMuonIsod0Pv;
+    TH2F**       hMuonIsod0Bs;
     TH2F**       hMuonEtaPhi;
         
     TH1F**       hElectronPt;
@@ -200,10 +203,14 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH1F**       hElectron1Eta;
     TH1F**       hElectron2Eta;
     TH1F**       hElectronPhi;
-    TH1F**       hElectrond0;
+    TH1F**       hElectrond0Pv;
+    TH1F**       hElectrond0Bs;
+    TH1F**       hElectrond0SigPv;
+    TH1F**       hElectrond0SigBs;
     TH1F**       hGenElectronPt;
     TH1F**       hGenElectronEta;
         
+    TH1F**       hElectronMva;
     TH1F**       hElectronEoverP;
     TH1F**       hElectronfBrem;
     TH1F**       hElectronHoverE;
@@ -213,7 +220,8 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH1F**       hElectrone15oe55;
     TH1F**       hElectronsigmaEtaEta;
     TH1F**       hElectronsigmaIetaIeta;
-    TH2F**       hElectronIsod0;
+    TH2F**       hElectronIsod0Pv;
+    TH2F**       hElectronIsod0Bs;
     TH2F**       hElectronEtaPhi;
     
     TH1F**       hTauPt;
@@ -240,25 +248,6 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH2F**       h2dTauEtaPt;
     TH2F**       h2dMatchedTauEtaPt;
         
-    TH2F**       h2dTnPProbeSigEtaPt;
-    TH2F**       h2dTnPPassSigEtaPt;
-    TH2F**       h2dTnPProbeSSSigEtaPt;
-    TH2F**       h2dTnPPassSSSigEtaPt;
-    TH2F**       h2dTnPProbeSB1EtaPt;
-    TH2F**       h2dTnPPassSB1EtaPt;
-    TH2F**       h2dTnPProbeSSSB1EtaPt;
-    TH2F**       h2dTnPPassSSSB1EtaPt;
-    TH2F**       h2dTnPProbeSB2EtaPt;
-    TH2F**       h2dTnPPassSB2EtaPt;
-    TH2F**       h2dTnPProbeSSSB2EtaPt;
-    TH2F**       h2dTnPPassSSSB2EtaPt;
-    TH1F**       hTnPProbeInvMass;
-    TH1F**       hTnPPassInvMass;
-    TH1F**       hTnPSSInvMass;
-    TH2F**       h2dTnPProbeDRPt;
-    TH2F**       h2dTnPProbenMatchPt;
-    TH2F**       h2dTnPProbeChargePt;
-	
     TH1F**       hTrigger;
     TH1F**       hWeight;
     
@@ -281,10 +270,14 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     
     // Switch for mc analysis
     bool mcInfo;
+    
+    // Switch for treeInformation
+    bool treeInfo;
 
     //std::string rootFileName;
     edm::InputTag mcSrc;
     edm::InputTag beamSpotSrc;
+    edm::InputTag primaryVertexSrc;
     edm::InputTag muonSrc;
     edm::InputTag electronSrc;
     edm::InputTag tauSrc;
@@ -320,6 +313,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     std::string bJetAlgo;
 
     math::XYZPoint bs;
+    math::XYZPoint pv;
 
     static const int nEtaBins=10;
     static const float boundEta[nEtaBins+1]; 

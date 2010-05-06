@@ -4,9 +4,11 @@ DiLeptonAnalysis = cms.EDFilter('DiLeptonHistograms',
 
 debug = cms.untracked.bool(False),
 mcInfo = cms.untracked.bool(True),
+treeInfo = cms.untracked.bool(False),
 
 mcSource = cms.InputTag("genParticles"),
-backmapSource = cms.InputTag("genParticles"),
+beamSpotSource = cms.InputTag("offlineBeamSpot"),
+primaryVertexSource = cms.InputTag("offlinePrimaryVertices"),
 muonSource = cms.InputTag("cleanLayer1Muons"),
 electronSource = cms.InputTag("cleanLayer1Electrons"),
 tauSource = cms.InputTag("cleanLayer1Taus"),
@@ -24,7 +26,6 @@ acc_ElectronEta = cms.untracked.double(2.) ,
 #to be removed
 user_bJetAlgo = cms.untracked.string("jetProbabilityBJetTags"),
 user_bTagDiscriminator = cms.untracked.double(0.4),
-beamSpotSource = cms.InputTag("offlineBeamSpot"),
 trackSource = cms.InputTag("generalTracks")
 #jetMcSource = cms.InputTag(""),
 
