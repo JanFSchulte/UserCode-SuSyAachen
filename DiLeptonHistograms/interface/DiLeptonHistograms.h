@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/05/04 19:14:50 $
- *  $Revision: 1.8 $
+ *  $Date: 2010/05/06 20:20:44 $
+ *  $Revision: 1.9 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -273,6 +273,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     
     // Switch for treeInformation
     bool treeInfo;
+    bool effInfo;
 
     //std::string rootFileName;
     edm::InputTag mcSrc;

@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/05/04 19:14:50 $
- *  $Revision: 1.9 $ for CMSSW 3_6_X
+ *  $Date: 2010/05/06 20:20:45 $
+ *  $Revision: 1.10 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -26,6 +26,8 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
 
     //tree information for unbinned fit
     treeInfo          = iConfig.getUntrackedParameter<bool>   ("treeInfo",false);
+    effInfo           = iConfig.getUntrackedParameter<bool>   ("effInfo",false);
+
     // how many tauDiscriminators to take
     maxTauDiscriminators_ = 20; //TODO read from config
     //Input collections
@@ -288,7 +290,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     }
 
     InitHisto(&General,general);
-    InitHisto(&Effcor,effcor);
+    if (effInfo) InitHisto(&Effcor,effcor);
     if (mcInfo){
         InitHisto(&Unmatched,unmatched);
         InitHisto(&Promt,promt);
@@ -805,7 +807,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
 	    //Clean and isolated muons
         objects.push_back(static_cast<const reco::Candidate*>( &(*mu_i) ));
         muonPt += mu_i->pt();
-   	    MuonMonitor(&(*mu_i),n_Muons,weight,effcor); 
+   	    if (effInfo) MuonMonitor(&(*mu_i),n_Muons,weight,effcor); 
 	
         //Invariant mass plots 
 	    //Muon pairs
@@ -824,9 +826,9 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
                 }
                 hMuonResolution[general]->Fill(res,weight);
                 MuonInvMonitor(inv,MET,HT,et4Jets,etFourthJet,iso,weight,general);
-                MuonInvMonitor(inv,MET,HT,et4Jets,etFourthJet,iso,weightcorr,effcor);
+                if (effInfo) MuonInvMonitor(inv,MET,HT,et4Jets,etFourthJet,iso,weightcorr,effcor);
                 hDeltaPhiMET[general]->Fill(deltaPhiMET,weight);
-                hDeltaPhiMET[effcor]->Fill(deltaPhiMET,weightcorr);
+                if (effInfo) hDeltaPhiMET[effcor]->Fill(deltaPhiMET,weightcorr);
                 dileptonPt = (mu_i->p4()+mu_j->p4()).pt();
                 hDileptonPt[general]->Fill(dileptonPt,weight);
                 hJZB[general]->Fill(JPt.pt()-dileptonPt,weight);
@@ -854,7 +856,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
                     weightcorr = getMuonWeight(&(*mu_i))*getElectronWeight(&(*ele_j))*weight;
                     iso = CalcIso(*mu_i)+CalcIso(*ele_j);
                     OFOSInvMonitor(inv,MET,HT,et4Jets,etFourthJet,iso,weight,general);
-                    OFOSInvMonitor(inv,MET,HT,et4Jets,etFourthJet,iso,weightcorr,effcor);
+                    if (effInfo) OFOSInvMonitor(inv,MET,HT,et4Jets,etFourthJet,iso,weightcorr,effcor);
                     dileptonPt = (mu_i->p4()+ele_j->p4()).pt();
                     hDileptonPt[general]->Fill(dileptonPt,weight);
                     hJZB[general]->Fill(JPt.pt()-dileptonPt,weight);
@@ -883,7 +885,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
         if(mcInfo){ElectronMonitor(&(*ele_i),n_Electrons,weight,GetLeptKind(&(*ele_i)));}  
         elePt += ele_i->pt();
         objects.push_back(static_cast<const reco::Candidate*>( &(*ele_i) ));
-   	    ElectronMonitor(&(*ele_i),n_Electrons,weight,effcor);
+   	    if (effInfo) ElectronMonitor(&(*ele_i),n_Electrons,weight,effcor);
         
         //Invariant mass plots
 	    //Electron pairs
@@ -905,7 +907,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
                     }
                 }
                 hElectronResolution[general]->Fill(res,weight);
-                ElectronInvMonitor(inv,MET,HT,et4Jets,etFourthJet,iso,weightcorr,effcor);
+                if (effInfo) ElectronInvMonitor(inv,MET,HT,et4Jets,etFourthJet,iso,weightcorr,effcor);
                 dileptonPt = (ele_i->p4()+ele_j->p4()).pt();
                 hDileptonPt[general]->Fill(dileptonPt,weight);
                 hJZB[general]->Fill(JPt.pt()-dileptonPt,weight);
