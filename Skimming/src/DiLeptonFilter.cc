@@ -13,7 +13,7 @@
 //
 // Original Author:  Matthias Edelhoff
 //         Created:  Mon Nov 16 11:26:19 CET 2009
-// $Id: DiLeptonFilter.cc,v 1.4 2010/02/19 15:38:22 edelhoff Exp $
+// $Id: DiLeptonFilter.cc,v 1.5 2010/02/19 20:40:21 edelhoff Exp $
 //
 //
 
@@ -70,6 +70,7 @@ private:
 
   bool sameSign_;
   bool matching_;
+  bool strictExclusion_;
   std::string method_;
 
   double minDR_;
@@ -98,20 +99,20 @@ DiLeptonFilter::DiLeptonFilter(const edm::ParameterSet& iConfig)
   tertiaryTag_ = iConfig.getParameter<edm::InputTag> ("tertiarySrc");
   sameSign_ = iConfig.getParameter<bool> ("sameSign");
   matching_ = iConfig.getParameter<bool> ("matching");
+  strictExclusion_ = iConfig.getParameter<bool> ("strictExclusion");
   method_ = iConfig.getParameter<std::string> ("method");
   minDR_ = iConfig.getParameter<double> ("minDR");
   minDpt_ = iConfig.getParameter<double> ("minDpt");
   useSecondary_ = false;
   useTertiary_ = false;
 
-
   for(std::vector< std::string >::iterator it = combinations_.begin(); it != combinations_.end(); ++it){
     if( (*it).size() != 2
 	||( (*it)[0] != 'p' && (*it)[0] != 's' && (*it)[0] != 't') 
 	|| ((*it)[1] != 'p' && (*it)[1] != 's' && (*it)[1] != 't') )
       throw new cms::Exception("malformed combination: "+(*it));    
-    useSecondary_ |= (*it)[0] == 's' || (*it)[1] == 's';
-    useTertiary_ |= (*it)[0] == 't' || (*it)[1] == 't';
+    useSecondary_ |= (*it)[0] == 's' || (*it)[1] == 's' || strictExclusion_;
+    useTertiary_ |= (*it)[0] == 't' || (*it)[1] == 't'|| strictExclusion_;
   }
 }
 
@@ -153,13 +154,21 @@ DiLeptonFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.getByLabel(tertiaryTag_, tertiary);
     collectionMap['t'] = *tertiary;
    }
-
+  //  if(strictExclusion_)std::cout << "---"<<std::endl;
   for(std::vector< std::string >::iterator it = combinations_.begin(); it != combinations_.end(); ++it){
-    bool fRes = filterChannel( collectionMap[(*it)[0]], collectionMap[(*it)[1]] );
-    //    std::cout<<" -> " << fRes << " " << *it<<std::endl;
-    result |= fRes;
+    result |= filterChannel( collectionMap[(*it)[0]], collectionMap[(*it)[1]] );
+    //make sure all unused collecetions are nonempty
+    for( std::map< char, collection >::const_iterator itCol = collectionMap.begin();
+	 itCol != collectionMap.end(); ++itCol){
+      //      if(strictExclusion_) std::cout <<  " "<<(*itCol).first << ":"<< (*itCol).second.size(); 
+      if(strictExclusion_ && !((*itCol).first == (*it)[0] || (*itCol).first == (*it)[1] )){
+      //if( (*itCol).second.size() != 0 )
+	  //	  std::cout << "!!";
+	result &=  (*itCol).second.size() == 0;	
+      }
+    }
+    //    if(strictExclusion_)std::cout << "(using "<<(*it)<<")"<<std::endl;
   }
-
   return result;
 }
 

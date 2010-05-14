@@ -8,6 +8,7 @@ diLeptonFilter = cms.EDFilter("DiLeptonFilter",
   tertiarySrc = cms.InputTag(""),# only loaded if any combination with 't' is given
   sameSign = cms.bool(True),
   matching = cms.bool(False),
+  strictExclusion = cms.bool(False),
   method = cms.string('inclusive'),
   minDR = cms.double(0.0000),
   minDpt = cms.double(0.00)
