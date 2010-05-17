@@ -34,3 +34,10 @@ genJetCountSelector = candViewCountFilter.clone(
            minNumber = 1
 )
 
+from SuSyAachen.Skimming.htFilter_cfi import htFilter
+htJetFilter = htFilter.clone(
+            src = cms.InputTag("selectedPatJetsPF"),
+            minHT = cms.double(100.00)
+)
+
+
