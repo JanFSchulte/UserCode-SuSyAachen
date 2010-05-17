@@ -3,6 +3,8 @@
 
 //DataFormats
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
 
 //Framework
 #include "FWCore/Framework/interface/Event.h"
@@ -11,7 +13,7 @@
 //STL
 #include <vector>
 
-template<typename collectionType, typename containerType>
+template<typename T, typename collectionType, typename containerType>
 struct d0Selector {
   typedef collectionType collection;
   typedef containerType container;
@@ -24,35 +26,52 @@ struct d0Selector {
   const_iterator end() const { return selected_.end(); }
   void select(const edm::Handle< collection > &col , const edm::Event &ev , const edm::EventSetup &setup ) {
     
-    edm::Handle<reco::BeamSpot> beamSpotHandle;
+    edm::Handle<T> beamSpotHandle;
     ev.getByLabel(beamSpotSrc_, beamSpotHandle);
-    
+    point_ = getPoint(beamSpotHandle);
+
     selected_.clear();
     double d0 = 0.0;
     for(typename collection::const_iterator it = col.product()->begin(); 
 	 it != col.product()->end(); ++it ){
       
-      d0 = calcD0( *it, beamSpotHandle );
+      d0 = calcD0( *it, point_);
       if ( d0 < d0Min_ )
 	selected_.push_back( & (*it) );
     }
   }
   // fast hack: this should be specialized
-  double calcD0( pat::Electron p, edm::Handle<reco::BeamSpot> beamSpotHandle)
+  double calcD0( pat::Electron p, math::XYZPoint vx)
   {    
-    return fabs( p.gsfTrack()->dxy( beamSpotHandle->position() ));  
+    return fabs( p.gsfTrack()->dxy( vx ));  
   }
   // fast hack: this should be the normal one
-  double calcD0( pat::Muon p, edm::Handle<reco::BeamSpot> beamSpotHandle )
+  double calcD0( pat::Muon p, math::XYZPoint vx )
   {
-    return fabs( p.track()->dxy( beamSpotHandle->position() ));  
+    return fabs( p.track()->dxy( vx ));  
   }
+  // fast hack: this should be specialized
+  math::XYZPoint getPoint( edm::Handle<reco::BeamSpot> beamSpotHandle)
+  { 
+      return beamSpotHandle->position();  
+  }
+  // fast hack: this should be the normal one
+  math::XYZPoint getPoint( edm::Handle<reco::VertexCollection> vertexHandle )
+  {
+      math::XYZPoint pv;
+      for (reco::VertexCollection::const_iterator it = vertexHandle->begin(); it != vertexHandle->end(); ++it) {
+            pv = it->position();
+            break;
+      }
+      return pv;
+  }
+    
 
-  
   size_t size() const { return selected_.size(); }
 private:
   container selected_;
   double d0Min_;
+  math::XYZPoint point_;
   edm::InputTag beamSpotSrc_;
 };
 

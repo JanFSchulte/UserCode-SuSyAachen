@@ -12,6 +12,11 @@
 	 <use name=DataFormats/PatCandidates>
 </library>
 
+<library name=SuSyAachenPatConversionSelectors file=patConversionSelector.cc>
+	 <use name=CommonTools/UtilAlgos>	     
+	 <use name=DataFormats/PatCandidates>
+</library>
+
 <library name=SuSyAachenMCSelectors file=MCSelectors.cc>
 	 <use name=CommonTools/UtilAlgos>	     
 	 <use name=DataFormats/HepMCCandidate>	     
