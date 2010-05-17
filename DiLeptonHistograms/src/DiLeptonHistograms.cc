@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/05/06 20:20:45 $
- *  $Revision: 1.10 $ for CMSSW 3_6_X
+ *  $Date: 2010/05/12 10:50:55 $
+ *  $Revision: 1.11 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -180,6 +180,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hElectron1Eta = new TH1F * [nHistos];
     hElectron2Eta = new TH1F * [nHistos];
     hElectronPhi = new TH1F * [nHistos];
+    hElectronLostHits = new TH1F * [nHistos];
     hElectrond0Pv = new TH1F * [nHistos];
     hElectrond0Bs = new TH1F * [nHistos];
     hElectrond0SigPv = new TH1F * [nHistos];
@@ -397,6 +398,7 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hElectron1Eta[process] = Electrons.make<TH1F>( "electron 1 eta", "electron 1 eta", 250, -2.5, 2.5);
     hElectron2Eta[process] = Electrons.make<TH1F>( "electron 2 eta", "electron 2 eta", 250, -2.5, 2.5);
     hElectronPhi[process] = Electrons.make<TH1F>( "electron phi", "electron phi", 350, -3.5, 3.5);
+    hElectronLostHits[process] = Electrons.make<TH1F>( "electron lost hits", "electron lost hits", 15, -0.5, 14.5);
     hElectrond0Pv[process] = Electrons.make<TH1F>( "electron track d0 pv", "electron track d0 pv", 400, -0.2, 0.2);
     hElectrond0Bs[process] = Electrons.make<TH1F>( "electron track d0 bs", "electron track d0 bs", 400, -0.2, 0.2);
     hElectrond0SigPv[process] = Electrons.make<TH1F>( "electron track d0 significance pv", "electron track d0 significance pv", 100, -50., 50.0);
@@ -1094,9 +1096,11 @@ void DiLeptonHistograms::ElectronMonitor(const pat::Electron* electron,const int
     hElectronsigmaIetaIeta[process]->Fill(sigmaIetaIeta,weight);
     if(!electron->gsfTrack().isNull()){
         //impact parameter
+        int lostHits = electron->gsfTrack()->trackerExpectedHitsInner().numberOfHits();
         double d0tobs = electron->gsfTrack()->dxy(bs);
         double d0topv = electron->gsfTrack()->dxy(pv);
         double d0Err = electron->gsfTrack()->dxyError();
+        hElectronLostHits[process]->Fill(lostHits,weight);
         hElectrond0Pv[process]->Fill(d0topv,weight);
         hElectrond0SigPv[process]->Fill(d0topv/d0Err,weight);
         hElectronIsod0Pv[process]->Fill(IsoValue,d0topv,weight);
