@@ -14,7 +14,8 @@ struct patConversionSelector {
   typedef containerType container;
   typedef typename container::const_iterator const_iterator;
   patConversionSelector ( const edm::ParameterSet & cfg ):
-   cut_( cfg.getParameter<int>( "maxLostHits" ) ) { }
+   cutLow_( cfg.getParameter<int>( "minLostHits") ), 
+   cutHigh_( cfg.getParameter<int>( "maxLostHits" ) ) { }
   
   const_iterator begin() const { return selected_.begin(); }
   const_iterator end() const { return selected_.end(); }
@@ -22,14 +23,15 @@ struct patConversionSelector {
     
     selected_.clear();
     for(typename collection::const_iterator it = col.product()->begin(); it != col.product()->end(); ++it ){
-        if(it->gsfTrack()->trackerExpectedHitsInner().numberOfHits() < cut_) selected_.push_back( & (*it) );
+        if(it->gsfTrack()->trackerExpectedHitsInner().numberOfHits() >= cutLow_ && it->gsfTrack()->trackerExpectedHitsInner().numberOfHits() <= cutHigh_) selected_.push_back( & (*it) );
     }
   }
   
   size_t size() const { return selected_.size(); }
 private:
   container selected_;
-  int cut_;
+  int cutLow_;
+  int cutHigh_;
 };
 
 #endif

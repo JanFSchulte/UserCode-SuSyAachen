@@ -9,20 +9,23 @@ defaultSelector = cms.EDFilter("PATElectronSelector",
 PATElectronD0BSSelector = cms.EDFilter("PATElectronD0BSSelector", 
            filter = cms.bool(True),
            src = cms.InputTag("cleanLayer1Electrons"),
-           d0Min = cms.double(0.2),
+           d0Min = cms.double(-999999.),
+           d0Max = cms.double(0.2),
            beamSpotSource  = cms.InputTag("offlineBeamSpot") #offlinePrimeryVertices
 )
 
 PATElectronD0PVSelector = cms.EDFilter("PATElectronD0PVSelector", 
            filter = cms.bool(True),
            src = cms.InputTag("cleanLayer1Electrons"),
-           d0Min = cms.double(0.2),
+           d0Min = cms.double(-999999.),
+           d0Max = cms.double(0.2),
            beamSpotSource  = cms.InputTag("offlinePrimaryVertices") #offlinePrimeryVertices
 )
 
 PATElectronConversionSelector = cms.EDFilter("PATElectronConversionSelector", 
            src = cms.InputTag("cleanLayer1Electrons"),
-           maxLostHits = cms.int32(2),
+           minLostHits = cms.int32(0),
+           maxLostHits = cms.int32(1)
 )
 
 patMatchedElectronSelector = cms.EDFilter("PATElectronMatchedSelector", 

@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/05/17 16:22:42 $
- *  $Revision: 1.12 $ for CMSSW 3_6_X
+ *  $Date: 2010/05/21 15:26:53 $
+ *  $Revision: 1.13 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -167,8 +167,8 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hMuond0SigBs = new TH1F * [nHistos];
     hMuonnHits = new TH1F * [nHistos];
     hMuonEtaPhi = new TH2F * [nHistos];
-    hMuonIsod0Pv = new TH2F * [nHistos];
-    hMuonIsod0Bs = new TH2F * [nHistos];
+    hMuonPfIsod0Pv = new TH2F * [nHistos];
+    hMuonPfIsod0Bs = new TH2F * [nHistos];
 
     //electron histograms
     hElectronPt = new TH1F * [nHistos];
@@ -199,8 +199,8 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hElectronsigmaIetaIeta = new TH1F * [nHistos];
     hElectronsigmaIetaIeta = new TH1F * [nHistos];
     hElectronEtaPhi = new TH2F * [nHistos];
-    hElectronIsod0Pv = new TH2F * [nHistos];
-    hElectronIsod0Bs = new TH2F * [nHistos];
+    hElectronPfIsod0Pv = new TH2F * [nHistos];
+    hElectronPfIsod0Bs = new TH2F * [nHistos];
     
     //Tau histograms
     hTauPt = new TH1F * [nHistos];
@@ -380,8 +380,8 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hMuond0SigPv[process] = Muons.make<TH1F>( "muon track d0 significance pv", "muon track d0 significance pv", 100, -50., 50.0);
     hMuond0SigBs[process] = Muons.make<TH1F>( "muon track d0 significance bs", "muon track d0 significance bs", 100, -50., 50.0);
     hMuonnHits[process] = Muons.make<TH1F>( "muon track hits", "muon track number of valid hits", 50, 0.0, 50.0);
-    hMuonIsod0Pv[process] = Muons.make<TH2F>( "muon iso d0 pv", "muon iso d0 pv", 300, 0.0 , 3.0, 200, -0.2, 0.2);
-    hMuonIsod0Bs[process] = Muons.make<TH2F>( "muon iso d0 bs", "muon iso d0 bs", 300, 0.0 , 3.0, 200, -0.2, 0.2);
+    hMuonPfIsod0Pv[process] = Muons.make<TH2F>( "muon pf iso d0 pv", "muon pf iso d0 pv", 300, 0.0 , 3.0, 200, -0.2, 0.2);
+    hMuonPfIsod0Bs[process] = Muons.make<TH2F>( "muon pf iso d0 bs", "muon pf iso d0 bs", 300, 0.0 , 3.0, 200, -0.2, 0.2);
     hMuonEtaPhi[process] = Muons.make<TH2F>( "muon eta phi", "muon eta phi", 250, -2.5 , 2.5, 350, -3.5, 3.5);
     //histograms for lepton isolation cuts
     hMuonIso[process] = Muons.make<TH1F>( "muon iso", "Isolation of muons", 300, 0.0, 3.0);
@@ -435,8 +435,8 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hElectrone15oe55[process] = Electrons.make<TH1F>( "electron e15oe55", "electron e15oe55", 100, -1, 2);
     hElectronsigmaEtaEta[process] = Electrons.make<TH1F>( "electron sigma eta eta", "electron sigma eta eta", 100, 0, 0.04);
     hElectronsigmaIetaIeta[process] = Electrons.make<TH1F>( "electron sigma Ieta Ieta", "electron sigma Ieta Ieta", 100, 0, 0.04);
-    hElectronIsod0Pv[process] = Electrons.make<TH2F>( "electron iso d0 pv", "electron iso d0 pv", 300, 0.0 , 3.0, 200, -0.2, 0.2);
-    hElectronIsod0Bs[process] = Electrons.make<TH2F>( "electron iso d0 bs", "electron iso d0 bs", 300, 0.0 , 3.0, 200, -0.2, 0.2);
+    hElectronPfIsod0Pv[process] = Electrons.make<TH2F>( "electron pf iso d0 pv", "electron pf iso d0 pv", 300, 0.0 , 3.0, 200, -0.2, 0.2);
+    hElectronPfIsod0Bs[process] = Electrons.make<TH2F>( "electron pf iso d0 bs", "electron pf iso d0 bs", 300, 0.0 , 3.0, 200, -0.2, 0.2);
     hElectronEtaPhi[process] = Electrons.make<TH2F>( "electron eta phi", "electron eta phi", 250, -2.5 , 2.5, 350, -3.5, 3.5);
 
     hElectronResolution[process] = Electrons.make<TH1F>( "electron resolution", "Resolution of electrons", 1000, -5.0, 5.0);
@@ -1108,10 +1108,10 @@ void DiLeptonHistograms::ElectronMonitor(const pat::Electron* electron,const int
         hElectronLostHits[process]->Fill(lostHits,weight);
         hElectrond0Pv[process]->Fill(d0topv,weight);
         hElectrond0SigPv[process]->Fill(d0topv/d0Err,weight);
-        hElectronIsod0Pv[process]->Fill(IsoValue,d0topv,weight);
+        hElectronPfIsod0Pv[process]->Fill(pfIsoValue,d0topv,weight);
         hElectrond0Bs[process]->Fill(d0tobs,weight);
         hElectrond0SigBs[process]->Fill(d0tobs/d0Err,weight);
-        hElectronIsod0Bs[process]->Fill(IsoValue,d0tobs,weight);
+        hElectronPfIsod0Bs[process]->Fill(pfIsoValue,d0tobs,weight);
     }
     if (mcInfo){
         if(electron->genLepton()){
@@ -1161,10 +1161,10 @@ void DiLeptonHistograms::MuonMonitor(const pat::Muon* muon,const int n_Muon, dou
 	    hMuonnHits[process]->Fill(muon->innerTrack()->numberOfValidHits(),weight);
         hMuond0Pv[process]->Fill(d0topv,weight);
 	    hMuond0SigPv[process]->Fill(d0topv/d0Err,weight);
-        hMuonIsod0Pv[process]->Fill(IsoValue,d0topv,weight);
+        hMuonPfIsod0Pv[process]->Fill(pfIsoValue,d0topv,weight);
         hMuond0Bs[process]->Fill(d0tobs,weight);
 	    hMuond0SigBs[process]->Fill(d0tobs/d0Err,weight);
-        hMuonIsod0Bs[process]->Fill(IsoValue,d0tobs,weight);
+        hMuonPfIsod0Bs[process]->Fill(pfIsoValue,d0tobs,weight);
     }
     if (mcInfo){
         if(muon->genLepton()){

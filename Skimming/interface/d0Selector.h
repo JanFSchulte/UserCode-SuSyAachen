@@ -19,7 +19,8 @@ struct d0Selector {
   typedef containerType container;
   typedef typename container::const_iterator const_iterator;
   d0Selector ( const edm::ParameterSet & cfg ):
-    d0Min_( cfg.getParameter<double>( "d0Min" ) ),
+    d0Min_( cfg.getParameter<double>( "d0Min") ),
+    d0Max_( cfg.getParameter<double>( "d0Max" ) ),
     beamSpotSrc_( cfg.getParameter<edm::InputTag>( "beamSpotSource" ) )  { }
   
   const_iterator begin() const { return selected_.begin(); }
@@ -36,7 +37,7 @@ struct d0Selector {
 	 it != col.product()->end(); ++it ){
       
       d0 = calcD0( *it, point_);
-      if ( d0 < d0Min_ )
+      if ( d0 >= d0Min_ && d0 < d0Max_ )
 	selected_.push_back( & (*it) );
     }
   }
@@ -71,6 +72,7 @@ struct d0Selector {
 private:
   container selected_;
   double d0Min_;
+  double d0Max_;
   math::XYZPoint point_;
   edm::InputTag beamSpotSrc_;
 };
