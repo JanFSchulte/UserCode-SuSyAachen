@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/05/12 10:50:54 $
- *  $Revision: 1.10 $
+ *  $Date: 2010/05/17 16:22:42 $
+ *  $Revision: 1.11 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -135,6 +135,16 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH1F**       hJet2Eta;
     TH1F**       hJet3Eta;
     TH1F**       hJet4Eta;
+    TH1F**       hJetCHF;
+    TH1F**       hJetNHF;
+    TH1F**       hJetCEF;
+    TH1F**       hJetNEF;
+    TH1F**       hJetCM;
+    TH1F**       hJetNConst;
+    
+    TH2F**       h2dJetEtaPhi;
+    TH2F**       h2dJetEtaPt;
+    TH2F**       h2dMatchedJetEtaPt;
 
     TH1F**       hInvMSFOS;
     TH1F**       hInvMOFOS;
@@ -351,6 +361,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     virtual void ElectronMonitor(const pat::Electron*, const int, double, const int);
     virtual void MuonMonitor(const pat::Muon*, const int, double, const int);
     virtual void TauMonitor(const pat::Tau*, const int, double, const int);
+    virtual void JetMonitor(const pat::Jet*, const int, double, const int);
     void InitTauHistos( const pat::Tau& tau, const int process);
 
     virtual void MuonInvMonitor(const double, const double, const double, const double, const double, const double, double, const int);

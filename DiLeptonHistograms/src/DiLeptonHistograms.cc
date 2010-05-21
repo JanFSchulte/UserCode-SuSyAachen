@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/05/12 10:50:55 $
- *  $Revision: 1.11 $ for CMSSW 3_6_X
+ *  $Date: 2010/05/17 16:22:42 $
+ *  $Revision: 1.12 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -253,6 +253,16 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hJet2Eta = new TH1F * [nHistos];
     hJet3Eta = new TH1F * [nHistos];
     hJet4Eta = new TH1F * [nHistos];
+    hJetCHF = new TH1F * [nHistos];
+    hJetNHF = new TH1F * [nHistos];
+    hJetCEF = new TH1F * [nHistos];
+    hJetNEF = new TH1F * [nHistos];
+    hJetCM = new TH1F * [nHistos];
+    hJetNConst = new TH1F * [nHistos];
+    
+    h2dJetEtaPhi = new TH2F * [nHistos];
+    h2dJetEtaPt = new TH2F * [nHistos];
+    h2dMatchedJetEtaPt = new TH2F * [nHistos];
   
     hTrigger = new TH1F * [nHistos];
     hWeight = new TH1F * [nHistos];
@@ -455,14 +465,14 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hGenTauVisPt[process] = Taus.make<TH1F>( "generator tau vis pt", "matched gen tau visible pt", 1000, 0.0, 1000.0);
     hTauDiscriminators[process] = Taus.make<TH1F>( "tau discriminators", "Tau ID discriminators", maxTauDiscriminators_+1, 0.0, maxTauDiscriminators_+1);
     
-    h2dMuonEtaPt[process] = Muons.make<TH2F>( "Eta-Pt of muons", "Eta - Pt of muons", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dMatchedMuonEtaPt[process] = Muons.make<TH2F>( "Eta-Pt of matched muons", "Eta - Pt of matched muons", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dGenMuonEtaPt[process] = Muons.make<TH2F>( "Eta-Pt of MC muons", "Eta - Pt of generator muons", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dElectronEtaPt[process] = Electrons.make<TH2F>( "Eta-Pt of electrons", "Eta - Pt of electrons", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dMatchedElectronEtaPt[process] = Electrons.make<TH2F>( "Eta-Pt of matched electrons", "Eta - Pt of matched electrons", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dGenElectronEtaPt[process] = Electrons.make<TH2F>( "Eta-Pt of MC electrons", "Eta - Pt of generator electrons", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dTauEtaPt[process] = Taus.make<TH2F>( "Eta-Pt of taus", "Eta - Pt of taus", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dMatchedTauEtaPt[process] = Taus.make<TH2F>( "Eta-Pt of matched taus", "Eta - Pt of matched taus", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
+    h2dMuonEtaPt[process] = Muons.make<TH2F>( "muon eta pt", "muon eta pt", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
+    h2dMatchedMuonEtaPt[process] = Muons.make<TH2F>( "muon matched eta pt", "muon matched eta pt", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
+    h2dGenMuonEtaPt[process] = Muons.make<TH2F>( "muon generator eta pt", "muon generator eta pt", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
+    h2dElectronEtaPt[process] = Electrons.make<TH2F>( "electron eta pt", "electron eta pt", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
+    h2dMatchedElectronEtaPt[process] = Electrons.make<TH2F>( "electron matched eta pt", "electron matched eta pt", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
+    h2dGenElectronEtaPt[process] = Electrons.make<TH2F>( "electron generator eta pt", "electron generator eta pt", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
+    h2dTauEtaPt[process] = Taus.make<TH2F>( "tau eta pt", "tau eta pt", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
+    h2dMatchedTauEtaPt[process] = Taus.make<TH2F>( "tau matched eta pt", "tau matched eta pt", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
   
     //histograms for Missing ET
     TFileDirectory MET = theFile->mkdir("MET"); 
@@ -491,6 +501,15 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hJet2Eta[process] = Jets.make<TH1F>( "jet 2 eta", "jet 2 eta", 300, -3., 3.);
     hJet3Eta[process] = Jets.make<TH1F>( "jet 3 eta", "jet 3 eta", 300, -3., 3.);
     hJet4Eta[process] = Jets.make<TH1F>( "jet 4 eta", "jet 4 eta", 300, -3., 3.);
+    hJetCHF[process] = Jets.make<TH1F>( "jet charged hadron fraction", "jet charged hadron fraction", 100, 0., 1.);
+    hJetNHF[process] = Jets.make<TH1F>( "jet neutral hadron fraction", "jet neutral hadron fraction", 100, 0., 1.);
+    hJetCEF[process] = Jets.make<TH1F>( "jet charged electromagnetic fraction", "jet charged electromagnetic fraction", 100, 0., 1.);
+    hJetNEF[process] = Jets.make<TH1F>( "jet neutral electromagnetic fraction", "jet neutral electromagnetic fraction", 100, 0., 1.);
+    hJetCM[process] = Jets.make<TH1F>( "jet charged multiplity", "jet charged multiplicity", 40, -0.5, 39.5);
+    hJetNConst[process] = Jets.make<TH1F>( "jet number of constituents", "jet number of constituents", 40, -0.5, 39.5);
+    h2dJetEtaPhi[process] = Jets.make<TH2F>( "jet eta phi", "jet eta phi", 350, -3.5 , 3.5, 350, -3.5, 3.5);
+    h2dJetEtaPt[process] = Jets.make<TH2F>( "jet eta pt", "jet eta pt", 1000, 0.0, 1000.0, 300, -3.0, 3.0); 
+    h2dMatchedJetEtaPt[process] = Jets.make<TH2F>( "jet matched eta pt", "jet matched eta pt", 1000, 0.0, 1000.0, 300, -3.0, 3.0); 
  
     hTrigger[process] = theFile->make<TH1F>( "Trigger paths", "Trigger paths", 160, 0, 160);
     hWeight[process] = theFile->make<TH1F>( "Weights", "Weights", 1000, 0, 1000);
@@ -741,23 +760,12 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
         JPt += jet_i->p4();
         objects.push_back(static_cast<const reco::Candidate*>( &(*jet_i) ));
 	    //Plots of leading Jets
+   	    JetMonitor(&(*jet_i),n_Jet,weight,general); 
 	    if(n_Jet==1){
-                hEtJet1[process]->Fill(jet_i->pt(),weight);
-                hJet1Eta[process]->Fill(jet_i->eta(),weight);
-                hJet1METPhi[process]->Fill(reco::deltaPhi(jet_i->phi(),meti.phi()),weight);
-                hJet1EtaMET[process]->Fill(MET,jet_i->eta(),weight);
-	        et4Jets+=jet_i->pt();}
-	    if(n_Jet==2){
-                hEtJet2[process]->Fill(jet_i->pt(),weight);
-                hJet2Eta[process]->Fill(jet_i->eta(),weight);
-		et4Jets+=jet_i->pt();}
-	    if(n_Jet==3){
-                hEtJet3[process]->Fill(jet_i->pt(),weight);
-                hJet3Eta[process]->Fill(jet_i->eta(),weight);
-		et4Jets+=jet_i->pt();}
-	    if(n_Jet==4){
-                hEtJet4[process]->Fill(jet_i->pt(),weight);
-                hJet4Eta[process]->Fill(jet_i->eta(),weight);
+            hJet1METPhi[process]->Fill(reco::deltaPhi(jet_i->phi(),meti.phi()),weight);
+            hJet1EtaMET[process]->Fill(MET,jet_i->eta(),weight);
+	    }
+	    if(n_Jet<5){
 		et4Jets+=jet_i->pt();
 		etFourthJet=jet_i->pt();}
 	    //Jet base plots
@@ -766,9 +774,6 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
 		bJets.push_back( *jet_i );
 	    }
 	    HT += jet_i->pt();
-	    hJetEt[process]->Fill(jet_i->pt(),weight);
-	    hJetEta[process]->Fill(jet_i->eta(),weight);
-	    hJetPhi[process]->Fill(jet_i->phi(),weight);
     }
 
     hJetMult[process]->Fill(n_Jet,weight);
@@ -1164,6 +1169,41 @@ void DiLeptonHistograms::MuonMonitor(const pat::Muon* muon,const int n_Muon, dou
     if (mcInfo){
         if(muon->genLepton()){
             h2dMatchedMuonEtaPt[process]->Fill(muon->pt(),muon->eta(),weight);
+        }
+    }
+}
+
+void DiLeptonHistograms::JetMonitor(const pat::Jet* jet,const int n_Jet, double weight, const int process){
+	if(n_Jet==1){
+        hEtJet1[process]->Fill(jet->pt(),weight);
+        hJet1Eta[process]->Fill(jet->eta(),weight);
+    }
+	if(n_Jet==2){
+        hEtJet2[process]->Fill(jet->pt(),weight);
+        hJet2Eta[process]->Fill(jet->eta(),weight);
+	}
+	if(n_Jet==3){
+        hEtJet3[process]->Fill(jet->pt(),weight);
+        hJet3Eta[process]->Fill(jet->eta(),weight);
+	}
+	if(n_Jet==4){
+        hEtJet4[process]->Fill(jet->pt(),weight);
+        hJet4Eta[process]->Fill(jet->eta(),weight);
+	}
+	hJetEt[process]->Fill(jet->pt(),weight);
+	hJetEta[process]->Fill(jet->eta(),weight);
+	hJetPhi[process]->Fill(jet->phi(),weight);
+	hJetCHF[process]->Fill(jet->chargedHadronEnergyFraction(),weight);
+	hJetNHF[process]->Fill(jet->neutralHadronEnergyFraction(),weight);
+	hJetCEF[process]->Fill(jet->chargedEmEnergyFraction(),weight);
+	hJetNEF[process]->Fill(jet->neutralEmEnergyFraction(),weight);
+	hJetCM[process]->Fill(jet->chargedMultiplicity(),weight);
+	hJetNConst[process]->Fill(jet->numberOfDaughters(),weight);
+    h2dJetEtaPt[process]->Fill(jet->pt(),jet->eta(),weight);
+    h2dJetEtaPhi[process]->Fill(jet->eta(),jet->phi(),weight);
+    if (mcInfo){
+        if(jet->genJet()){
+            h2dMatchedJetEtaPt[process]->Fill(jet->pt(),jet->eta(),weight);
         }
     }
 }
