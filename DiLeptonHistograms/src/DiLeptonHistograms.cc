@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/05/21 15:26:53 $
- *  $Revision: 1.13 $ for CMSSW 3_6_X
+ *  $Date: 2010/05/21 20:02:07 $
+ *  $Revision: 1.14 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -1193,11 +1193,13 @@ void DiLeptonHistograms::JetMonitor(const pat::Jet* jet,const int n_Jet, double 
 	hJetEt[process]->Fill(jet->pt(),weight);
 	hJetEta[process]->Fill(jet->eta(),weight);
 	hJetPhi[process]->Fill(jet->phi(),weight);
-	hJetCHF[process]->Fill(jet->chargedHadronEnergyFraction(),weight);
-	hJetNHF[process]->Fill(jet->neutralHadronEnergyFraction(),weight);
-	hJetCEF[process]->Fill(jet->chargedEmEnergyFraction(),weight);
-	hJetNEF[process]->Fill(jet->neutralEmEnergyFraction(),weight);
-	hJetCM[process]->Fill(jet->chargedMultiplicity(),weight);
+    if (jet->isPFJet()){
+	    hJetCHF[process]->Fill(jet->chargedHadronEnergyFraction(),weight);
+	    hJetNHF[process]->Fill(jet->neutralHadronEnergyFraction(),weight);
+	    hJetCEF[process]->Fill(jet->chargedEmEnergyFraction(),weight);
+	    hJetNEF[process]->Fill(jet->neutralEmEnergyFraction(),weight);
+	    hJetCM[process]->Fill(jet->chargedMultiplicity(),weight);
+    }
 	hJetNConst[process]->Fill(jet->numberOfDaughters(),weight);
     h2dJetEtaPt[process]->Fill(jet->pt(),jet->eta(),weight);
     h2dJetEtaPhi[process]->Fill(jet->eta(),jet->phi(),weight);
