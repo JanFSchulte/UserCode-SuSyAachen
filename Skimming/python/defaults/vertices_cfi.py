@@ -1,6 +1,13 @@
 import FWCore.ParameterSet.Config as cms
 
-defaultSelector = cms.EDFilter("PATPrimaryVertexCleaner",
+defaultSelector = cms.EDFilter("VertexSelector",
+    src = cms.InputTag("offlinePrimaryVertices"),
+    cut = cms.string("!isFake && ndof > 4 && abs(z) <= 15 && position.Rho <= 2"), 
+    filter = cms.bool(True),   
+)
+
+
+patDefaultSelector = cms.EDFilter("PATPrimaryVertexCleaner",
                                filter = cms.bool(True),
                                src = cms.InputTag("cleanLayer1Muons"),
                                minMultiplicity = cms.uint32(0),
