@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/05/21 15:26:53 $
- *  $Revision: 1.12 $
+ *  $Date: 2010/05/21 20:02:07 $
+ *  $Revision: 1.13 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -293,6 +293,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     edm::InputTag muonSrc;
     edm::InputTag electronSrc;
     edm::InputTag tauSrc;
+    edm::InputTag trgSrc;
     edm::InputTag metSrc;
     edm::InputTag jetSrc;
     edm::InputTag jetObj;
@@ -306,6 +307,9 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     bool Signal_Analysis;
 
     //Cuts for the analysis
+    double cut_GeneratorPt;
+    double cut_GeneratorEta;
+    
     double cut_MuonPt;
     double cut_MuonEta;
     
@@ -352,7 +356,6 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
 
     inline void InitHisto(TFileDirectory *fs, const int process);
     inline void ReadEfficiency();
-
 
     virtual void Analysis(const edm::Handle< std::vector<pat::Muon> >&, const edm::Handle< std::vector<pat::Electron> >&, const edm::Handle< std::vector<pat::Tau> >& , const edm::Handle< std::vector<pat::Jet> >&, const edm::Handle< std::vector<pat::MET> >&, double weight, const int process);
 

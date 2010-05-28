@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/05/21 20:02:07 $
- *  $Revision: 1.14 $ for CMSSW 3_6_X
+ *  $Date: 2010/05/24 08:21:45 $
+ *  $Revision: 1.15 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -38,6 +38,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     electronSrc       = iConfig.getParameter<edm::InputTag> ("electronSource");
     tauSrc            = iConfig.getParameter<edm::InputTag> ("tauSource");
     metSrc            = iConfig.getParameter<edm::InputTag> ("metSource");
+    trgSrc            = iConfig.getParameter<edm::InputTag> ("triggerSource");
     jetSrc            = iConfig.getParameter<edm::InputTag> ("jetSource");
     trackSrc          = iConfig.getParameter<edm::InputTag> ("trackSource");
  
@@ -45,6 +46,9 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     Signal_Analysis  = iConfig.getUntrackedParameter<bool>   ("Signal_Analysis",false);
 
     //Cuts
+    cut_GeneratorPt     = iConfig.getUntrackedParameter<double> ("acc_GeneratorPt",5.);
+    cut_GeneratorEta    = iConfig.getUntrackedParameter<double> ("acc_GeneratorEta",2.);
+    
     cut_MuonPt     = iConfig.getUntrackedParameter<double> ("acc_MuonPt");
     cut_MuonEta    = iConfig.getUntrackedParameter<double> ("acc_MuonEta");
    
@@ -575,23 +579,31 @@ double CalcPfIso(const T & lepton)
     return value;
 }
 
+const int promptCategory(const reco::Candidate * genParticle){
+    int value = 0;
+    if(genParticle->status()==1 && genParticle->numberOfMothers()==1){
+        const reco::Candidate * mom = genParticle->mother();
+        //Check if lepton is promt (itself,tau,Z,W,SUSY)
+        if(mom->pdgId()==genParticle->pdgId()||abs(mom->pdgId())==15||abs(mom->pdgId())==23||abs(mom->pdgId())==24||abs(mom->pdgId())>1000000){
+            value=3;
+        }
+        else {
+        //LogPrint("Lepton") << "Non promt: " << mom->pdgId();
+            value=4;
+        }
+    }
+    else value = 4;
+    return value;
+}
+
+
 template < class T > 
-int GetLeptKind(const T * lepton)
+const int GetLeptKind(const T * lepton)
 {
     int value = 0;
     if(lepton->genLepton()){
-        if(lepton->genLepton()->status()==1 && lepton->genLepton()->numberOfMothers()==1){
-            const reco::Candidate * mom = lepton->genLepton()->mother();
-            //Check if lepton is promt (itself,tau,Z,W,SUSY)
-            if(mom->pdgId()==lepton->genLepton()->pdgId()||abs(mom->pdgId())==15||abs(mom->pdgId())==23||abs(mom->pdgId())==24||abs(mom->pdgId())>1000000){
-                value=3;
-            }
-            else {
-                //LogPrint("Lepton") << "Non promt: " << mom->pdgId();
-                value=4;
-            }
-        }
-        else value = 4;
+        const reco::Candidate * genLept = lepton->genLepton();
+        value = promptCategory(genLept);
     }
     else value=2;
     return value;
@@ -1316,7 +1328,7 @@ void DiLeptonHistograms::analyze(const edm::Event &iEvent, const edm::EventSetup
   
     //Trigger 
     edm::Handle< edm::TriggerResults > trigger;
-    iEvent.getByLabel("TriggerResults", trigger);
+    iEvent.getByLabel(trgSrc, trigger);
     const edm::TriggerNames & triggerNames = iEvent.triggerNames(*trigger);
 
     bool signal = false;
@@ -1343,6 +1355,7 @@ void DiLeptonHistograms::analyze(const edm::Event &iEvent, const edm::EventSetup
 bool DiLeptonHistograms::MCAnalysis(const edm::Handle< std::vector<pat::Muon> >& muons, const edm::Handle< std::vector<pat::Electron> >& electrons, const edm::Handle< std::vector<reco::GenParticle> >& genParticles, double weight, const int process){
     bool signal = false;
     int pid = 0;
+    int category = 2;
     float metx = 0;
     float mety = 0;
     for (std::vector<reco::GenParticle>::const_iterator p_i = genParticles->begin(); p_i != genParticles->end(); ++p_i){
@@ -1390,19 +1403,37 @@ bool DiLeptonHistograms::MCAnalysis(const edm::Handle< std::vector<pat::Muon> >&
                 //std::cout << mc_muons[1]->pdgId() << std::endl;
             }
         }
-        if (p_i->status()==1){
+        if (p_i->status()==1&&p_i->pt()>cut_GeneratorPt&&fabs(p_i->eta())<cut_GeneratorEta){
 	    //Muons (13) with status 1
- 	    if (p_i->pt()>cut_MuonPt&&fabs(p_i->eta())<cut_MuonEta&&pid==13){
+ 	    if (pid==13){
 		    hGenMuonPt[process]->Fill(p_i->pt(),weight);
 		    hGenMuonEta[process]->Fill(p_i->eta(),weight);
             h2dGenMuonEtaPt[process]->Fill(p_i->pt(),p_i->eta(),weight);
+            category = promptCategory(&(*p_i));
+		    hGenMuonPt[category]->Fill(p_i->pt(),weight);
+		    hGenMuonEta[category]->Fill(p_i->eta(),weight);
+            h2dGenMuonEtaPt[category]->Fill(p_i->pt(),p_i->eta(),weight);
  	    }
 	    //Electron (11) with status 1
- 	    if (p_i->pt()>cut_ElectronPt&&fabs(p_i->eta())<cut_ElectronEta&&abs(p_i->pdgId())==11&&p_i->status()==1){
+ 	    if (pid==11){
 	        hGenElectronPt[process]->Fill(p_i->pt(),weight);
 		    hGenElectronEta[process]->Fill(p_i->eta(),weight);
     		h2dGenElectronEtaPt[process]->Fill(p_i->pt(),p_i->eta(),weight);
+            category = promptCategory(&(*p_i));
+	        hGenElectronPt[category]->Fill(p_i->pt(),weight);
+		    hGenElectronEta[category]->Fill(p_i->eta(),weight);
+    		h2dGenElectronEtaPt[category]->Fill(p_i->pt(),p_i->eta(),weight);
             }
+ 	    if (pid!=11&&pid!=13&&p_i->charge()!=0){
+		    hGenMuonPt[unmatched]->Fill(p_i->pt(),weight);
+		    hGenMuonEta[unmatched]->Fill(p_i->eta(),weight);
+            h2dGenMuonEtaPt[unmatched]->Fill(p_i->pt(),p_i->eta(),weight);
+	        hGenElectronPt[unmatched]->Fill(p_i->pt(),weight);
+		    hGenElectronEta[unmatched]->Fill(p_i->eta(),weight);
+    		h2dGenElectronEtaPt[unmatched]->Fill(p_i->pt(),p_i->eta(),weight);
+        }
+        }
+        if (p_i->status()==1){
  	    if ( pid == 12 || pid == 13 || pid == 14 || pid == 16 || 
 		 pid == 1000022 || pid == 2000012 || pid == 2000014 ||
 		 pid == 2000016 || pid == 1000039 || pid == 5000039 ||
