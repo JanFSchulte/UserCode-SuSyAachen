@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/05/21 20:02:07 $
- *  $Revision: 1.13 $
+ *  $Date: 2010/05/28 13:26:20 $
+ *  $Revision: 1.14 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -373,9 +373,6 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     virtual void TauInvMonitor(const double, const double, const double, const double, const double, const double, double, const int);
   
     virtual bool MCAnalysis(const edm::Handle< std::vector<pat::Muon> >&, const edm::Handle< std::vector<pat::Electron> >&, const edm::Handle< std::vector<reco::GenParticle> >& , double weight, const int process); 
-
-    virtual bool FindMinCombo(std::vector<const reco::Candidate* >, std::vector<unsigned int>&, std::vector<unsigned int>&);
-    virtual double CalcalphaT(std::vector<const reco::Candidate* >, std::vector<unsigned int>, std::vector<unsigned int> );
 
     virtual double getMuonWeight(const pat::Muon*);
     virtual double getElectronWeight(const pat::Electron*);

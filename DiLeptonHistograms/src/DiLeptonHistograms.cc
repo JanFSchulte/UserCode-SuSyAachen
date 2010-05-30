@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/05/24 08:21:45 $
- *  $Revision: 1.15 $ for CMSSW 3_6_X
+ *  $Date: 2010/05/28 13:26:20 $
+ *  $Revision: 1.16 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -610,99 +610,6 @@ const int GetLeptKind(const T * lepton)
 }
 
 
-//Find the combination of objects with the closest distance in pt
-bool DiLeptonHistograms::FindMinCombo(std::vector<const reco::Candidate*> objects,
-				std::vector<unsigned int> & lista,
-				std::vector<unsigned int> & listb) {
- 
-    unsigned int n = objects.size();
-    //if (n>Combinations::nmax) {LogPrint("alhpaCalc") << "FindMinDptCombo: " << n << " too big"; return false;}
-
-    lista.clear(); listb.clear(); // clears the lists, just to be sure
-
-    double mindiff = 1000000000., diff = 0.;
-    // Strip indices from the relevant combination set
-    std::vector<unsigned int> la; //!< Temporary list a for calculating best combo
-    std::vector<unsigned int> lb; //!< Temporary list b for calculating best combo
-
-    for (unsigned int r=0; r<Combinations::rmax[n]; r++) {
-        for (unsigned int j=0; j<Combinations::jmax[n]; j++) {
-        //std::cout << r << " " << j << std::endl;
-        // populate list a
-        for (unsigned int ia=0; ia<(n-1); ia++) {
-	    if ((n==2) && (Combinations::la2[r][j][ia]!=-1) ) la.push_back( Combinations::la2[r][j][ia] );	
-	    if ((n==3) && (Combinations::la3[r][j][ia]!=-1) ) la.push_back( Combinations::la3[r][j][ia] );
-	    if ((n==4) && (Combinations::la4[r][j][ia]!=-1) ) la.push_back( Combinations::la4[r][j][ia] );
-	    if ((n==5) && (Combinations::la5[r][j][ia]!=-1) ) la.push_back( Combinations::la5[r][j][ia] );
-	    if ((n==6) && (Combinations::la6[r][j][ia]!=-1) ) la.push_back( Combinations::la6[r][j][ia] );
-	    if ((n==7) && (Combinations::la7[r][j][ia]!=-1) ) la.push_back( Combinations::la7[r][j][ia] );
-	//if (lista[ia] < 0) { lista.pop_back(); break; }
-        }
-        // populate list b
-        for (unsigned int ib=0; ib<(n-1); ib++) {
-	    if ((n==2) && (Combinations::lb2[r][j][ib]!=-1) ) lb.push_back( Combinations::lb2[r][j][ib] );
-	    if ((n==3) && (Combinations::lb3[r][j][ib]!=-1) ) lb.push_back( Combinations::lb3[r][j][ib] );
-	    if ((n==4) && (Combinations::lb4[r][j][ib]!=-1) ) lb.push_back( Combinations::lb4[r][j][ib] );
-	    if ((n==5) && (Combinations::lb5[r][j][ib]!=-1) ) lb.push_back( Combinations::lb5[r][j][ib] );
-	    if ((n==6) && (Combinations::lb6[r][j][ib]!=-1) ) lb.push_back( Combinations::lb6[r][j][ib] );
-	    if ((n==7) && (Combinations::lb7[r][j][ib]!=-1) ) lb.push_back( Combinations::lb7[r][j][ib] );
-	    //if (listb[ib] < 0) { listb.pop_back(); break; }
-        }
-
-
-        if ( la.size()==0 || lb.size()==0 ) break;
-
-        double JetaEt = 0., JetbEt = 0.;
-        for (std::vector<unsigned int>::iterator ia=la.begin();ia!=la.end();++ia) {
-	//std::cout << (*ia) << " ";
-	JetaEt += objects[ (*ia) ]->pt();
-        }
-        //std::cout << ", ";
-        for (std::vector<unsigned int>::iterator ib=lb.begin();ib!=lb.end();++ib) {
-	    JetbEt += objects[ (*ib) ]->pt();
-	    //std::cout << (*ib) << " ";
-        }
-        //std::cout << std::endl;
-        diff = fabs(JetaEt - JetbEt);
-        //std::cout << "Difference in Et is " << diff << std::endl;
-        if (diff < mindiff) { mindiff = diff; lista = la; listb = lb; }
-        la.clear(); lb.clear();
-        } // end of permutation list loop
-    } // end of combination list loop
-  
-    return true;
-}
-
-
-double DiLeptonHistograms::CalcalphaT(std::vector<const reco::Candidate*> objects,
-			  std::vector<unsigned int> la,
-			  std::vector<unsigned int> lb) {
-
-    // Check we have enough jets for the lists supplied.
-    if ((la[la.size()-1]>objects.size())||(lb[lb.size()-1]>objects.size())) {return 0.;}
-    
-    double jetaEt = 0., jetbEt = 0.; // sums for Et
-    // Loop over jet list a to get pseudo-jet a
-    for ( std::vector<unsigned int>::iterator ia = la.begin(); ia != la.end(); ++ia ) {
-      jetaEt += objects[(*ia)]->pt();
-    }
-      
-    // Loop over jet list b to get pseudo-jet b
-    for ( std::vector<unsigned int>::iterator ib = lb.begin(); ib != lb.end(); ++ib ) {
-      jetbEt += objects[(*ib)]->pt();
-    }
-    double ptSum = 0., pxSum = 0., pySum = 0.;
-    for (unsigned int i=0; i < objects.size(); ++i){
-        ptSum += objects[i]->pt();
-        pxSum += objects[i]->px();
-        pySum += objects[i]->py();
-    }
-    double MT = sqrt(ptSum*ptSum-pxSum*pxSum-pySum*pySum);
-    double alphaT = std::min(jetaEt,jetbEt)/MT;
-    return alphaT; 
-}
-
-
 //Calculate the muon effificiency
 double DiLeptonHistograms::getMuonWeight(const pat::Muon* muon)
 {
@@ -762,7 +669,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
     float etFourthJet=0;
     float HT=0;
 
-    std::vector<const reco::Candidate*> objects;
+    std::vector<reco::Candidate::LorentzVector> objects;
     math::PtEtaPhiMLorentzVector JPt(0., 0., 0., 0.);
 
     for (std::vector<pat::Jet>::const_iterator jet_i = jets->begin(); jet_i != jets->end(); ++jet_i){       
@@ -770,7 +677,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
         ++numTotJets;
 	    ++n_Jet;
         JPt += jet_i->p4();
-        objects.push_back(static_cast<const reco::Candidate*>( &(*jet_i) ));
+        objects.push_back(jet_i->p4());
 	    //Plots of leading Jets
    	    JetMonitor(&(*jet_i),n_Jet,weight,general); 
 	    if(n_Jet==1){
@@ -824,7 +731,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
    	    MuonMonitor(&(*mu_i),n_Muons,weight,general); 
         if(mcInfo){MuonMonitor(&(*mu_i),n_Muons,weight,GetLeptKind(&(*mu_i)));}   
 	    //Clean and isolated muons
-        objects.push_back(static_cast<const reco::Candidate*>( &(*mu_i) ));
+        objects.push_back(mu_i->p4());
         muonPt += mu_i->pt();
    	    if (effInfo) MuonMonitor(&(*mu_i),n_Muons,weight,effcor); 
 	
@@ -903,7 +810,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
    	    ElectronMonitor(&(*ele_i),n_Electrons,weight,general); 
         if(mcInfo){ElectronMonitor(&(*ele_i),n_Electrons,weight,GetLeptKind(&(*ele_i)));}  
         elePt += ele_i->pt();
-        objects.push_back(static_cast<const reco::Candidate*>( &(*ele_i) ));
+        objects.push_back(ele_i->p4());
    	    if (effInfo) ElectronMonitor(&(*ele_i),n_Electrons,weight,effcor);
         
         //Invariant mass plots
@@ -972,9 +879,9 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
     }
  
     //Global alphaT from all objects
-    //double alphaT = 0; 
-    //if(FindMinCombo(objects,mlaMinDpt,mlbMinDpt)){alphaT =  CalcalphaT(objects,mlaMinDpt,mlbMinDpt);}
-    //halphaT[process]->Fill(alphaT,weight);
+    double alphaT = 0; 
+    alphaT = alpha_T()(objects);
+    halphaT[process]->Fill(alphaT,weight);
     //Muon multiplicity 
     hMuonMult[general]->Fill(n_Muons,weight);
     hMuonSumPt[general]->Fill(muonPt,weight);
