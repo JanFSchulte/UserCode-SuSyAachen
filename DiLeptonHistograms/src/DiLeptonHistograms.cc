@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/05/28 13:26:20 $
- *  $Revision: 1.16 $ for CMSSW 3_6_X
+ *  $Date: 2010/05/30 21:54:03 $
+ *  $Revision: 1.17 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -95,6 +95,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hElectronChargedHadronIso = new TH1F * [nHistos];
     hElectronPhotonIso = new TH1F * [nHistos];
     hElectronNeutralHadronIso = new TH1F * [nHistos];
+    hElectronTransverseMass = new TH1F * [nHistos];
     hMuonIso = new TH1F * [nHistos];
     hMuonTrackIso = new TH1F * [nHistos];
     hMuonEcalIso = new TH1F * [nHistos];
@@ -103,6 +104,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hMuonChargedHadronIso = new TH1F * [nHistos];
     hMuonPhotonIso = new TH1F * [nHistos];
     hMuonNeutralHadronIso = new TH1F * [nHistos];
+    hMuonTransverseMass = new TH1F * [nHistos];
     hTauIso = new TH1F * [nHistos];
     hTauTrackIso = new TH1F * [nHistos];
     hTauEcalIso = new TH1F * [nHistos];
@@ -292,6 +294,10 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
         treeMuon = Tree.make<TTree>("Muon tree", "Muon tree"); 
         treeMuon->Branch("inv",&invMMuon,"invMMuon/F");
         treeMuon->Branch("weight",&invweight,"invweight/F");
+        treeMuonIso = Tree.make<TTree>("Muon iso tree", "Muon iso tree"); 
+        treeMuonIso->Branch("pfIso",&isoPfMuon,"isoPfMuon/F");
+        treeElectronIso = Tree.make<TTree>("Electron iso tree", "Electron iso tree"); 
+        treeElectronIso->Branch("pfIso",&isoPfElectron,"isoPfElectron/F");
     }
    
     general = 0;
@@ -396,6 +402,7 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hMuonChargedHadronIso[process] = Muons.make<TH1F>( "muon charged hadron iso", "Isolation of muons from charged hadrons", 1000, 0.0, 10.0);
     hMuonPhotonIso[process] = Muons.make<TH1F>( "muon photon iso", "Isolation of muons from photons", 1000, 0.0, 10.0);
     hMuonNeutralHadronIso[process] = Muons.make<TH1F>( "muon neutral hadron iso", "Isolation of muons from neutral hadrons", 1000, 0.0, 10.0);
+    hMuonTransverseMass[process] = Muons.make<TH1F>( "muon transverse mass", "muon transverse mass", 100, 0.0, 100.0);
     hGenMuonPt[process] = Muons.make<TH1F>( "generator muon pt", "Generator muon pt", 1000, 0.0, 1000.0);
     hGenMuonEta[process] = Muons.make<TH1F>( "generator muon eta", "Generator muon eta", 250, -2.5, 2.5);
 
@@ -426,6 +433,7 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hElectronChargedHadronIso[process] = Electrons.make<TH1F>( "electron charged hadron iso", "Isolation of electrons from charged hadrons", 1000, 0.0, 10.0);
     hElectronPhotonIso[process] = Electrons.make<TH1F>( "electron photon iso", "Isolation of electron from photons", 1000, 0.0, 10.0);
     hElectronNeutralHadronIso[process] = Electrons.make<TH1F>( "electron neutral hadron iso", "Isolation of electrons from neutral hadrons", 1000, 0.0, 10.0);
+    hElectronTransverseMass[process] = Electrons.make<TH1F>( "muon transverse mass", "muon transverse mass", 100, 0.0, 100.0);
     hGenElectronPt[process] = Electrons.make<TH1F>( "generator electron pt", "Generator electron pt", 1000, 0.0, 1000.0);
     hGenElectronEta[process] = Electrons.make<TH1F>( "generator electron eta", "Generator electron eta", 250, -2.5, 2.5);
     //electron variables
@@ -730,11 +738,14 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
         ++n_Muons;
    	    MuonMonitor(&(*mu_i),n_Muons,weight,general); 
         if(mcInfo){MuonMonitor(&(*mu_i),n_Muons,weight,GetLeptKind(&(*mu_i)));}   
+        if(n_Muons==1){hMuonTransverseMass[process]->Fill( sqrt( mu_i->et()*meti.et()*( 1 - cos(reco::deltaPhi((mu_i->p4()).phi(),meti.phi())) )));}
 	    //Clean and isolated muons
         objects.push_back(mu_i->p4());
         muonPt += mu_i->pt();
    	    if (effInfo) MuonMonitor(&(*mu_i),n_Muons,weight,effcor); 
-	
+        // Unbinned pfIsoFit
+        isoPfMuon = CalcPfIso(*mu_i);
+        if (treeInfo) treeMuonIso->Fill();
         //Invariant mass plots 
 	    //Muon pairs
    	    for (std::vector<pat::Muon>::const_iterator mu_j = muons->begin(); mu_j != muons->end(); ++mu_j){
@@ -809,10 +820,12 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
 	    ++n_Electrons;
    	    ElectronMonitor(&(*ele_i),n_Electrons,weight,general); 
         if(mcInfo){ElectronMonitor(&(*ele_i),n_Electrons,weight,GetLeptKind(&(*ele_i)));}  
+        if(n_Electrons==1){hElectronTransverseMass[process]->Fill( sqrt( ele_i->et()*meti.et()*( 1 - cos(reco::deltaPhi((ele_i->p4()).phi(),meti.phi())) )));}
         elePt += ele_i->pt();
         objects.push_back(ele_i->p4());
    	    if (effInfo) ElectronMonitor(&(*ele_i),n_Electrons,weight,effcor);
-        
+        isoPfElectron = CalcPfIso(*ele_i);
+        if (treeInfo) treeElectronIso->Fill(); 
         //Invariant mass plots
 	    //Electron pairs
    	    for (std::vector<pat::Electron>::const_iterator ele_j = electrons->begin(); ele_j != electrons->end(); ++ele_j){

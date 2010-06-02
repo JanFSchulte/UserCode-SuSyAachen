@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/05/28 13:26:20 $
- *  $Revision: 1.14 $
+ *  $Date: 2010/05/30 21:54:03 $
+ *  $Revision: 1.15 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -93,6 +93,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH1F**       hElectronChargedHadronIso;
     TH1F**       hElectronPhotonIso;
     TH1F**       hElectronNeutralHadronIso;
+    TH1F**       hElectronTransverseMass;
 
     TH1F**       hMuonIso;
     TH1F**       hMuonTrackIso;
@@ -102,6 +103,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH1F**       hMuonChargedHadronIso;
     TH1F**       hMuonPhotonIso;
     TH1F**       hMuonNeutralHadronIso;
+    TH1F**       hMuonTransverseMass;
 
     TH1F**       hTauIso;
     TH1F**       hTauTrackIso;
@@ -267,11 +269,15 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TTree*       treeSFOS;
     TTree*       treeMuon;
     TTree*       treeElec;
+    TTree*       treeMuonIso;
+    TTree*       treeElectronIso;
     float invMOFOS;
     float invMSFOS;
     float invMMuon;
     float invMElec;
     float invweight;
+    float isoPfMuon;
+    float isoPfElectron;
 
     // The file which will store the histos
     TFile *theFile;
