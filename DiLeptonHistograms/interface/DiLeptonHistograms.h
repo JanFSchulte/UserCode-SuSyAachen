@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/05/30 21:54:03 $
- *  $Revision: 1.15 $
+ *  $Date: 2010/06/02 14:03:28 $
+ *  $Revision: 1.16 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -287,6 +287,8 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     
     // Switch for mc analysis
     bool mcInfo;
+    //Switch for tau promptness (TODO: study more useful determination)
+    bool tauIsPrompt;
     
     // Switch for treeInformation
     bool treeInfo;
@@ -352,6 +354,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     int unmatched;
     int promt;
     int decay;
+    int lightResonances;
   
     //Global counters
     int numTotEvents;

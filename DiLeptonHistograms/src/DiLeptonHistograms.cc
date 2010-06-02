@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/05/30 21:54:03 $
- *  $Revision: 1.17 $ for CMSSW 3_6_X
+ *  $Date: 2010/06/02 14:03:28 $
+ *  $Revision: 1.18 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -23,6 +23,8 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
 
     //Monte carlo information
     mcInfo            = iConfig.getUntrackedParameter<bool>   ("mcInfo",false);
+    // children of taus are not allways prompt...
+    tauIsPrompt           = iConfig.getUntrackedParameter<bool>("tauIsPrompt",true);
 
     //tree information for unbinned fit
     treeInfo          = iConfig.getUntrackedParameter<bool>   ("treeInfo",false);
@@ -72,7 +74,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     numTotTaus = 0;
     numTotJets = 0;
 
-    const int nHistos=5;
+    const int nHistos=6;
 
     // Create the root file
     edm::Service<TFileService> theFile;
@@ -278,7 +280,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     TFileDirectory Unmatched = theFile->mkdir( "Unmatched" );
     TFileDirectory Promt = theFile->mkdir( "Promt" );
     TFileDirectory Decay = theFile->mkdir( "Decay" );
-
+    TFileDirectory LightResonances = theFile->mkdir( "LightResonances" );
     //Trees for unbinned maximum likelihood fit
     if (treeInfo){
         TFileDirectory Tree = theFile->mkdir( "Trees" );
@@ -305,6 +307,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     unmatched = 2;
     promt = 3;
     decay = 4;
+    lightResonances = 5;
     tauInitialized_ =  new bool[nHistos];
     for(int i =0; i< nHistos; ++i){
       tauInitialized_[i] = false;
@@ -316,6 +319,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
         InitHisto(&Unmatched,unmatched);
         InitHisto(&Promt,promt);
         InitHisto(&Decay,decay);
+	InitHisto(&LightResonances,lightResonances);
     }
    
     //Read the efficiencies from the files 
@@ -587,17 +591,18 @@ double CalcPfIso(const T & lepton)
     return value;
 }
 
-const int promptCategory(const reco::Candidate * genParticle){
+const int promptCategory(const reco::Candidate * genParticle, bool tauIsPrompt){
     int value = 0;
     if(genParticle->status()==1 && genParticle->numberOfMothers()==1){
         const reco::Candidate * mom = genParticle->mother();
         //Check if lepton is promt (itself,tau,Z,W,SUSY)
-        if(mom->pdgId()==genParticle->pdgId()||abs(mom->pdgId())==15||abs(mom->pdgId())==23||abs(mom->pdgId())==24||abs(mom->pdgId())>1000000){
+        if(mom->pdgId()==genParticle->pdgId()||(abs(mom->pdgId())==15 &&tauIsPrompt)||abs(mom->pdgId())==23||abs(mom->pdgId())==24||abs(mom->pdgId())>1000000){
             value=3;
-        }
-        else {
-        //LogPrint("Lepton") << "Non promt: " << mom->pdgId();
-            value=4;
+        }else if( mom->pdgId()==443 || mom->pdgId()==553 ||mom->pdgId()==100553){ // J/psi (s1) upsilon(s1) upsilon(s2)
+	  value = 5;
+	} else {
+	  //LogPrint("Lepton") << "Non promt: " << mom->pdgId();
+	  value=4;
         }
     }
     else value = 4;
@@ -606,12 +611,12 @@ const int promptCategory(const reco::Candidate * genParticle){
 
 
 template < class T > 
-const int GetLeptKind(const T * lepton)
+const int GetLeptKind(const T * lepton, bool tauIsPrompt)
 {
     int value = 0;
     if(lepton->genLepton()){
         const reco::Candidate * genLept = lepton->genLepton();
-        value = promptCategory(genLept);
+        value = promptCategory(genLept, tauIsPrompt);
     }
     else value=2;
     return value;
@@ -737,7 +742,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
         ++numTotMuons;
         ++n_Muons;
    	    MuonMonitor(&(*mu_i),n_Muons,weight,general); 
-        if(mcInfo){MuonMonitor(&(*mu_i),n_Muons,weight,GetLeptKind(&(*mu_i)));}   
+	    if(mcInfo){MuonMonitor(&(*mu_i),n_Muons,weight,GetLeptKind(&(*mu_i), tauIsPrompt));}   
         if(n_Muons==1){hMuonTransverseMass[process]->Fill( sqrt( mu_i->et()*meti.et()*( 1 - cos(reco::deltaPhi((mu_i->p4()).phi(),meti.phi())) )));}
 	    //Clean and isolated muons
         objects.push_back(mu_i->p4());
@@ -819,7 +824,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
         ++numTotElectrons;
 	    ++n_Electrons;
    	    ElectronMonitor(&(*ele_i),n_Electrons,weight,general); 
-        if(mcInfo){ElectronMonitor(&(*ele_i),n_Electrons,weight,GetLeptKind(&(*ele_i)));}  
+	    if(mcInfo){ElectronMonitor(&(*ele_i),n_Electrons,weight,GetLeptKind(&(*ele_i), tauIsPrompt));}  
         if(n_Electrons==1){hElectronTransverseMass[process]->Fill( sqrt( ele_i->et()*meti.et()*( 1 - cos(reco::deltaPhi((ele_i->p4()).phi(),meti.phi())) )));}
         elePt += ele_i->pt();
         objects.push_back(ele_i->p4());
@@ -876,7 +881,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
         ++numTotTaus;
 	    ++n_Taus;
    	    TauMonitor(&(*tau_i),n_Taus,weight,general); 
-        if(mcInfo){TauMonitor(&(*tau_i),n_Taus,weight,GetLeptKind(&(*tau_i)));}  
+	    if(mcInfo){TauMonitor(&(*tau_i),n_Taus,weight,GetLeptKind(&(*tau_i), tauIsPrompt));}  
         
         //Invariant mass plots
 	    //Tau pairs
@@ -1329,7 +1334,7 @@ bool DiLeptonHistograms::MCAnalysis(const edm::Handle< std::vector<pat::Muon> >&
 		    hGenMuonPt[process]->Fill(p_i->pt(),weight);
 		    hGenMuonEta[process]->Fill(p_i->eta(),weight);
             h2dGenMuonEtaPt[process]->Fill(p_i->pt(),p_i->eta(),weight);
-            category = promptCategory(&(*p_i));
+            category = promptCategory(&(*p_i),tauIsPrompt);
 		    hGenMuonPt[category]->Fill(p_i->pt(),weight);
 		    hGenMuonEta[category]->Fill(p_i->eta(),weight);
             h2dGenMuonEtaPt[category]->Fill(p_i->pt(),p_i->eta(),weight);
@@ -1339,7 +1344,7 @@ bool DiLeptonHistograms::MCAnalysis(const edm::Handle< std::vector<pat::Muon> >&
 	        hGenElectronPt[process]->Fill(p_i->pt(),weight);
 		    hGenElectronEta[process]->Fill(p_i->eta(),weight);
     		h2dGenElectronEtaPt[process]->Fill(p_i->pt(),p_i->eta(),weight);
-            category = promptCategory(&(*p_i));
+		category = promptCategory(&(*p_i),tauIsPrompt);
 	        hGenElectronPt[category]->Fill(p_i->pt(),weight);
 		    hGenElectronEta[category]->Fill(p_i->eta(),weight);
     		h2dGenElectronEtaPt[category]->Fill(p_i->pt(),p_i->eta(),weight);
