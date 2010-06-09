@@ -4,7 +4,7 @@ DiLeptonAnalysis = cms.EDFilter('DiLeptonHistograms',
 
 debug = cms.untracked.bool(False),
 mcInfo = cms.untracked.bool(True),
-tauIsPrompt = cms.untracked.bool(False),
+tauIsPrompt = cms.untracked.bool(True),
 treeInfo = cms.untracked.bool(False),
 effInfo = cms.untracked.bool(False),
 
