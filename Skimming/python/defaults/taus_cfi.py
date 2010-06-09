@@ -16,3 +16,10 @@ patMatchedTauSelector = cms.EDFilter("PATTauMatchedSelector",
 patJetMatchedTauSelector = cms.EDFilter("PATTauJetMatchedSelector", 
    src = cms.InputTag("cleanLayer1Taus"),
 )
+
+from SuSyAachen.Skimming.jetSelectors_cfi import candViewCountFilter 
+tauCountSelector = candViewCountFilter.clone(
+           filter = cms.bool(True),
+           src = cms.InputTag("cleanLayer1Taus"),
+           minNumber = 1
+)

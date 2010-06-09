@@ -12,3 +12,5 @@ genMETSelector = cms.EDProducer("CandViewSelector",
            cut = cms.string("pt > 100")
 )
 
+from SuSyAachen.Skimming.mtFilter_cfi import mtFilter
+patHtFilter = mtFilter.clone( )
