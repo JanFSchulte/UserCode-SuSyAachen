@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/06/02 14:03:28 $
- *  $Revision: 1.18 $ for CMSSW 3_6_X
+ *  $Date: 2010/06/02 15:04:33 $
+ *  $Revision: 1.19 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -175,6 +175,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hMuond0SigBs = new TH1F * [nHistos];
     hMuonnHits = new TH1F * [nHistos];
     hMuonEtaPhi = new TH2F * [nHistos];
+    hMuonPfIsoPt = new TH2F * [nHistos];
     hMuonPfIsod0Pv = new TH2F * [nHistos];
     hMuonPfIsod0Bs = new TH2F * [nHistos];
 
@@ -394,6 +395,7 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hMuond0SigPv[process] = Muons.make<TH1F>( "muon track d0 significance pv", "muon track d0 significance pv", 100, -50., 50.0);
     hMuond0SigBs[process] = Muons.make<TH1F>( "muon track d0 significance bs", "muon track d0 significance bs", 100, -50., 50.0);
     hMuonnHits[process] = Muons.make<TH1F>( "muon track hits", "muon track number of valid hits", 50, 0.0, 50.0);
+    hMuonPfIsoPt[process] = Muons.make<TH2F>( "muon pf iso pt", "muon pf iso pt", 300, 0.0 , 3.0, 1000, 0., 1000);
     hMuonPfIsod0Pv[process] = Muons.make<TH2F>( "muon pf iso d0 pv", "muon pf iso d0 pv", 300, 0.0 , 3.0, 200, -0.2, 0.2);
     hMuonPfIsod0Bs[process] = Muons.make<TH2F>( "muon pf iso d0 bs", "muon pf iso d0 bs", 300, 0.0 , 3.0, 200, -0.2, 0.2);
     hMuonEtaPhi[process] = Muons.make<TH2F>( "muon eta phi", "muon eta phi", 250, -2.5 , 2.5, 350, -3.5, 3.5);
@@ -437,7 +439,7 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hElectronChargedHadronIso[process] = Electrons.make<TH1F>( "electron charged hadron iso", "Isolation of electrons from charged hadrons", 1000, 0.0, 10.0);
     hElectronPhotonIso[process] = Electrons.make<TH1F>( "electron photon iso", "Isolation of electron from photons", 1000, 0.0, 10.0);
     hElectronNeutralHadronIso[process] = Electrons.make<TH1F>( "electron neutral hadron iso", "Isolation of electrons from neutral hadrons", 1000, 0.0, 10.0);
-    hElectronTransverseMass[process] = Electrons.make<TH1F>( "muon transverse mass", "muon transverse mass", 100, 0.0, 100.0);
+    hElectronTransverseMass[process] = Electrons.make<TH1F>( "electron transverse mass", "electron transverse mass", 100, 0.0, 100.0);
     hGenElectronPt[process] = Electrons.make<TH1F>( "generator electron pt", "Generator electron pt", 1000, 0.0, 1000.0);
     hGenElectronEta[process] = Electrons.make<TH1F>( "generator electron eta", "Generator electron eta", 250, -2.5, 2.5);
     //electron variables
@@ -589,6 +591,14 @@ double CalcPfIso(const T & lepton)
 {
     double value = (lepton.chargedHadronIso()+lepton.photonIso()+lepton.neutralHadronIso()/3.)/lepton.pt();
     return value;
+}
+
+template < class T > 
+double transverseMass(const T & lepton,const pat::MET met)
+{
+    reco::Candidate::LorentzVector leptonT(lepton.px(),lepton.py(),0.,lepton.energy()*sin(lepton.theta()));
+    reco::Candidate::LorentzVector sumT=leptonT+met.p4();
+    return std::sqrt(sumT.M2());
 }
 
 const int promptCategory(const reco::Candidate * genParticle, bool tauIsPrompt){
@@ -743,7 +753,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
         ++n_Muons;
    	    MuonMonitor(&(*mu_i),n_Muons,weight,general); 
 	    if(mcInfo){MuonMonitor(&(*mu_i),n_Muons,weight,GetLeptKind(&(*mu_i), tauIsPrompt));}   
-        if(n_Muons==1){hMuonTransverseMass[process]->Fill( sqrt( mu_i->et()*meti.et()*( 1 - cos(reco::deltaPhi((mu_i->p4()).phi(),meti.phi())) )));}
+        if(n_Muons==1){hMuonTransverseMass[process]->Fill(transverseMass(*mu_i,meti));}
 	    //Clean and isolated muons
         objects.push_back(mu_i->p4());
         muonPt += mu_i->pt();
@@ -825,7 +835,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
 	    ++n_Electrons;
    	    ElectronMonitor(&(*ele_i),n_Electrons,weight,general); 
 	    if(mcInfo){ElectronMonitor(&(*ele_i),n_Electrons,weight,GetLeptKind(&(*ele_i), tauIsPrompt));}  
-        if(n_Electrons==1){hElectronTransverseMass[process]->Fill( sqrt( ele_i->et()*meti.et()*( 1 - cos(reco::deltaPhi((ele_i->p4()).phi(),meti.phi())) )));}
+        if(n_Electrons==1){hElectronTransverseMass[process]->Fill(transverseMass(*ele_i,meti));}
         elePt += ele_i->pt();
         objects.push_back(ele_i->p4());
    	    if (effInfo) ElectronMonitor(&(*ele_i),n_Electrons,weight,effcor);
@@ -1098,6 +1108,7 @@ void DiLeptonHistograms::MuonMonitor(const pat::Muon* muon,const int n_Muon, dou
 	    hMuonnHits[process]->Fill(muon->innerTrack()->numberOfValidHits(),weight);
         hMuond0Pv[process]->Fill(d0topv,weight);
 	    hMuond0SigPv[process]->Fill(d0topv/d0Err,weight);
+        hMuonPfIsoPt[process]->Fill(pfIsoValue,muon->pt(),weight);
         hMuonPfIsod0Pv[process]->Fill(pfIsoValue,d0topv,weight);
         hMuond0Bs[process]->Fill(d0tobs,weight);
 	    hMuond0SigBs[process]->Fill(d0tobs/d0Err,weight);

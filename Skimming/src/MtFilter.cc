@@ -13,7 +13,7 @@
 //
 // Original Author:  Matthias Edelhoff
 //         Created:  Mon Nov 16 11:26:19 CET 2009
-// $Id: MtFilter.cc,v 1.1 2010/05/14 11:10:31 edelhoff Exp $
+// $Id: MtFilter.cc,v 1.1 2010/06/09 20:49:42 edelhoff Exp $
 //
 //
 
@@ -93,7 +93,7 @@ MtFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   bool result = false;
   for(collection::const_iterator it = candidates->begin(); it != candidates->end() ; ++it){
 
-    result |= sqrt( (*it).et()*met.et()*( 1 - cos(reco::deltaPhi(((*it).p4()).phi(),met.phi())) )) >= minMT_;
+    result |= sqrt( 2*(*it).et()*met.et()*( 1 - cos(reco::deltaPhi(((*it).p4()).phi(),met.phi())) )) >= minMT_;
   }
   return result;
 }
