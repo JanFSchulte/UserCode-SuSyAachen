@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/06/02 15:04:33 $
- *  $Revision: 1.19 $ for CMSSW 3_6_X
+ *  $Date: 2010/06/11 14:15:43 $
+ *  $Revision: 1.20 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -115,6 +115,10 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hTauChargedHadronIso = new TH1F * [nHistos];
     hTauPhotonIso = new TH1F * [nHistos];
     hTauNeutralHadronIso = new TH1F * [nHistos];
+    hTauTransverseMass = new TH1F * [nHistos];
+    hTauNSignalTracks = new TH1F * [nHistos];
+    hTauSumIsoPt = new TH1F * [nHistos];
+    hTauRelSumIsoPt = new TH1F * [nHistos];
     
     //histograms for the invariant mass of the leptons
     hInvMSFOS = new TH1F * [nHistos];
@@ -221,9 +225,12 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hTau1Eta = new TH1F * [nHistos];
     hTau2Eta = new TH1F * [nHistos];
     hTauPhi = new TH1F * [nHistos];
+    hTauLeadingnHits = new TH1F * [nHistos];
+    hTauLeadingLostHits = new TH1F * [nHistos];
     hTauEtaPhi = new TH2F * [nHistos];
 
     hTauDiscriminators = new TH1F * [nHistos];
+    hTauTaNCDiscriminator = new TH1F * [nHistos];
     hGenTauPt = new TH1F * [nHistos];
     hGenTauVisPt = new TH1F * [nHistos];
 
@@ -479,9 +486,18 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hTauChargedHadronIso[process] = Taus.make<TH1F>( "tau charged hadron iso", "Isolation of taus from charged hadrons", 1000, 0.0, 10.0);
     hTauPhotonIso[process] = Taus.make<TH1F>( "tau photon iso", "Isolation of taus from photons", 1000, 0.0, 10.0);
     hTauNeutralHadronIso[process] = Taus.make<TH1F>( "tau neutral hadron iso", "Isolation of taus from neutral hadrons", 1000, 0.0, 10.0);
+
+    hTauTransverseMass[process] = Taus.make<TH1F>( "tau transverse mass", "tau transverse mass", 100, 0.0, 100.0);
+    hTauNSignalTracks[process] = Taus.make<TH1F>( "tau n signal tracks", "Number of tracks in the signal cone", 21, -0.5, 10.5);
+    hTauSumIsoPt[process] = Taus.make<TH1F>( "tau sum iso pt", "Sum of pfCandidates pt in isolation annulus", 1000, 0.0, 50.0);
+    hTauRelSumIsoPt[process] = Taus.make<TH1F>( "tau relative iso pt", "Sum of pfCandidates pt in isolation annulus / tau pt", 1000, 0.0, 1.0);
+    hTauLeadingnHits[process] = Taus.make<TH1F>( "tau nhits on leading track ", "Number of hits on leading track", 31, -1.5, 30.5);
+    hTauLeadingLostHits[process] = Taus.make<TH1F>( "tau lost hits on leading track", "Number of lost hits on leading track", 31, -1.5, 30.5);
+
     hGenTauPt[process] = Taus.make<TH1F>( "generator tau pt", "matched gen tau pt", 1000, 0.0, 1000.0);
     hGenTauVisPt[process] = Taus.make<TH1F>( "generator tau vis pt", "matched gen tau visible pt", 1000, 0.0, 1000.0);
     hTauDiscriminators[process] = Taus.make<TH1F>( "tau discriminators", "Tau ID discriminators", maxTauDiscriminators_+1, 0.0, maxTauDiscriminators_+1);
+    hTauTaNCDiscriminator[process] = Taus.make<TH1F>( "tau TaNC discriminator", "combined TaNC discriminator", 1000, 0.0, 1.001);
     
     h2dMuonEtaPt[process] = Muons.make<TH2F>( "muon eta pt", "muon eta pt", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
     h2dMatchedMuonEtaPt[process] = Muons.make<TH2F>( "muon matched eta pt", "muon matched eta pt", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
@@ -891,6 +907,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
         ++numTotTaus;
 	    ++n_Taus;
    	    TauMonitor(&(*tau_i),n_Taus,weight,general); 
+	    if(n_Taus==1){hTauTransverseMass[process]->Fill( sqrt( tau_i->et()*meti.et()*( 1 - cos(reco::deltaPhi((tau_i->p4()).phi(),meti.phi())) )));}
 	    if(mcInfo){TauMonitor(&(*tau_i),n_Taus,weight,GetLeptKind(&(*tau_i), tauIsPrompt));}  
         
         //Invariant mass plots
@@ -1173,52 +1190,71 @@ void DiLeptonHistograms::InitTauHistos( const pat::Tau& tau, const int process)
 
 //Fill all tau related quantities
 void DiLeptonHistograms::TauMonitor(const pat::Tau* tau,const int n_Tau, double weight, const int process){
-    if(!tauInitialized_[process]) InitTauHistos(*tau, process);
-    std::vector< pat::Tau::IdPair  > tauIds = tau->tauIDs();
-    hTauDiscriminators[process]->Fill("None", weight);
-    for(std::vector< pat::Tau::IdPair  >::iterator it = tauIds.begin(); it != tauIds.end(); ++it){
-      if((*it).second > 0.5 ) // TODO make this configurable
-      	hTauDiscriminators[process]->Fill( (*it).first.c_str(), weight);
+  
+  if(!tauInitialized_[process]) InitTauHistos(*tau, process);
+  std::vector< pat::Tau::IdPair  > tauIds = tau->tauIDs();
+  hTauDiscriminators[process]->Fill("None", weight);
+  for(std::vector< pat::Tau::IdPair  >::iterator it = tauIds.begin(); it != tauIds.end(); ++it){
+    if((*it).second > 0.5 ) // TODO make this configurable
+      hTauDiscriminators[process]->Fill( (*it).first.c_str(), weight);
+    if((*it).first == "byTaNC")
+      hTauTaNCDiscriminator[process]->Fill((*it).second, weight);
+  }
+  
+  if(mcInfo && tau->genJet() != 0 && tau->genParticle() != 0){
+    hGenTauPt[process]->Fill(tau->genParticle()->pt(), weight);
+    hGenTauVisPt[process]->Fill(tau->genJet()->pt(), weight);
+  }
+ 	
+  h2dTauEtaPt[process]->Fill(tau->pt(),tau->eta(),weight);
+  //Tau base plots
+  hTauPt[process]->Fill(tau->pt(),weight);
+  hTauCharge[process]->Fill(tau->charge(),weight);
+  
+  if(n_Tau == 1){
+    hTau1Pt[process]->Fill(tau->pt(),weight);
+    hTau1Eta[process]->Fill(tau->eta(),weight);
     }
-    if(mcInfo && tau->genJet() != 0 && tau->genParticle() != 0){
-      hGenTauPt[process]->Fill(tau->genParticle()->pt(), weight);
-      hGenTauVisPt[process]->Fill(tau->genJet()->pt(), weight);
+  if(n_Tau == 2){
+    hTau2Pt[process]->Fill(tau->pt(),weight);
+    hTau2Eta[process]->Fill(tau->eta(),weight);
+  }
+  hTauEta[process]->Fill(tau->eta(),weight);
+  hTauPhi[process]->Fill(tau->phi(),weight);
+  if(tau->leadTrack().isAvailable()){
+    hTauLeadingnHits[process]->Fill(tau->leadTrack()->numberOfValidHits(),weight);
+    hTauLeadingLostHits[process]->Fill(tau->leadTrack()->numberOfLostHits(),weight);
+  }else{
+    hTauLeadingnHits[process]->Fill(-1, weight);
+    hTauLeadingLostHits[process]->Fill(-1,weight);
+  }
+  hTauEtaPhi[process]->Fill(tau->eta(),tau->phi(),weight);
+ 
+  //Tau isolation
+  double IsoValue = CalcIso(*tau);
+  double pfIsoValue = CalcPfIso(*tau);
+  hTauIso[process]->Fill(IsoValue,weight);
+  hTauTrackIso[process]->Fill(tau->trackIso(),weight);
+  hTauEcalIso[process]->Fill(tau->ecalIso(),weight);
+  hTauHcalIso[process]->Fill(tau->hcalIso(),weight);
+  hTauPfIso[process]->Fill(pfIsoValue,weight);
+  hTauChargedHadronIso[process]->Fill(tau->chargedHadronIso(),weight);
+  hTauPhotonIso[process]->Fill(tau->photonIso(),weight);
+  hTauNeutralHadronIso[process]->Fill(tau->neutralHadronIso(),weight);
+  hTauNSignalTracks[process]->Fill(tau->signalPFChargedHadrCands().size(),weight);
+  double sumIsoPt = 0.;
+  const reco::PFCandidateRefVector isoCands = tau->isolationPFCands();
+  for( reco::PFCandidateRefVector::const_iterator it = isoCands.begin();
+       it != isoCands.end(); ++it)      sumIsoPt += (*it)->pt();
+  
+  hTauSumIsoPt[process]->Fill(sumIsoPt,weight);
+  hTauRelSumIsoPt[process]->Fill(sumIsoPt/tau->pt(),weight);
+  
+  if (mcInfo){
+    if(tau->genLepton()){
+      h2dMatchedTauEtaPt[process]->Fill(tau->pt(),tau->eta(),weight);
     }
-	
-    h2dTauEtaPt[process]->Fill(tau->pt(),tau->eta(),weight);
-    //Tau base plots
-    hTauPt[process]->Fill(tau->pt(),weight);
-    hTauCharge[process]->Fill(tau->charge(),weight);
-	
-    if(n_Tau == 1){
-        hTau1Pt[process]->Fill(tau->pt(),weight);
-        hTau1Eta[process]->Fill(tau->eta(),weight);
-    }
-    if(n_Tau == 2){
-        hTau2Pt[process]->Fill(tau->pt(),weight);
-        hTau2Eta[process]->Fill(tau->eta(),weight);
-    }
-    hTauEta[process]->Fill(tau->eta(),weight);
-    hTauPhi[process]->Fill(tau->phi(),weight);
-    hTauEtaPhi[process]->Fill(tau->eta(),tau->phi(),weight);
-    
-    //Tau isolation
-    double IsoValue = CalcIso(*tau);
-    double pfIsoValue = CalcPfIso(*tau);
-    hTauIso[process]->Fill(IsoValue,weight);
-    hTauTrackIso[process]->Fill(tau->trackIso(),weight);
-    hTauEcalIso[process]->Fill(tau->ecalIso(),weight);
-    hTauHcalIso[process]->Fill(tau->hcalIso(),weight);
-    hTauPfIso[process]->Fill(pfIsoValue,weight);
-    hTauChargedHadronIso[process]->Fill(tau->chargedHadronIso(),weight);
-    hTauPhotonIso[process]->Fill(tau->photonIso(),weight);
-    hTauNeutralHadronIso[process]->Fill(tau->neutralHadronIso(),weight);
-
-    if (mcInfo){
-        if(tau->genLepton()){
-            h2dMatchedTauEtaPt[process]->Fill(tau->pt(),tau->eta(),weight);
-        }
-    }
+  }
 }
  
 //Event loop
