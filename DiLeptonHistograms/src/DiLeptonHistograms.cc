@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/06/11 14:15:43 $
- *  $Revision: 1.20 $ for CMSSW 3_6_X
+ *  $Date: 2010/06/14 07:44:15 $
+ *  $Revision: 1.21 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -515,7 +515,7 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     halphaT[process] = MET.make<TH1F>( "alphaT", "alphaT", 100, 0.0, 1.0);
     hEtSum[process] = MET.make<TH1F>( "ETsum", "Transverse energy sum ET", 2000, 0.0, 2000.0);
     hHT[process] = MET.make<TH1F>( "HT", "Transverse energy sum HT", 2000, 0.0, 2000.0);
-    hMHT[process] = MET.make<TH1F>( "MHT", "Transverse energy sum HT + MET", 2000, 0.0, 2000.0);
+    hMHT[process] = MET.make<TH1F>( "MHT", "Missing HT", 2000, 0.0, 2000.0);
     h2dMETEtSumJets[process] = MET.make<TH2F>( "MET - sum4Jets", "MET - sum4Jets", 2000, 0.0, 2000.0, 1000, 0.0, 1000.0);
     h2dMETHT[process] = MET.make<TH2F>( "MET - HT", "MET - HT", 2000, 0.0, 2000.0, 1000, 0.0, 1000.0);
     h2dMETMHT[process] = MET.make<TH2F>( "MET - MHT", "MET - MHT", 2000, 0.0, 2000.0, 1000, 0.0, 1000.0);
@@ -707,6 +707,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
     float et4Jets=0;
     float etFourthJet=0;
     float HT=0;
+    float MHT=0;
 
     std::vector<reco::Candidate::LorentzVector> objects;
     math::PtEtaPhiMLorentzVector JPt(0., 0., 0., 0.);
@@ -733,6 +734,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
 	    }
 	    HT += jet_i->pt();
     }
+    MHT = JPt.pt();
 
     hJetMult[process]->Fill(n_Jet,weight);
     hbJetMult[process]->Fill(n_bJet,weight);
@@ -744,9 +746,9 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
     //Sum of jet et
     hHT[process]->Fill(HT,weight);
     h2dMETHT[process]->Fill(HT,MET,weight);
-    //Sum of jet et + MET
-    hMHT[process]->Fill(HT+MET,weight);
-    h2dMETMHT[process]->Fill(HT+MET,MET,weight);
+    //MHT
+    hMHT[process]->Fill(MHT,weight);
+    h2dMETMHT[process]->Fill(MHT,MET,weight);
     
     //Inv mass variables
     invMOFOS = 0; 
