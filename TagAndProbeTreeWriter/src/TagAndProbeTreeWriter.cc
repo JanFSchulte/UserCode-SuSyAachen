@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: TagAndProbeTreeWriter.cc,v 1.3 2010/02/26 13:57:47 nmohr Exp $
+// $Id: TagAndProbeTreeWriter.cc,v 1.4 2010/04/01 09:37:49 sprenger Exp $
 //
 //
 
@@ -126,7 +126,7 @@ TagAndProbeTreeWriter<T,P>::TagAndProbeTreeWriter(const edm::ParameterSet& iConf
     passProbeSrc    = iConfig.getParameter<edm::InputTag> ("passProbeSource");
     jetSrc          = iConfig.getParameter<edm::InputTag> ("jetSource");
     
-    cut_Dr          = iConfig.getUntrackedParameter<double> ("cut_TnPDr",0.1);
+    cut_Dr          = iConfig.getUntrackedParameter<double> ("cut_TnPDr",0.2);
     cut_lowInvM     = iConfig.getUntrackedParameter<double> ("cut_TnPlowInvM",40.);
     cut_highInvM    = iConfig.getUntrackedParameter<double> ("cut_TnPhighInvM",120.);
     
@@ -183,14 +183,14 @@ void TagAndProbeTreeWriter<T,P>::TnP(const edm::Handle< std::vector<T> >& tags, 
             double chargesign = 0.;
             for (typename std::vector<T>::const_iterator tag_j = pass_probes->begin(); tag_j != pass_probes->end(); ++tag_j){
                 deltaRTnP = reco::deltaR(tag_j->eta(),tag_j->phi(),pb_j->eta(),pb_j->phi());
-                chargesign = tag_j->charge()*pb_j->charge(); 
                 if (deltaRTnP < cut_Dr){
                     ++nMatchProbe;
                 }
-                reco::Particle::LorentzVector pb = reco::Particle::LorentzVector(pb_j->px(),pb_j->py(),pb_j->pz(),pb_j->p());
-                invM = (tag_i->p4()+pb).M();
-                if (invM > cut_lowInvM && invM < cut_highInvM){treeTnP->Fill();}
             }
+            chargesign = tag_i->charge()*pb_j->charge(); 
+            reco::Particle::LorentzVector pb = reco::Particle::LorentzVector(pb_j->px(),pb_j->py(),pb_j->pz(),pb_j->p());
+            invM = (tag_i->p4()+pb).M();
+            if (invM > cut_lowInvM && invM < cut_highInvM){treeTnP->Fill();}
         }
     }
 }
