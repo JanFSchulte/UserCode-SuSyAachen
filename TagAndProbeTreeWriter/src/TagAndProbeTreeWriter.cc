@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: TagAndProbeTreeWriter.cc,v 1.4 2010/04/01 09:37:49 sprenger Exp $
+// $Id: TagAndProbeTreeWriter.cc,v 1.5 2010/06/20 13:03:34 nmohr Exp $
 //
 //
 
@@ -31,7 +31,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ParameterSet/interface/InputTag.h"
+#include "FWCore/Utilities/interface/InputTag.h"
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"

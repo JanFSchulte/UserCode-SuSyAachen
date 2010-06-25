@@ -3,7 +3,7 @@
 
 //Framework
 #include "FWCore/Framework/interface/Event.h"
-#include "FWCore/ParameterSet/interface/InputTag.h"
+#include "FWCore/Utilities/interface/InputTag.h"
 
 //STL
 #include <vector>
