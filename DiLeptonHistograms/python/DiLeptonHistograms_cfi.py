@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-DiLeptonAnalysis = cms.EDFilter('DiLeptonHistograms',
+DiLeptonAnalysis = cms.EDAnalyzer('DiLeptonHistograms',
 
 debug = cms.untracked.bool(False),
 mcInfo = cms.untracked.bool(True),
