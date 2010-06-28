@@ -13,7 +13,7 @@
 //
 // Original Author:  Matthias Edelhoff
 //         Created:  Mon Nov 16 11:26:19 CET 2009
-// $Id: HtFilter.cc,v 1.5 2010/02/19 20:40:21 edelhoff Exp $
+// $Id: HtFilter.cc,v 1.1 2010/05/14 11:10:31 edelhoff Exp $
 //
 //
 
@@ -58,6 +58,7 @@ private:
   edm::InputTag inputTag_;
 
   double minHT_;
+  double maxHT_;
 
 };
 
@@ -76,6 +77,7 @@ HtFilter::HtFilter(const edm::ParameterSet& iConfig)
 {
   inputTag_ = iConfig.getParameter<edm::InputTag> ("src");
   minHT_ = iConfig.getParameter<double> ("minHT");
+  maxHT_ = iConfig.getParameter<double> ("maxHT");
 }
 
 
@@ -100,11 +102,13 @@ HtFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle< collection > candidates;
   iEvent.getByLabel(inputTag_, candidates);
 
+  bool result = false;
   double ht = 0.0;
   for(collection::const_iterator it = candidates->begin(); it != candidates->end() ; ++it){
     ht += (*it).pt();
   }
-  bool result = ht >=minHT_;
+  if (maxHT_ > 0. ) result = (ht >=minHT_ && ht <= maxHT_);
+  else result = ht >=minHT_;
 
   return result;
 }
