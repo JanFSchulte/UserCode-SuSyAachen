@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/06/14 07:44:15 $
- *  $Revision: 1.21 $ for CMSSW 3_6_X
+ *  $Date: 2010/06/16 19:45:21 $
+ *  $Revision: 1.22 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -995,7 +995,6 @@ void DiLeptonHistograms::TriggerMonitor(const edm::Handle< edm::TriggerResults>&
     for (edm::TriggerNames::Strings::const_iterator j = names.triggerNames().begin(); j !=names.triggerNames().end(); ++j ) { 
         hlNames.push_back(*j);
     }
-    hTrigger[process]->Fill(hlNames[0].c_str(),weight);
     //LogPrint("Trigger") << "Event" << "\n";
     for (unsigned int i=0; i<trigger->size()-1; ++i){
         hTrigger[process]->Fill(hlNames[i].c_str(),0);
