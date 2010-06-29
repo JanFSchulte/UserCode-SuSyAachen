@@ -26,9 +26,9 @@ acc_MuonEta = cms.untracked.double(2.),
 acc_ElectronPt = cms.untracked.double(5.), 
 acc_ElectronEta = cms.untracked.double(2.) ,
 
+user_bJetAlgo = cms.untracked.string("trackCountingHighPurBJetTags"),
+user_bTagDiscriminator = cms.untracked.double(3.),
 #to be removed
-user_bJetAlgo = cms.untracked.string("jetProbabilityBJetTags"),
-user_bTagDiscriminator = cms.untracked.double(0.4),
 trackSource = cms.InputTag("generalTracks")
 #jetMcSource = cms.InputTag(""),
 
