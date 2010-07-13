@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/06/16 19:45:21 $
- *  $Revision: 1.22 $ for CMSSW 3_6_X
+ *  $Date: 2010/06/28 15:38:42 $
+ *  $Revision: 1.23 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -87,6 +87,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hTauMult = new TH1F * [nHistos];
     hJetMult = new TH1F * [nHistos];
     hbJetMult = new TH1F * [nHistos];
+    hVertexMult = new TH1F * [nHistos];
 
     //histograms for lepton isolation cuts
     hElectronIso = new TH1F * [nHistos];
@@ -346,6 +347,7 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hTauMult[process] = Multiplicity.make<TH1F>( "TauMultiplicity", "Multiplicity of taus", 10, -0.5, 9.5);
     hJetMult[process] = Multiplicity.make<TH1F>( "JetMultiplicity", "Multiplicity of jets", 30, -0.5, 29.5);
     hbJetMult[process] = Multiplicity.make<TH1F>( "bJetMultiplicity", "Multiplicity of b jets", 15, -0.5, 14.5);
+    hVertexMult[process] = Multiplicity.make<TH1F>( "VertexMultiplicity", "Multiplicity of vertices", 10, -0.5, 9.5);
 
         
     TFileDirectory InvMass = theFile->mkdir("Invariant Mass"); 
@@ -1277,6 +1279,7 @@ void DiLeptonHistograms::analyze(const edm::Event &iEvent, const edm::EventSetup
         pv = it->position();
         break;
     }
+    hVertexMult[general]->Fill(Vertices->size(),weight);
   
     // retrieve the PAT-objects
     //Muons
