@@ -40,10 +40,4 @@ htJetFilter = htFilter.clone(
             minHT = cms.double(100.00)
 )
 
-from SuSyAachen.Skimming.mhtFilter_cfi import mhtFilter
-mhtJetFilter = mhtFilter.clone(
-            src = cms.InputTag("selectedPatJetsPF"),
-            minMHT = cms.double(100.00)
-)
-
 
