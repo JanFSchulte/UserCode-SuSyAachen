@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/06/28 15:38:42 $
- *  $Revision: 1.23 $ for CMSSW 3_6_X
+ *  $Date: 2010/07/13 09:34:13 $
+ *  $Revision: 1.24 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -179,6 +179,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hMuond0SigPv = new TH1F * [nHistos];
     hMuond0SigBs = new TH1F * [nHistos];
     hMuonnHits = new TH1F * [nHistos];
+    hMuonPixelHits = new TH1F * [nHistos];
     hMuonEtaPhi = new TH2F * [nHistos];
     hMuonPfIsoPt = new TH2F * [nHistos];
     hMuonPfIsod0Pv = new TH2F * [nHistos];
@@ -404,6 +405,7 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hMuond0SigPv[process] = Muons.make<TH1F>( "muon track d0 significance pv", "muon track d0 significance pv", 100, -50., 50.0);
     hMuond0SigBs[process] = Muons.make<TH1F>( "muon track d0 significance bs", "muon track d0 significance bs", 100, -50., 50.0);
     hMuonnHits[process] = Muons.make<TH1F>( "muon track hits", "muon track number of valid hits", 50, 0.0, 50.0);
+    hMuonPixelHits[process] = Muons.make<TH1F>( "muon pixel hits", "muon pixel hits", 15, -0.5, 14.5);
     hMuonPfIsoPt[process] = Muons.make<TH2F>( "muon pf iso pt", "muon pf iso pt", 300, 0.0 , 3.0, 1000, 0., 1000);
     hMuonPfIsod0Pv[process] = Muons.make<TH2F>( "muon pf iso d0 pv", "muon pf iso d0 pv", 300, 0.0 , 3.0, 200, -0.2, 0.2);
     hMuonPfIsod0Bs[process] = Muons.make<TH2F>( "muon pf iso d0 bs", "muon pf iso d0 bs", 300, 0.0 , 3.0, 200, -0.2, 0.2);
@@ -1126,6 +1128,7 @@ void DiLeptonHistograms::MuonMonitor(const pat::Muon* muon,const int n_Muon, dou
         double d0Err = muon->innerTrack()->dxyError();
     	hMuonChi2[process]->Fill(muon->innerTrack()->normalizedChi2(),weight);
 	    hMuonnHits[process]->Fill(muon->innerTrack()->numberOfValidHits(),weight);
+	    hMuonPixelHits[process]->Fill(muon->innerTrack()->hitPattern().numberOfValidPixelHits(),weight);
         hMuond0Pv[process]->Fill(d0topv,weight);
 	    hMuond0SigPv[process]->Fill(d0topv/d0Err,weight);
         hMuonPfIsoPt[process]->Fill(pfIsoValue,muon->pt(),weight);
