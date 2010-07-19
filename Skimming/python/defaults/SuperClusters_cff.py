@@ -30,7 +30,7 @@ def SuperClusters(process):
             cut = cms.string('abs( eta ) < 3.0')
         )
 
-    process.allSuperClusters = cms.EDFilter("CandMerger",
+    process.allSuperClusters = cms.EDProducer("CandMerger",
             src = cms.VInputTag(cms.InputTag("EBSuperClusters"), cms.InputTag("EESuperClusters"), cms.InputTag("PfSuperClusters"))
         )
 

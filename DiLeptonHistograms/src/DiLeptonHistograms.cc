@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/07/15 19:53:42 $
- *  $Revision: 1.25 $ for CMSSW 3_6_X
+ *  $Date: 2010/07/19 10:19:35 $
+ *  $Revision: 1.26 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -648,7 +648,13 @@ template < class T >
 const int GetLeptKind(const T * lepton, bool tauIsPrompt)
 {
     int value = 0;
-    if(lepton->genLepton()){
+    if(lepton->hasUserInt("classByHitsGlb")){
+        if(lepton->userInt("classByHitsGlb") == 4 || (lepton->userInt("classByHitsGlb") == 3 && lepton->userInt("classByHitsGlb:flav") == 15) ) value = 3; //Prompt
+        if(lepton->userInt("classByHitsGlb") == 3 && lepton->userInt("classByHitsGlb:flav") != 15) value = 4; //Heavy
+        if(lepton->userInt("classByHitsGlb") == 2) value = 5; //Light
+        if(lepton->userInt("classByHitsGlb") <= 1 || lepton->userInt("classByHitsGlb") > 4) value = 2; //Fake
+    }
+    else if(lepton->genLepton()){
         const reco::Candidate * genLept = lepton->genLepton();
         value = promptCategory(genLept, tauIsPrompt);
     }

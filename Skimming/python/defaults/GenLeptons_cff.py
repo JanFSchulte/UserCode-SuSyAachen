@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 def GenLeptons(process):
     process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")# import HepPDTESSource
 
-    process.electronGenParticles = cms.EDFilter( "GenParticlePruner", 
+    process.electronGenParticles = cms.EDProducer( "GenParticlePruner", 
 	    src = cms.InputTag("genParticles"),
 	    select = cms.vstring(
 	    "drop  *", # this is the default
@@ -10,7 +10,7 @@ def GenLeptons(process):
 	    )
     )
 
-    process.muonGenParticles = cms.EDFilter( "GenParticlePruner", 
+    process.muonGenParticles = cms.EDProducer( "GenParticlePruner", 
         src = cms.InputTag("genParticles"),
         select = cms.vstring(
         "drop  *", # this is the default
@@ -19,7 +19,7 @@ def GenLeptons(process):
         )
     )
 
-    process.genTausWithFuture = cms.EDFilter( "GenParticlePruner", 
+    process.genTausWithFuture = cms.EDProducer( "GenParticlePruner", 
         src = cms.InputTag("genParticles"),
         select = cms.vstring(
         "drop  *", # this is the default
@@ -33,7 +33,7 @@ def GenLeptons(process):
         daughterIds = cms.vint32( 11,-11, 13,-13) #e+ e- mu+ mu-
     )
     
-    process.tauGenParticles = cms.EDFilter( "GenParticlePruner", 
+    process.tauGenParticles = cms.EDProducer( "GenParticlePruner", 
         src = cms.InputTag("genParticles"),
         select = cms.vstring(
         "drop  *", # this is the default
@@ -42,7 +42,7 @@ def GenLeptons(process):
         )
     )
     
-    process.hadronicTauGenParticles = cms.EDFilter( "GenParticlePruner", 
+    process.hadronicTauGenParticles = cms.EDProducer( "GenParticlePruner", 
         src = cms.InputTag("hadronicGenTaus"),
         select = cms.vstring(
         "drop  *", # this is the default
@@ -59,21 +59,21 @@ def GenLeptons(process):
         src = "genParticles"
         )
  
-    process.promptElectrons = cms.EDFilter( "GenParticlePruner", 
+    process.promptElectrons = cms.EDProducer( "GenParticlePruner", 
             src = cms.InputTag("promptParticles"),
             select = cms.vstring(
             "drop  *", # this is the default
             "keep pdgId = {e+} | pdgId = {e-} "
             )
     )
-    process.promptMuons = cms.EDFilter( "GenParticlePruner", 
+    process.promptMuons = cms.EDProducer( "GenParticlePruner", 
             src = cms.InputTag("promptParticles"),
             select = cms.vstring(
             "drop  *", # this is the default
             "keep pdgId = {mu+} | pdgId = {mu-}"
             )
     )
-    process.promptTaus = cms.EDFilter( "GenParticlePruner", 
+    process.promptTaus = cms.EDProducer( "GenParticlePruner", 
             src = cms.InputTag("promptParticles"),
             select = cms.vstring(
             "drop  *", # this is the default
