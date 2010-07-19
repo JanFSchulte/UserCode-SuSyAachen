@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/07/13 09:34:13 $
- *  $Revision: 1.24 $ for CMSSW 3_6_X
+ *  $Date: 2010/07/15 19:53:42 $
+ *  $Revision: 1.25 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -188,6 +188,8 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     //electron histograms
     hElectronPt = new TH1F * [nHistos];
     hElectronCharge = new TH1F * [nHistos];
+    hElectronChargeNMethodsAgreeing = new TH1F * [nHistos];
+    hElectronChargeMethodDeviating = new TH1F * [nHistos];
     hElectronSumPt = new TH1F * [nHistos];
     hElectron1Pt = new TH1F * [nHistos];
     hElectron2Pt = new TH1F * [nHistos];
@@ -429,6 +431,8 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     //electron histograms
     hElectronPt[process] = Electrons.make<TH1F>( "electron pt", "electron pt", 1000, 0.0, 1000.0);
     hElectronCharge[process] = Electrons.make<TH1F>( "electron charge", "electron charge", 8, -2.0, 2.0);
+    hElectronChargeNMethodsAgreeing[process] = Electrons.make<TH1F>( "electron charge methods agreeing", "electron charge methods agreeing", 8, -0.5, 3.5);
+    hElectronChargeMethodDeviating[process] = Electrons.make<TH1F>( "electron charge method deviating", "electron charge method deviating", 8, -0.5, 3.5);
     hElectronSumPt[process] = Electrons.make<TH1F>( "sum electron pt", "sum electron pt", 1000, 0.0, 1000.0);
     hElectron1Pt[process] = Electrons.make<TH1F>( "electron 1 pt", "pt of first electron", 1000, 0.0, 1000.0);
     hElectron2Pt[process] = Electrons.make<TH1F>( "electron 2 pt", "pt of second electron", 1000, 0.0, 1000.0);
@@ -1017,7 +1021,21 @@ void DiLeptonHistograms::ElectronMonitor(const pat::Electron* electron,const int
     if(process==effcor){weight=getElectronWeight(electron);}
     //Electron base plot
     hElectronPt[process]->Fill(electron->pt(),weight);
+
     hElectronCharge[process]->Fill(electron->charge(),weight);
+    if (electron->isGsfCtfScPixChargeConsistent()){
+      hElectronChargeNMethodsAgreeing[process]->Fill(3.0, weight);
+      hElectronChargeMethodDeviating[process]->Fill(0.0, weight);
+    }else{
+      hElectronChargeNMethodsAgreeing[process]->Fill(2.0, weight);
+      if (electron->isGsfScPixChargeConsistent())
+	hElectronChargeMethodDeviating[process]->Fill(1.0, weight);
+      else if (electron->isGsfCtfChargeConsistent())
+	hElectronChargeMethodDeviating[process]->Fill(2.0, weight);
+      else
+	hElectronChargeMethodDeviating[process]->Fill(3.0, weight);
+    }
+
     if(n_Electron == 1){
         hElectron1Pt[process]->Fill(electron->pt(),weight);
         hElectron1Eta[process]->Fill(electron->eta(),weight);
