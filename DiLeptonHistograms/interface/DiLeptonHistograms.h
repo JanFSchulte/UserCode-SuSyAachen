@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/07/15 19:53:42 $
- *  $Revision: 1.22 $
+ *  $Date: 2010/07/19 10:19:34 $
+ *  $Revision: 1.23 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -321,6 +321,9 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     
     std::string muon_fname;
     std::string electron_fname;
+    
+    //reduction factor for 2D binning
+    double reduce2d;
 
     //Set weight via cfg
     double externalWeight;
@@ -345,6 +348,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
 
     bool* tauInitialized_;
     unsigned int maxTauDiscriminators_;
+
     
     std::string bJetAlgo;
 

@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/07/19 10:19:35 $
- *  $Revision: 1.26 $ for CMSSW 3_6_X
+ *  $Date: 2010/07/19 16:11:30 $
+ *  $Revision: 1.27 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -29,6 +29,9 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     //tree information for unbinned fit
     treeInfo          = iConfig.getUntrackedParameter<bool>   ("treeInfo",false);
     effInfo           = iConfig.getUntrackedParameter<bool>   ("effInfo",false);
+
+    // reduction factor for 2D histograms
+    double reduce2d = iConfig.getUntrackedParameter<double>   ("reduce2d",0.1);
 
     // how many tauDiscriminators to take
     maxTauDiscriminators_ = 20; //TODO read from config
@@ -377,17 +380,17 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hInvMbbllSFOS[process] = InvMass.make<TH1F>( "Invariant mass of SFOS bbll", "Invariant mass of SFOS bbll", 1500, 0, 1500);
     hInvMbbllOFOS[process] = InvMass.make<TH1F>( "Invariant mass of OFOS bbll", "Invariant mass of OFOS bbll", 1500, 0, 1500);
 
-    h2dMETInvMassSFOS[process] = InvMass.make<TH2F>( "MET - Invariant mass SFOS", "MET - Invariant mass SFOS", 300, 0., 300., 1000, 0., 1000.0);
-    h2dHTInvMassSFOS[process] = InvMass.make<TH2F>( "HT - Invariant mass SFOS", "HT - Invariant mass SFOS", 300, 0., 300., 2000, 0., 2000.0);
-    h2dEtJetsInvMassSFOS[process] = InvMass.make<TH2F>( "SumJets - Invariant mass SFOS", "SumJets - Invariant mass SFOS", 300, 0., 300., 2000, 0., 2000.0);
-    h2dEtJet4InvMassSFOS[process] = InvMass.make<TH2F>( "PtJet4 - Invariant mass SFOS", "PtJet4 - Invariant mass SFOS", 300, 0., 300., 2000, 0., 1000.0);
-    h2dIsoInvMassSFOS[process] = InvMass.make<TH2F>( "Iso - Invariant mass SFOS", "Iso - Invariant mass SFOS", 300, 0., 300., 600, 0., 6.0);
+    h2dMETInvMassSFOS[process] = InvMass.make<TH2F>( "MET - Invariant mass SFOS", "MET - Invariant mass SFOS", 300*reduce2d, 0., 300., 1000*reduce2d, 0., 1000.0);
+    h2dHTInvMassSFOS[process] = InvMass.make<TH2F>( "HT - Invariant mass SFOS", "HT - Invariant mass SFOS", 300*reduce2d, 0., 300., 2000*reduce2d, 0., 2000.0);
+    h2dEtJetsInvMassSFOS[process] = InvMass.make<TH2F>( "SumJets - Invariant mass SFOS", "SumJets - Invariant mass SFOS", 300*reduce2d, 0., 300., 2000*reduce2d, 0., 2000.0);
+    h2dEtJet4InvMassSFOS[process] = InvMass.make<TH2F>( "PtJet4 - Invariant mass SFOS", "PtJet4 - Invariant mass SFOS", 300*reduce2d, 0., 300., 2000*reduce2d, 0., 1000.0);
+    h2dIsoInvMassSFOS[process] = InvMass.make<TH2F>( "Iso - Invariant mass SFOS", "Iso - Invariant mass SFOS", 300*reduce2d, 0., 300., 600*reduce2d, 0., 6.0);
 
-    h2dMETInvMassOFOS[process] = InvMass.make<TH2F>( "MET - Invariant mass OFOS", "MET - Invariant mass OFOS", 300, 0., 300., 1000, 0., 1000.0);
-    h2dHTInvMassOFOS[process] = InvMass.make<TH2F>( "HT - Invariant mass OFOS", "HT - Invariant mass OFOS", 300, 0., 300., 2000, 0., 2000.0);
-    h2dEtJetsInvMassOFOS[process] = InvMass.make<TH2F>( "SumJets - Invariant mass OFOS", "SumJets - Invariant mass OFOS", 300, 0., 300., 2000, 0., 2000.0);
-    h2dEtJet4InvMassOFOS[process] = InvMass.make<TH2F>( "PtJet4 - Invariant mass OFOS", "PtJet4 - Invariant mass OFOS", 300, 0., 300., 2000, 0., 1000.0);
-    h2dIsoInvMassOFOS[process] = InvMass.make<TH2F>( "Iso - Invariant mass OFOS", "Iso - Invariant mass OFOS", 300, 0., 300., 600, 0., 6.0);
+    h2dMETInvMassOFOS[process] = InvMass.make<TH2F>( "MET - Invariant mass OFOS", "MET - Invariant mass OFOS", 300*reduce2d, 0., 300., 1000*reduce2d, 0., 1000.0);
+    h2dHTInvMassOFOS[process] = InvMass.make<TH2F>( "HT - Invariant mass OFOS", "HT - Invariant mass OFOS", 300*reduce2d, 0., 300., 2000*reduce2d, 0., 2000.0);
+    h2dEtJetsInvMassOFOS[process] = InvMass.make<TH2F>( "SumJets - Invariant mass OFOS", "SumJets - Invariant mass OFOS", 300*reduce2d, 0., 300., 2000*reduce2d, 0., 2000.0);
+    h2dEtJet4InvMassOFOS[process] = InvMass.make<TH2F>( "PtJet4 - Invariant mass OFOS", "PtJet4 - Invariant mass OFOS", 300*reduce2d, 0., 300., 2000*reduce2d, 0., 1000.0);
+    h2dIsoInvMassOFOS[process] = InvMass.make<TH2F>( "Iso - Invariant mass OFOS", "Iso - Invariant mass OFOS", 300*reduce2d, 0., 300., 600*reduce2d, 0., 6.0);
 
     TFileDirectory Muons = theFile->mkdir("Muons"); 
     //muon histograms
@@ -408,10 +411,10 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hMuond0SigBs[process] = Muons.make<TH1F>( "muon track d0 significance bs", "muon track d0 significance bs", 100, -50., 50.0);
     hMuonnHits[process] = Muons.make<TH1F>( "muon track hits", "muon track number of valid hits", 50, 0.0, 50.0);
     hMuonPixelHits[process] = Muons.make<TH1F>( "muon pixel hits", "muon pixel hits", 15, -0.5, 14.5);
-    hMuonPfIsoPt[process] = Muons.make<TH2F>( "muon pf iso pt", "muon pf iso pt", 300, 0.0 , 3.0, 1000, 0., 1000);
-    hMuonPfIsod0Pv[process] = Muons.make<TH2F>( "muon pf iso d0 pv", "muon pf iso d0 pv", 300, 0.0 , 3.0, 200, -0.2, 0.2);
-    hMuonPfIsod0Bs[process] = Muons.make<TH2F>( "muon pf iso d0 bs", "muon pf iso d0 bs", 300, 0.0 , 3.0, 200, -0.2, 0.2);
-    hMuonEtaPhi[process] = Muons.make<TH2F>( "muon eta phi", "muon eta phi", 250, -2.5 , 2.5, 350, -3.5, 3.5);
+    hMuonPfIsoPt[process] = Muons.make<TH2F>( "muon pf iso pt", "muon pf iso pt", 300*reduce2d, 0.0 , 3.0, 1000*reduce2d, 0., 1000);
+    hMuonPfIsod0Pv[process] = Muons.make<TH2F>( "muon pf iso d0 pv", "muon pf iso d0 pv", 300*reduce2d, 0.0 , 3.0, 200*reduce2d, -0.2, 0.2);
+    hMuonPfIsod0Bs[process] = Muons.make<TH2F>( "muon pf iso d0 bs", "muon pf iso d0 bs", 300*reduce2d, 0.0 , 3.0, 200*reduce2d, -0.2, 0.2);
+    hMuonEtaPhi[process] = Muons.make<TH2F>( "muon eta phi", "muon eta phi", 250*reduce2d, -2.5 , 2.5, 350*reduce2d, -3.5, 3.5);
     //histograms for lepton isolation cuts
     hMuonIso[process] = Muons.make<TH1F>( "muon iso", "Isolation of muons", 300, 0.0, 3.0);
     hMuonTrackIso[process] = Muons.make<TH1F>( "muon track iso", "Isolation of muons in tracker", 1000, 0.0, 10.0);
@@ -468,9 +471,9 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hElectrone15oe55[process] = Electrons.make<TH1F>( "electron e15oe55", "electron e15oe55", 100, -1, 2);
     hElectronsigmaEtaEta[process] = Electrons.make<TH1F>( "electron sigma eta eta", "electron sigma eta eta", 100, 0, 0.04);
     hElectronsigmaIetaIeta[process] = Electrons.make<TH1F>( "electron sigma Ieta Ieta", "electron sigma Ieta Ieta", 100, 0, 0.04);
-    hElectronPfIsod0Pv[process] = Electrons.make<TH2F>( "electron pf iso d0 pv", "electron pf iso d0 pv", 300, 0.0 , 3.0, 200, -0.2, 0.2);
-    hElectronPfIsod0Bs[process] = Electrons.make<TH2F>( "electron pf iso d0 bs", "electron pf iso d0 bs", 300, 0.0 , 3.0, 200, -0.2, 0.2);
-    hElectronEtaPhi[process] = Electrons.make<TH2F>( "electron eta phi", "electron eta phi", 250, -2.5 , 2.5, 350, -3.5, 3.5);
+    hElectronPfIsod0Pv[process] = Electrons.make<TH2F>( "electron pf iso d0 pv", "electron pf iso d0 pv", 300*reduce2d, 0.0 , 3.0, 200*reduce2d, -0.2, 0.2);
+    hElectronPfIsod0Bs[process] = Electrons.make<TH2F>( "electron pf iso d0 bs", "electron pf iso d0 bs", 300*reduce2d, 0.0 , 3.0, 200*reduce2d, -0.2, 0.2);
+    hElectronEtaPhi[process] = Electrons.make<TH2F>( "electron eta phi", "electron eta phi", 250*reduce2d, -2.5 , 2.5, 350*reduce2d, -3.5, 3.5);
 
     hElectronResolution[process] = Electrons.make<TH1F>( "electron resolution", "Resolution of electrons", 1000, -5.0, 5.0);
     
@@ -484,7 +487,7 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hTauEta[process] = Taus.make<TH1F>( "tau eta", "tau eta", 250, -2.5, 2.5);
     hTau1Eta[process] = Taus.make<TH1F>( "tau 1 eta", "tau 1 eta", 250, -2.5, 2.5);
     hTau2Eta[process] = Taus.make<TH1F>( "tau 2 eta", "tau 2 eta", 250, -2.5, 2.5);
-    hTauPhi[process] = Taus.make<TH1F>( "tau phi", "tau phi", 350, -3.5, 3.5);
+    hTauPhi[process] = Taus.make<TH1F>( "tau phi", "tau phi", 350*reduce2d, -3.5, 3.5);
     hTauEtaPhi[process] = Taus.make<TH2F>( "tau eta phi", "tau eta phi", 250, -2.5 , 2.5, 350, -3.5, 3.5);
     hTauIso[process] = Taus.make<TH1F>( "tau iso", "Isolation of taus", 300, 0.0, 3.0);
     hTauTrackIso[process] = Taus.make<TH1F>( "tau track iso", "Isolation of taus in tracker", 1000, 0.0, 10.0);
@@ -507,14 +510,14 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hTauDiscriminators[process] = Taus.make<TH1F>( "tau discriminators", "Tau ID discriminators", maxTauDiscriminators_+1, 0.0, maxTauDiscriminators_+1);
     hTauTaNCDiscriminator[process] = Taus.make<TH1F>( "tau TaNC discriminator", "combined TaNC discriminator", 1000, 0.0, 1.001);
     
-    h2dMuonEtaPt[process] = Muons.make<TH2F>( "muon eta pt", "muon eta pt", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dMatchedMuonEtaPt[process] = Muons.make<TH2F>( "muon matched eta pt", "muon matched eta pt", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dGenMuonEtaPt[process] = Muons.make<TH2F>( "muon generator eta pt", "muon generator eta pt", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dElectronEtaPt[process] = Electrons.make<TH2F>( "electron eta pt", "electron eta pt", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dMatchedElectronEtaPt[process] = Electrons.make<TH2F>( "electron matched eta pt", "electron matched eta pt", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dGenElectronEtaPt[process] = Electrons.make<TH2F>( "electron generator eta pt", "electron generator eta pt", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dTauEtaPt[process] = Taus.make<TH2F>( "tau eta pt", "tau eta pt", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
-    h2dMatchedTauEtaPt[process] = Taus.make<TH2F>( "tau matched eta pt", "tau matched eta pt", 1000, 0.0, 1000.0, 250, -2.5, 2.5); 
+    h2dMuonEtaPt[process] = Muons.make<TH2F>( "muon eta pt", "muon eta pt", 1000*reduce2d, 0.0, 1000.0, 250*reduce2d, -2.5, 2.5); 
+    h2dMatchedMuonEtaPt[process] = Muons.make<TH2F>( "muon matched eta pt", "muon matched eta pt", 1000*reduce2d, 0.0, 1000.0, 250*reduce2d, -2.5, 2.5); 
+    h2dGenMuonEtaPt[process] = Muons.make<TH2F>( "muon generator eta pt", "muon generator eta pt", 1000*reduce2d, 0.0, 1000.0, 250*reduce2d, -2.5, 2.5); 
+    h2dElectronEtaPt[process] = Electrons.make<TH2F>( "electron eta pt", "electron eta pt", 1000*reduce2d, 0.0, 1000.0, 250*reduce2d, -2.5, 2.5); 
+    h2dMatchedElectronEtaPt[process] = Electrons.make<TH2F>( "electron matched eta pt", "electron matched eta pt", 1000*reduce2d, 0.0, 1000.0, 250*reduce2d, -2.5, 2.5); 
+    h2dGenElectronEtaPt[process] = Electrons.make<TH2F>( "electron generator eta pt", "electron generator eta pt", 1000*reduce2d, 0.0, 1000.0, 250*reduce2d, -2.5, 2.5); 
+    h2dTauEtaPt[process] = Taus.make<TH2F>( "tau eta pt", "tau eta pt", 1000*reduce2d, 0.0, 1000.0, 250*reduce2d, -2.5, 2.5); 
+    h2dMatchedTauEtaPt[process] = Taus.make<TH2F>( "tau matched eta pt", "tau matched eta pt", 1000*reduce2d, 0.0, 1000.0, 250*reduce2d, -2.5, 2.5); 
   
     //histograms for Missing ET
     TFileDirectory MET = theFile->mkdir("MET"); 
@@ -524,9 +527,9 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hEtSum[process] = MET.make<TH1F>( "ETsum", "Transverse energy sum ET", 2000, 0.0, 2000.0);
     hHT[process] = MET.make<TH1F>( "HT", "Transverse energy sum HT", 2000, 0.0, 2000.0);
     hMHT[process] = MET.make<TH1F>( "MHT", "Missing HT", 2000, 0.0, 2000.0);
-    h2dMETEtSumJets[process] = MET.make<TH2F>( "MET - sum4Jets", "MET - sum4Jets", 2000, 0.0, 2000.0, 1000, 0.0, 1000.0);
-    h2dMETHT[process] = MET.make<TH2F>( "MET - HT", "MET - HT", 2000, 0.0, 2000.0, 1000, 0.0, 1000.0);
-    h2dMETMHT[process] = MET.make<TH2F>( "MET - MHT", "MET - MHT", 2000, 0.0, 2000.0, 1000, 0.0, 1000.0);
+    h2dMETEtSumJets[process] = MET.make<TH2F>( "MET - sum4Jets", "MET - sum4Jets", 2000*reduce2d, 0.0, 2000.0, 1000*reduce2d, 0.0, 1000.0);
+    h2dMETHT[process] = MET.make<TH2F>( "MET - HT", "MET - HT", 2000*reduce2d, 0.0, 2000.0, 1000*reduce2d, 0.0, 1000.0);
+    h2dMETMHT[process] = MET.make<TH2F>( "MET - MHT", "MET - MHT", 2000*reduce2d, 0.0, 2000.0, 1000*reduce2d, 0.0, 1000.0);
     hJet1METPhi[process] = MET.make<TH1F>( "jet 1 MET delta phi", "jet 1 delta phi", 300, -3., 3.);
     hJet1EtaMET[process] = MET.make<TH2F>( "jet 1 eta MET", "jet 1 eta MET", 1000, 0.0, 1000.0, 250, -2.5, 2.5);
 
@@ -549,9 +552,9 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hJetNEF[process] = Jets.make<TH1F>( "jet neutral electromagnetic fraction", "jet neutral electromagnetic fraction", 100, 0., 1.);
     hJetCM[process] = Jets.make<TH1F>( "jet charged multiplity", "jet charged multiplicity", 40, -0.5, 39.5);
     hJetNConst[process] = Jets.make<TH1F>( "jet number of constituents", "jet number of constituents", 40, -0.5, 39.5);
-    h2dJetEtaPhi[process] = Jets.make<TH2F>( "jet eta phi", "jet eta phi", 350, -3.5 , 3.5, 350, -3.5, 3.5);
-    h2dJetEtaPt[process] = Jets.make<TH2F>( "jet eta pt", "jet eta pt", 1000, 0.0, 1000.0, 300, -3.0, 3.0); 
-    h2dMatchedJetEtaPt[process] = Jets.make<TH2F>( "jet matched eta pt", "jet matched eta pt", 1000, 0.0, 1000.0, 300, -3.0, 3.0); 
+    h2dJetEtaPhi[process] = Jets.make<TH2F>( "jet eta phi", "jet eta phi", 350*reduce2d, -3.5 , 3.5, 350*reduce2d, -3.5, 3.5);
+    h2dJetEtaPt[process] = Jets.make<TH2F>( "jet eta pt", "jet eta pt", 1000*reduce2d, 0.0, 1000.0, 300*reduce2d, -3.0, 3.0); 
+    h2dMatchedJetEtaPt[process] = Jets.make<TH2F>( "jet matched eta pt", "jet matched eta pt", 1000*reduce2d, 0.0, 1000.0, 300*reduce2d, -3.0, 3.0); 
  
     hTrigger[process] = theFile->make<TH1F>( "Trigger paths", "Trigger paths", 160, 0, 160);
     hWeight[process] = theFile->make<TH1F>( "Weights", "Weights", 1000, 0, 1000);
@@ -627,19 +630,27 @@ double transverseMass(const T & lepton,const pat::MET met)
 
 const int promptCategory(const reco::Candidate * genParticle, bool tauIsPrompt){
     int value = 0;
-    if(genParticle->status()==1 && genParticle->numberOfMothers()==1){
-        const reco::Candidate * mom = genParticle->mother();
-        //Check if lepton is promt (itself,tau,Z,W,SUSY)
-        if(mom->pdgId()==genParticle->pdgId()||(abs(mom->pdgId())==15 &&tauIsPrompt)||abs(mom->pdgId())==23||abs(mom->pdgId())==24||abs(mom->pdgId())>1000000){
-            value=3;
-        }else if( mom->pdgId()==443 || mom->pdgId()==553 ||mom->pdgId()==100553){ // J/psi (s1) upsilon(s1) upsilon(s2)
-	  value = 5;
-	} else {
-	  //LogPrint("Lepton") << "Non promt: " << mom->pdgId();
-	  value=4;
-        }
+    if(genParticle->numberOfMothers()==1){
+      //Check if lepton is promt (itself,Z,W,SUSY)
+      const reco::Candidate * mom = genParticle->mother();
+      if( (mom->pdgId()==genParticle->pdgId() && ( abs(genParticle->pdgId()) != 15 || promptCategory(mom, true) == 3 ))  // itself (taus need to com from a prompt mom)
+	  ||abs(mom->pdgId())==23 ||abs(mom->pdgId())==24 // Z or W 
+	  ||abs(mom->pdgId())>1000000){ // SUSY
+	if(genParticle->status()==1 || abs(genParticle->pdgId())==15 )//only status 1 particles are prompt (excpet for taus)
+	  value = 3;
+      } else if( abs(mom->pdgId())==15 ){ //if the mother is a tau the category is that of the tau
+	int motherCat = promptCategory(mom, true);
+	//	std::cout << "tau mother: "<<motherCat<<" | ";
+	value = motherCat;
+      }
+      else if( mom->pdgId()==443 || mom->pdgId()==553 ||mom->pdgId()==100553) // J/psi (s1) upsilon(s1) upsilon(s2)
+	value = 5;
+      else
+	value = 4;
+      //      std::cout <<"mom: " << mom->pdgId();
     }
     else value = 4;
+    //    std::cout << " result: "<< value <<std::endl;
     return value;
 }
 
@@ -659,6 +670,7 @@ const int GetLeptKind(const T * lepton, bool tauIsPrompt)
         value = promptCategory(genLept, tauIsPrompt);
     }
     else value=2;
+    //    std::cout << " leptKindResult: "<< value <<std::endl;
     return value;
 }
 
@@ -783,8 +795,8 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
         if (debug) std::cout <<"mu eta = "<< mu_i->eta() << std::endl;
         ++numTotMuons;
         ++n_Muons;
-   	    MuonMonitor(&(*mu_i),n_Muons,weight,general); 
-	    if(mcInfo){MuonMonitor(&(*mu_i),n_Muons,weight,GetLeptKind(&(*mu_i), tauIsPrompt));}   
+	MuonMonitor(&(*mu_i),n_Muons,weight,general); 
+	if(mcInfo){MuonMonitor(&(*mu_i),n_Muons,weight,GetLeptKind(&(*mu_i), tauIsPrompt));}   
         if(n_Muons==1){hMuonTransverseMass[process]->Fill(transverseMass(*mu_i,meti));}
 	    //Clean and isolated muons
         objects.push_back(mu_i->p4());
