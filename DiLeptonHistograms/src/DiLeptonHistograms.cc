@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/07/28 10:45:55 $
- *  $Revision: 1.28 $ for CMSSW 3_6_X
+ *  $Date: 2010/08/03 12:40:04 $
+ *  $Revision: 1.29 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -31,7 +31,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     effInfo           = iConfig.getUntrackedParameter<bool>   ("effInfo",false);
 
     // reduction factor for 2D histograms
-    double reduce2d = iConfig.getUntrackedParameter<double>   ("reduce2d",0.1);
+    reduce2d = iConfig.getUntrackedParameter<double>   ("reduce2d",0.1);
 
     // how many tauDiscriminators to take
     maxTauDiscriminators_ = 20; //TODO read from config
