@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: TagAndProbeTreeWriter.cc,v 1.5 2010/06/20 13:03:34 nmohr Exp $
+// $Id: TagAndProbeTreeWriter.cc,v 1.6 2010/06/25 13:44:31 nmohr Exp $
 //
 //
 
@@ -97,6 +97,8 @@ class TagAndProbeTreeWriter : public edm::EDAnalyzer {
         float invM;
         float ptProbe;
         float etaProbe;
+        int chargeTagProbe;
+        float pfIso;
         int nMatchProbe;
         int nJets;
 };
@@ -138,8 +140,10 @@ TagAndProbeTreeWriter<T,P>::TagAndProbeTreeWriter(const edm::ParameterSet& iConf
     treeTnP->Branch("inv",&invM,"invM/F");
     treeTnP->Branch("pt",&ptProbe,"ptProbe/F");
     treeTnP->Branch("eta",&etaProbe,"etaProbe/F");
+    treeTnP->Branch("chargeTP",&chargeTagProbe,"chargeTagProbe/I");
     treeTnP->Branch("nMatch",&nMatchProbe,"nMatchProbe/I");
     treeTnP->Branch("nJets",&nJets,"nJets/I");
+    treeTnP->Branch("pfIso",&pfIso,"pfIso/F");
 
     if (mcInfo){ 
         treeGen = Tree.make<TTree>("Gen tree", "Gen tree"); 
@@ -170,6 +174,18 @@ TagAndProbeTreeWriter<T,P>::~TagAndProbeTreeWriter()
 
 //
 // member functions
+template< class PB > 
+double getIsolation(const PB * pb_j){
+    return -1.;
+}
+template< > 
+double getIsolation(const pat::Muon * lepton){
+    return (lepton->chargedHadronIso()+lepton->photonIso()+lepton->neutralHadronIso())/lepton->pt();
+}
+template< > 
+double getIsolation(const pat::Electron * lepton){
+    return (lepton->chargedHadronIso()+lepton->photonIso()+lepton->neutralHadronIso())/lepton->pt();
+}
 
 template< typename T, typename P > 
 void TagAndProbeTreeWriter<T,P>::TnP(const edm::Handle< std::vector<T> >& tags, const edm::Handle< P >& probes, const edm::Handle< std::vector<T> >& pass_probes){
@@ -179,16 +195,17 @@ void TagAndProbeTreeWriter<T,P>::TnP(const edm::Handle< std::vector<T> >& tags, 
             invM = 0.;
             ptProbe = pb_j->pt();
             etaProbe = pb_j->eta();
+            chargeTagProbe = tag_i->charge()*pb_j->charge(); 
             double deltaRTnP = 9999999.;
-            double chargesign = 0.;
             for (typename std::vector<T>::const_iterator tag_j = pass_probes->begin(); tag_j != pass_probes->end(); ++tag_j){
                 deltaRTnP = reco::deltaR(tag_j->eta(),tag_j->phi(),pb_j->eta(),pb_j->phi());
                 if (deltaRTnP < cut_Dr){
                     ++nMatchProbe;
                 }
             }
-            chargesign = tag_i->charge()*pb_j->charge(); 
             reco::Particle::LorentzVector pb = reco::Particle::LorentzVector(pb_j->px(),pb_j->py(),pb_j->pz(),pb_j->p());
+            pfIso = getIsolation(&(*pb_j));
+
             invM = (tag_i->p4()+pb).M();
             if (invM > cut_lowInvM && invM < cut_highInvM){treeTnP->Fill();}
         }
@@ -270,5 +287,9 @@ void TagAndProbeTreeWriter<T,P>::endJob() {
 //define this as a plug-in
 typedef TagAndProbeTreeWriter< pat::Muon, reco::TrackCollection > MuonTnPTreeWriter;
 typedef TagAndProbeTreeWriter< pat::Electron, reco::CandidateCollection > ElectronTnPTreeWriter;
+typedef TagAndProbeTreeWriter< pat::Muon, pat::MuonCollection > MuonIsoTnPTreeWriter;
+typedef TagAndProbeTreeWriter< pat::Electron, pat::ElectronCollection > ElectronIsoTnPTreeWriter;
 DEFINE_FWK_MODULE(MuonTnPTreeWriter);
 DEFINE_FWK_MODULE(ElectronTnPTreeWriter);
+DEFINE_FWK_MODULE(MuonIsoTnPTreeWriter);
+DEFINE_FWK_MODULE(ElectronIsoTnPTreeWriter);
