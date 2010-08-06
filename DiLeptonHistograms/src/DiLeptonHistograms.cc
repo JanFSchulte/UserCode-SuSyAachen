@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/08/03 12:40:04 $
- *  $Revision: 1.29 $ for CMSSW 3_6_X
+ *  $Date: 2010/08/04 13:30:53 $
+ *  $Revision: 1.30 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -255,8 +255,10 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hMissingETmc =  new TH1F * [nHistos];
     hEtSum = new TH1F * [nHistos];
     halphaT = new TH1F * [nHistos];
+    hHadronicAlphaT = new TH1F * [nHistos];
     hHT = new TH1F * [nHistos];
     hMHT = new TH1F * [nHistos];
+    hMEff = new TH1F * [nHistos];
     h2dMETEtSumJets = new TH2F * [nHistos];
     h2dMETHT = new TH2F * [nHistos];
     h2dMETMHT = new TH2F * [nHistos];
@@ -524,9 +526,11 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hMissingET[process] = MET.make<TH1F>( "MET", "Missing transverse energy", 1000, 0.0, 1000.0);
     hMissingETmc[process] =  MET.make<TH1F>( "MET MC", "Missing transverse energy MC", 1000, 0.0, 1000.0);
     halphaT[process] = MET.make<TH1F>( "alphaT", "alphaT", 100, 0.0, 1.0);
+    hHadronicAlphaT[process] = MET.make<TH1F>( "hadronicAlphaT", "hadronicAlphaT", 100, 0.0, 1.0);
     hEtSum[process] = MET.make<TH1F>( "ETsum", "Transverse energy sum ET", 2000, 0.0, 2000.0);
     hHT[process] = MET.make<TH1F>( "HT", "Transverse energy sum HT", 2000, 0.0, 2000.0);
     hMHT[process] = MET.make<TH1F>( "MHT", "Missing HT", 2000, 0.0, 2000.0);
+    hMEff[process] = MET.make<TH1F>( "MEff", "Effective mass", 2000, 0.0, 2000.0);
     h2dMETEtSumJets[process] = MET.make<TH2F>( "MET - sum4Jets", "MET - sum4Jets", 2000*reduce2d, 0.0, 2000.0, 1000*reduce2d, 0.0, 1000.0);
     h2dMETHT[process] = MET.make<TH2F>( "MET - HT", "MET - HT", 2000*reduce2d, 0.0, 2000.0, 1000*reduce2d, 0.0, 1000.0);
     h2dMETMHT[process] = MET.make<TH2F>( "MET - MHT", "MET - MHT", 2000*reduce2d, 0.0, 2000.0, 1000*reduce2d, 0.0, 1000.0);
@@ -729,13 +733,14 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
   
     int n_Jet=0;
     int n_bJet=0;
-    std::vector< pat::Jet > bJets;
     float et4Jets=0;
     float etFourthJet=0;
     float HT=0;
     float MHT=0;
 
-    std::vector<reco::Candidate::LorentzVector> objects;
+    std::vector<reco::Candidate::LorentzVector> jetP4s;
+    std::vector<reco::Candidate::LorentzVector> bJetP4s;
+    std::vector<reco::Candidate::LorentzVector> leptonP4s;
     math::PtEtaPhiMLorentzVector JPt(0., 0., 0., 0.);
 
     for (std::vector<pat::Jet>::const_iterator jet_i = jets->begin(); jet_i != jets->end(); ++jet_i){       
@@ -743,7 +748,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
         ++numTotJets;
 	    ++n_Jet;
         JPt += jet_i->p4();
-        objects.push_back(jet_i->p4());
+        jetP4s.push_back(jet_i->p4());
 	    //Plots of leading Jets
    	    JetMonitor(&(*jet_i),n_Jet,weight,general); 
 	    if(n_Jet==1){
@@ -756,7 +761,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
 	    //Jet base plots
 	    if(jet_i->bDiscriminator(bJetAlgo)>cut_bTagDiscriminator){
 	        ++n_bJet;
-		bJets.push_back( *jet_i );
+		    bJetP4s.push_back( jet_i->p4() );
 	    }
 	    HT += jet_i->pt();
     }
@@ -799,7 +804,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
 	if(mcInfo){MuonMonitor(&(*mu_i),n_Muons,weight,GetLeptKind(&(*mu_i), tauIsPrompt));}   
         if(n_Muons==1){hMuonTransverseMass[process]->Fill(transverseMass(*mu_i,meti));}
 	    //Clean and isolated muons
-        objects.push_back(mu_i->p4());
+        leptonP4s.push_back(mu_i->p4());
         muonPt += mu_i->pt();
    	    if (effInfo) MuonMonitor(&(*mu_i),n_Muons,weight,effcor); 
         // Unbinned pfIsoFit
@@ -835,9 +840,9 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
                 if (treeInfo) treeSFOS->Fill();
                 if (treeInfo) treeMuon->Fill();
 	            if(n_bJet>=2){
-		            for(std::vector<pat::Jet>::const_iterator bjet_i = bJets.begin(); bjet_i!=bJets.end(); ++bjet_i){
-                        for(std::vector<pat::Jet>::const_iterator bjet_j = bJets.begin(); bjet_j!=bJets.end();++bjet_j){
-		                    if(bjet_i<bjet_j){hInvMbbllSFOS[process]->Fill((bjet_i->p4()+bjet_j->p4()+mu_i->p4()+mu_j->p4()).M(),weight);}
+		            for(std::vector<reco::Candidate::LorentzVector>::const_iterator bjet_i = bJetP4s.begin(); bjet_i!=bJetP4s.end(); ++bjet_i){
+                        for(std::vector<reco::Candidate::LorentzVector>::const_iterator bjet_j = bJetP4s.begin(); bjet_j!=bJetP4s.end();++bjet_j){
+		                    if(bjet_i<bjet_j){hInvMbbllSFOS[process]->Fill((*bjet_i+*bjet_j+mu_i->p4()+mu_j->p4()).M(),weight);}
 		                }
 		            }
 	            }
@@ -861,9 +866,9 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
                     if (treeInfo) treeOFOS->Fill();
                 }
 	            if(n_bJet>=2){
-	                for(std::vector<pat::Jet>::const_iterator bjet_i = bJets.begin(); bjet_i!=bJets.end(); ++bjet_i){
-                        for(std::vector<pat::Jet>::const_iterator bjet_j = bJets.begin(); bjet_j!=bJets.end();++bjet_j){
-		                    if(bjet_i<bjet_j){hInvMbbllOFOS[process]->Fill((bjet_i->p4()+bjet_j->p4()+mu_i->p4()+ele_j->p4()).M(),weight);}
+	                for(std::vector<reco::Candidate::LorentzVector>::const_iterator bjet_i = bJetP4s.begin(); bjet_i!=bJetP4s.end(); ++bjet_i){
+                        for(std::vector<reco::Candidate::LorentzVector>::const_iterator bjet_j = bJetP4s.begin(); bjet_j!=bJetP4s.end();++bjet_j){
+		                    if(bjet_i<bjet_j){hInvMbbllOFOS[process]->Fill((*bjet_i+*bjet_j+mu_i->p4()+ele_j->p4()).M(),weight);}
 		                }
 	                }
 	            }
@@ -881,7 +886,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
 	    if(mcInfo){ElectronMonitor(&(*ele_i),n_Electrons,weight,GetLeptKind(&(*ele_i), tauIsPrompt));}  
         if(n_Electrons==1){hElectronTransverseMass[process]->Fill(transverseMass(*ele_i,meti));}
         elePt += ele_i->pt();
-        objects.push_back(ele_i->p4());
+        leptonP4s.push_back(ele_i->p4());
    	    if (effInfo) ElectronMonitor(&(*ele_i),n_Electrons,weight,effcor);
         isoPfElectron = CalcPfIso(*ele_i);
         if (treeInfo) treeElectronIso->Fill(); 
@@ -915,9 +920,9 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
                 if (treeInfo) treeSFOS->Fill();
                 if (treeInfo) treeElec->Fill();
                 if(n_bJet>=2){
-		            for(std::vector<pat::Jet>::const_iterator bjet_i = bJets.begin(); bjet_i!=bJets.end(); ++bjet_i){
-                	    for(std::vector<pat::Jet>::const_iterator bjet_j = bJets.begin(); bjet_j!=bJets.end();++bjet_j){
-			                if(bjet_i<bjet_j){hInvMbbllSFOS[process]->Fill((bjet_i->p4()+bjet_j->p4()+ele_i->p4()+ele_j->p4()).M(),weight);}
+		            for(std::vector<reco::Candidate::LorentzVector>::const_iterator bjet_i = bJetP4s.begin(); bjet_i!=bJetP4s.end(); ++bjet_i){
+                	    for(std::vector<reco::Candidate::LorentzVector>::const_iterator bjet_j = bJetP4s.begin(); bjet_j!=bJetP4s.end();++bjet_j){
+			                if(bjet_i<bjet_j){hInvMbbllSFOS[process]->Fill((*bjet_i+*bjet_j+ele_i->p4()+ele_j->p4()).M(),weight);}
 			            }
                     }
 		        }
@@ -950,11 +955,22 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
        	    if( tau_i->charge()*tau_j->charge()>0&&tau_i<tau_j){hInvMTauSS[process]->Fill((tau_i->p4()+tau_j->p4()).M(),weight);}   
         }
     }
- 
     //Global alphaT from all objects
-    double alphaT = 0; 
-    alphaT = alpha_T()(objects);
+    //std::vector<reco::Candidate::LorentzVector> leptonP4s;
+    double lHT = 0; 
+    reco::Candidate::LorentzVector lVector(0., 0., 0., 0.);
+    for (std::vector<reco::Candidate::LorentzVector>::const_iterator lep_i = leptonP4s.begin(); lep_i != leptonP4s.end(); ++lep_i){
+        lVector += *lep_i;
+        lHT += (*lep_i).pt();
+    }
+    double hAlphaT = alpha_T()(jetP4s);
+    jetP4s.push_back(lVector);
+    double alphaT = alpha_T()(jetP4s);
+    
+    //Effictive mass (Atlas) 
+    hMEff[process]->Fill(MET+HT+lHT,weight);
     halphaT[process]->Fill(alphaT,weight);
+    hHadronicAlphaT[process]->Fill(hAlphaT,weight);
     //Muon multiplicity 
     hMuonMult[general]->Fill(n_Muons,weight);
     hMuonSumPt[general]->Fill(muonPt,weight);
@@ -1348,6 +1364,14 @@ void DiLeptonHistograms::analyze(const edm::Event &iEvent, const edm::EventSetup
     //Trigger 
     edm::Handle< edm::TriggerResults > trigger;
     iEvent.getByLabel(trgSrc, trigger);
+    if ( !trigger.isValid() ) { 
+        edm::Handle<trigger::TriggerEvent> temp;
+        iEvent.getByLabel( "hltTriggerSummaryAOD", temp );
+        if( temp.isValid() ) { 
+            trgSrc = edm::InputTag( trgSrc.label(), trgSrc.instance(), temp.provenance()->processName() ); 
+            iEvent.getByLabel(trgSrc, trigger);
+        }
+    }
     const edm::TriggerNames & triggerNames = iEvent.triggerNames(*trigger);
 
     bool signal = false;

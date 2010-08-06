@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr
 //         Created:  Mon Jun 28 13:06:46 CEST 2010
-// $Id$
+// $Id: TriggerHistograms.cc,v 1.1 2010/06/28 13:33:28 nmohr Exp $
 //
 //
 
@@ -33,6 +33,7 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include "DataFormats/HLTReco/interface/TriggerEvent.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "FWCore/Common/interface/TriggerNames.h"
 
@@ -106,6 +107,14 @@ TriggerHistograms::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
     edm::Handle< edm::TriggerResults > trigger;
     iEvent.getByLabel(trgSrc_, trigger);
+    if ( !trigger.isValid() ) {
+        edm::Handle<trigger::TriggerEvent> temp;
+        iEvent.getByLabel( "hltTriggerSummaryAOD", temp );
+        if( temp.isValid() ) { 
+            trgSrc_ = edm::InputTag( trgSrc_.label(), trgSrc_.instance(), temp.provenance()->processName() ); 
+            iEvent.getByLabel(trgSrc_, trigger);
+        }
+    }
     const edm::TriggerNames & names = iEvent.triggerNames(*trigger);
 
     std::vector< std::string > hlNames;

@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/07/19 10:19:34 $
- *  $Revision: 1.23 $
+ *  $Date: 2010/07/28 10:45:40 $
+ *  $Revision: 1.24 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -55,6 +55,7 @@
 #include "DataFormats/PatCandidates/interface/MET.h"
 #include "DataFormats/PatCandidates/interface/Flags.h"
 
+#include "DataFormats/HLTReco/interface/TriggerEvent.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "FWCore/Common/interface/TriggerNames.h"
 
@@ -123,8 +124,10 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH1F**       hMissingETmc;
     TH1F**       hEtSum;
     TH1F**       halphaT;
+    TH1F**       hHadronicAlphaT;
     TH1F**       hHT;
     TH1F**       hMHT;
+    TH1F**       hMEff;
     TH2F**       h2dMETEtSumJets;
     TH2F**       h2dMETHT;
     TH2F**       h2dMETMHT;
