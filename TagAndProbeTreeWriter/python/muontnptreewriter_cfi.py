@@ -9,3 +9,13 @@ probeSource = cms.InputTag("generalTracks"),
 passProbeSource = cms.InputTag("cleanLayer1Muons"),
 jetSource = cms.InputTag("cleanLayer1JetsAK5")
 )
+
+muonisotnptreewriter = cms.EDAnalyzer('MuonIsoTnPTreeWriter',
+mcInfoAvailable = cms.untracked.bool(False),
+
+mcSource = cms.InputTag("genParticles"),
+tagSource = cms.InputTag("cleanLayer1Muons"),
+probeSource = cms.InputTag("generalTracks"),
+passProbeSource = cms.InputTag("cleanLayer1Muons"),
+jetSource = cms.InputTag("cleanLayer1JetsAK5")
+)

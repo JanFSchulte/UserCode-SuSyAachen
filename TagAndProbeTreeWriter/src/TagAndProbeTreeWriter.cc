@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: TagAndProbeTreeWriter.cc,v 1.6 2010/06/25 13:44:31 nmohr Exp $
+// $Id: TagAndProbeTreeWriter.cc,v 1.7 2010/08/06 14:33:55 nmohr Exp $
 //
 //
 
@@ -99,6 +99,7 @@ class TagAndProbeTreeWriter : public edm::EDAnalyzer {
         float etaProbe;
         int chargeTagProbe;
         float pfIso;
+        float mva;
         int nMatchProbe;
         int nJets;
 };
@@ -144,6 +145,7 @@ TagAndProbeTreeWriter<T,P>::TagAndProbeTreeWriter(const edm::ParameterSet& iConf
     treeTnP->Branch("nMatch",&nMatchProbe,"nMatchProbe/I");
     treeTnP->Branch("nJets",&nJets,"nJets/I");
     treeTnP->Branch("pfIso",&pfIso,"pfIso/F");
+    treeTnP->Branch("mva",&mva,"mva/F");
 
     if (mcInfo){ 
         treeGen = Tree.make<TTree>("Gen tree", "Gen tree"); 
@@ -175,16 +177,19 @@ TagAndProbeTreeWriter<T,P>::~TagAndProbeTreeWriter()
 //
 // member functions
 template< class PB > 
-double getIsolation(const PB * pb_j){
-    return -1.;
+void fillExtraVars(const PB *pb_j, float *iso, float *mva){
+    *iso = -1.;
+    *mva = -1.;
 }
 template< > 
-double getIsolation(const pat::Muon * lepton){
-    return (lepton->chargedHadronIso()+lepton->photonIso()+lepton->neutralHadronIso())/lepton->pt();
+void fillExtraVars(const pat::Muon *lepton, float *iso, float *mva){
+    *iso = (lepton->chargedHadronIso()+lepton->photonIso()+lepton->neutralHadronIso())/lepton->pt();
+    *mva = -1.;
 }
 template< > 
-double getIsolation(const pat::Electron * lepton){
-    return (lepton->chargedHadronIso()+lepton->photonIso()+lepton->neutralHadronIso())/lepton->pt();
+void fillExtraVars(const pat::Electron *lepton, float *iso, float *mva){
+    *iso = (lepton->chargedHadronIso()+lepton->photonIso()+lepton->neutralHadronIso())/lepton->pt();
+    *mva = lepton->mva();
 }
 
 template< typename T, typename P > 
@@ -204,7 +209,7 @@ void TagAndProbeTreeWriter<T,P>::TnP(const edm::Handle< std::vector<T> >& tags, 
                 }
             }
             reco::Particle::LorentzVector pb = reco::Particle::LorentzVector(pb_j->px(),pb_j->py(),pb_j->pz(),pb_j->p());
-            pfIso = getIsolation(&(*pb_j));
+            fillExtraVars(&(*pb_j),&pfIso,&mva);
 
             invM = (tag_i->p4()+pb).M();
             if (invM > cut_lowInvM && invM < cut_highInvM){treeTnP->Fill();}
