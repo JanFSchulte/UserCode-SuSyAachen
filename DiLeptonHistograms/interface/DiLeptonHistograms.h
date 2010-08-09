@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/07/28 10:45:40 $
- *  $Revision: 1.24 $
+ *  $Date: 2010/08/06 11:49:30 $
+ *  $Revision: 1.25 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -358,7 +358,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     math::XYZPoint bs;
     math::XYZPoint pv;
 
-    static const int nEtaBins=10;
+    static const int nEtaBins=5;
     static const float boundEta[nEtaBins+1]; 
     static const int nPtBins=4;
     static const float boundPt[nPtBins+1]; 
@@ -408,7 +408,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
 
 };
 
-const float DiLeptonHistograms::boundEta[] = {-2.,-1.6,-1.2,-0.8,-0.4,0,0.4,0.8,1.2,1.6,2};
+const float DiLeptonHistograms::boundEta[] = {-2.,-1.2,-0.4,0.4,1.2,2};
 const float DiLeptonHistograms::boundPt[] = {0.,35,40.,45.,10000.};
 
 #endif
