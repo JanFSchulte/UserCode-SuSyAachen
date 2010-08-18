@@ -6,6 +6,7 @@
 <use name=FWCore/Framework>
 <use name=FWCore/ParameterSet>
 <use name=CommonTools/UtilAlgos>
+<use name=CondFormats/JetMETObjects>
 <flags EDM_PLUGIN=1>
 <export>
 <lib name = SuSyAachenSkimming>

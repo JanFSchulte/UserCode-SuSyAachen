@@ -52,4 +52,9 @@ mhtJetFilter = mhtFilter.clone(
             minMHT = cms.double(100.00)
 )
 
+from SuSyAachen.Skimming.jetSelectors_cfi import resCorrectedJetProducer
+resCorrectedJets = resCorrectedJetProducer.clone(
+    src = cms.InputTag("selectedPatJetsPF")
+)
+
 
