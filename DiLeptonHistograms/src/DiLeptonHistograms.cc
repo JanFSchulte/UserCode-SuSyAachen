@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/08/04 13:30:53 $
- *  $Revision: 1.30 $ for CMSSW 3_6_X
+ *  $Date: 2010/08/06 11:49:30 $
+ *  $Revision: 1.31 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -1323,6 +1323,7 @@ void DiLeptonHistograms::TauMonitor(const pat::Tau* tau,const int n_Tau, double 
 //Gets all collections and calls Analysis
 void DiLeptonHistograms::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetup) {
     double weight = externalWeight;
+    if (iEvent.isRealData()) mcInfo = false;
 
     //edm::LogPrint("Evt")  << "Run = " << iEvent.id().run() << ", Event = " << iEvent.id().event();
     //std::cout << "Run = " << iEvent.id().run() << ", Event = " << iEvent.id().event() << std::endl;

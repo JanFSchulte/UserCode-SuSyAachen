@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr
 //         Created:  Wed Aug 18 15:37:34 CEST 2010
-// $Id$
+// $Id: ResCorrJetsProducer.cc,v 1.1 2010/08/18 19:23:06 nmohr Exp $
 //
 //
 
@@ -106,13 +106,14 @@ ResCorrJetsProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    edm::Handle< std::vector<pat::Jet> > jets;
    iEvent.getByLabel(jetSrc, jets);
+   bool isRealData = iEvent.isRealData();
 
    std::auto_ptr<std::vector<pat::Jet> > theJets ( new std::vector<pat::Jet>() );
    for (std::vector<pat::Jet>::const_iterator jet_i = jets->begin(); jet_i != jets->end(); ++jet_i){
         JEC->setJetEta(jet_i->eta());
         JEC->setJetPt(jet_i->pt());
         pat::Jet rescaledJet = *jet_i;
-        rescaledJet.scaleEnergy(JEC ? JEC->getCorrection() : 1.);
+        if (isRealData) rescaledJet.scaleEnergy(JEC ? JEC->getCorrection() : 1.);
         theJets->push_back(rescaledJet);
     }
    std::sort(theJets->begin(), theJets->end(), PtGreater());

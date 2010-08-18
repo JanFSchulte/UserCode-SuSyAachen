@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: TagAndProbeTreeWriter.cc,v 1.7 2010/08/06 14:33:55 nmohr Exp $
+// $Id: TagAndProbeTreeWriter.cc,v 1.8 2010/08/09 16:02:42 nmohr Exp $
 //
 //
 
@@ -243,6 +243,7 @@ void TagAndProbeTreeWriter<T,P>::mcAnalysis(const edm::Handle< std::vector<T> >&
 template< typename T, typename P > 
 void TagAndProbeTreeWriter<T,P>::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+    if (iEvent.isRealData()) mcInfo = false;
 
     //Tags
     edm::Handle< std::vector<T> > tags;
