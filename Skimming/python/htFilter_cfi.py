@@ -5,3 +5,9 @@ htFilter = cms.EDFilter("HtFilter",
   minHT = cms.double(100.00),
   maxHT = cms.double(-1.0)
 )
+
+rawHtFilter = cms.EDFilter("RawHtFilter", 
+  src = cms.InputTag("selectedPatJetsPF"),
+  minHT = cms.double(100.00),
+  maxHT = cms.double(-1.0)
+)
