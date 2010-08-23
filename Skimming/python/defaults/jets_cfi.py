@@ -57,4 +57,9 @@ resCorrectedJets = resCorrectedJetProducer.clone(
     src = cms.InputTag("selectedPatJetsPF")
 )
 
+from SuSyAachen.Skimming.jetSelectors_cfi import unCorrectedJetProducer
+unCorrectedJets = unCorrectedJetProducer.clone(
+    src = cms.InputTag("selectedPatJetsPF")
+)
+
 
