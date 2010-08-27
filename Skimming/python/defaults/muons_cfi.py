@@ -29,3 +29,10 @@ patMatchedMuonSelector = cms.EDFilter("PATMuonMatchedSelector",
    autoCharge = cms.bool(True)
 )
 
+from SuSyAachen.Skimming.muonSelection_cff import bJetMuonProducer
+bJetMuons = bJetMuonProducer.clone(
+    src = cms.InputTag("cleanLayer1Muons"),
+    jetSrc = cms.InputTag("cleanLayer1Jets")
+)
+
+

@@ -23,6 +23,15 @@ cleanElectrons = cms.EDFilter("PATElectronSelector", filter = filterElectrons,
   cut = cms.string('')
 )
 
+bJetElectronProducer = cms.EDProducer('bJetElectronProducer',
+    src = cms.InputTag("basicElectrons"),
+    jetSrc = cms.InputTag("basicJets"),
+    dRJetLepton = cms.double(0.2),
+    dPhiOppositeJetLepton = cms.double(2.7),
+    user_bJetAlgo = cms.string("trackCountingHighPurBJetTags"),
+    user_bTagDiscriminator = cms.double(3.),
+)
+
 isoElectrons = cms.EDFilter("PATElectronSelector", filter = filterElectrons,
   src = cms.InputTag("cleanElectrons"),
   #cut = cms.string('hcalIsoDeposit.candEnergy < 999 &  ecalIsoDeposit.candEnergy < 999')
