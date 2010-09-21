@@ -41,6 +41,12 @@ struct d0Selector {
 	selected_.push_back( & (*it) );
     }
   }
+  double calcD0( reco::PFCandidate p, math::XYZPoint vx)
+  {    
+    if(p.gsfTrackRef().isNonnull())
+      return fabs( p.gsfTrackRef()->dxy( vx ));  
+    return fabs( p.trackRef()->dxy( vx ));  
+  }
   // fast hack: this should be specialized
   double calcD0( pat::Electron p, math::XYZPoint vx)
   {    

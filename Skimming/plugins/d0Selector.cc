@@ -7,6 +7,7 @@
 #include "CommonTools/UtilAlgos/interface/ObjectSelector.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
@@ -16,11 +17,16 @@
 // define your producer name
 typedef ObjectSelector< d0Selector<reco::BeamSpot, pat::MuonCollection, std::vector<const pat::Muon *> > > PATMuonD0BSSelector;
 typedef ObjectSelector< d0Selector<reco::BeamSpot, pat::ElectronCollection, std::vector<const pat::Electron *> > > PATElectronD0BSSelector;
+typedef ObjectSelector< d0Selector<reco::BeamSpot, reco::PFCandidateCollection, std::vector<const reco::PFCandidate *> > > PFCandidateD0BSSelector;
 typedef ObjectSelector< d0Selector<reco::VertexCollection, pat::MuonCollection, std::vector<const pat::Muon *> > > PATMuonD0PVSelector;
 typedef ObjectSelector< d0Selector<reco::VertexCollection, pat::ElectronCollection, std::vector<const pat::Electron *> > > PATElectronD0PVSelector;
+typedef ObjectSelector< d0Selector<reco::VertexCollection, reco::PFCandidateCollection, std::vector<const reco::PFCandidate *> > > PFCandidateD0PVSelector;
+
 
 // declare the module as plugin
 DEFINE_FWK_MODULE(PATMuonD0BSSelector);
 DEFINE_FWK_MODULE(PATElectronD0BSSelector);
+DEFINE_FWK_MODULE(PFCandidateD0BSSelector);
 DEFINE_FWK_MODULE(PATMuonD0PVSelector);
 DEFINE_FWK_MODULE(PATElectronD0PVSelector);
+DEFINE_FWK_MODULE(PFCandidateD0PVSelector);

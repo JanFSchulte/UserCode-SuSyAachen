@@ -4,6 +4,7 @@
 <library name=SuSyAachenD0Selectors file=d0Selector.cc>
 	 <use name=CommonTools/UtilAlgos>	     
 	 <use name=DataFormats/PatCandidates>
+	 <use name=DataFormats/ParticleFlowCandidate>
 	 <use name=DataFormats/BeamSpot>
 </library>
 
