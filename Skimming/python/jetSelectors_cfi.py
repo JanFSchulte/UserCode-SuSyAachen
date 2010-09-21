@@ -23,7 +23,7 @@ patJetFlagFilter = cms.EDFilter("PATJetFlagSelector", filter = cms.bool(False),
 
 resCorrectedJetProducer = cms.EDProducer('ResCorrJetsProducer',
   src = cms.InputTag("basicJets"),
-  jetCorrections = cms.string("CondFormats/JetMETObjects/data/Spring10DataV1_L2L3Residual_AK5PF.txt")
+  jetCorrections = cms.string("CondFormats/JetMETObjects/data/Spring10DataV2_L2L3Residual_AK5PF.txt")
 )
 
 unCorrectedJetProducer = cms.EDProducer('UnCorrJetsProducer',
