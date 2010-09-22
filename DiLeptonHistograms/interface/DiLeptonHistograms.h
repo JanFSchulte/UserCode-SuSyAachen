@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/08/06 11:49:30 $
- *  $Revision: 1.25 $
+ *  $Date: 2010/08/09 16:03:40 $
+ *  $Revision: 1.26 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -119,6 +119,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH1F**       hTauNSignalTracks;
     TH1F**       hTauSumIsoPt;
     TH1F**       hTauRelSumIsoPt;
+    TH1F**       hTauDecayMode;
 
     TH1F**       hMissingET;
     TH1F**       hMissingETmc;

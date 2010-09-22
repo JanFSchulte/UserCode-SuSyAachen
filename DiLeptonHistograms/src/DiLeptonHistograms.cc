@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/08/06 11:49:30 $
- *  $Revision: 1.31 $ for CMSSW 3_6_X
+ *  $Date: 2010/08/18 20:55:13 $
+ *  $Revision: 1.32 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -123,6 +123,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hTauNSignalTracks = new TH1F * [nHistos];
     hTauSumIsoPt = new TH1F * [nHistos];
     hTauRelSumIsoPt = new TH1F * [nHistos];
+    hTauDecayMode = new TH1F * [nHistos];
     
     //histograms for the invariant mass of the leptons
     hInvMSFOS = new TH1F * [nHistos];
@@ -506,6 +507,7 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hTauRelSumIsoPt[process] = Taus.make<TH1F>( "tau relative iso pt", "Sum of pfCandidates pt in isolation annulus / tau pt", 1000, 0.0, 1.0);
     hTauLeadingnHits[process] = Taus.make<TH1F>( "tau nhits on leading track ", "Number of hits on leading track", 31, -1.5, 30.5);
     hTauLeadingLostHits[process] = Taus.make<TH1F>( "tau lost hits on leading track", "Number of lost hits on leading track", 31, -1.5, 30.5);
+    hTauDecayMode[process] = Taus.make<TH1F>( "tau decay mode", "tau decay mode (acc. to TaNC)", 21, -5.5, 15.5);
 
     hGenTauPt[process] = Taus.make<TH1F>( "generator tau pt", "matched gen tau pt", 1000, 0.0, 1000.0);
     hGenTauVisPt[process] = Taus.make<TH1F>( "generator tau vis pt", "matched gen tau visible pt", 1000, 0.0, 1000.0);
@@ -935,14 +937,15 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
     int n_Taus = 0;
     float tauPt = 0.;
     for (std::vector<pat::Tau>::const_iterator tau_i = taus->begin(); tau_i != taus->end(); ++tau_i){
-        if (debug) std::cout <<"tau eta = "<< tau_i->eta() << std::endl;
+      if (debug) std::cout <<"tau eta = "<< tau_i->eta() << "pt = "<< tau_i->pt() << std::endl;
         tauPt += tau_i->pt();
         ++numTotTaus;
 	    ++n_Taus;
    	    TauMonitor(&(*tau_i),n_Taus,weight,general); 
+	    if (debug) std::cout <<" < monitor";
 	    if(n_Taus==1){hTauTransverseMass[process]->Fill( sqrt( tau_i->et()*meti.et()*( 1 - cos(reco::deltaPhi((tau_i->p4()).phi(),meti.phi())) )));}
 	    if(mcInfo){TauMonitor(&(*tau_i),n_Taus,weight,GetLeptKind(&(*tau_i), tauIsPrompt));}  
-        
+	    if (debug) std::cout <<" < tr. mass and mcMonitor";        
         //Invariant mass plots
 	    //Tau pairs
    	    for (std::vector<pat::Tau>::const_iterator tau_j = taus->begin(); tau_j != taus->end(); ++tau_j){
@@ -952,7 +955,9 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
                 iso = CalcIso(*tau_i)+CalcIso(*tau_j);
                 TauInvMonitor(inv,MET,HT,et4Jets,etFourthJet,iso,weight,general);
             }
+	    if (debug) std::cout <<" < inv. mass";
        	    if( tau_i->charge()*tau_j->charge()>0&&tau_i<tau_j){hInvMTauSS[process]->Fill((tau_i->p4()+tau_j->p4()).M(),weight);}   
+	    if (debug) std::cout <<" < ssMass";
         }
     }
     //Global alphaT from all objects
@@ -983,6 +988,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
     //Lepton multiplicity
     hLightLeptonMult[general]->Fill(n_Electrons+n_Muons, weight);
     hLeptonMult[general]->Fill(n_Electrons+n_Muons+n_Taus, weight);
+    if (debug) std::cout <<" < tau done."<<std::endl;
 }
 
 //Fill all muon inv mass related quantities
@@ -1256,17 +1262,22 @@ void DiLeptonHistograms::TauMonitor(const pat::Tau* tau,const int n_Tau, double 
   if(!tauInitialized_[process]) InitTauHistos(*tau, process);
   std::vector< pat::Tau::IdPair  > tauIds = tau->tauIDs();
   hTauDiscriminators[process]->Fill("None", weight);
+  if (debug) std::cout <<" < none";
   for(std::vector< pat::Tau::IdPair  >::iterator it = tauIds.begin(); it != tauIds.end(); ++it){
     if((*it).second > 0.5 ) // TODO make this configurable
       hTauDiscriminators[process]->Fill( (*it).first.c_str(), weight);
     if((*it).first == "byTaNC")
       hTauTaNCDiscriminator[process]->Fill((*it).second, weight);
   }
+  if (debug) std::cout <<" < discr";
+  hTauDecayMode[process]->Fill( tau->decayMode() );
   
   if(mcInfo && tau->genJet() != 0 && tau->genParticle() != 0){
     hGenTauPt[process]->Fill(tau->genParticle()->pt(), weight);
     hGenTauVisPt[process]->Fill(tau->genJet()->pt(), weight);
   }
+
+  if (debug) std::cout <<" < genJet";
  	
   h2dTauEtaPt[process]->Fill(tau->pt(),tau->eta(),weight);
   //Tau base plots
@@ -1283,6 +1294,7 @@ void DiLeptonHistograms::TauMonitor(const pat::Tau* tau,const int n_Tau, double 
   }
   hTauEta[process]->Fill(tau->eta(),weight);
   hTauPhi[process]->Fill(tau->phi(),weight);
+  if (debug) std::cout <<" < kinetics";
   if(tau->leadTrack().isAvailable()){
     hTauLeadingnHits[process]->Fill(tau->leadTrack()->numberOfValidHits(),weight);
     hTauLeadingLostHits[process]->Fill(tau->leadTrack()->numberOfLostHits(),weight);
@@ -1290,6 +1302,7 @@ void DiLeptonHistograms::TauMonitor(const pat::Tau* tau,const int n_Tau, double 
     hTauLeadingnHits[process]->Fill(-1, weight);
     hTauLeadingLostHits[process]->Fill(-1,weight);
   }
+    if (debug) std::cout <<" < lead Track";
   hTauEtaPhi[process]->Fill(tau->eta(),tau->phi(),weight);
  
   //Tau isolation
@@ -1303,20 +1316,25 @@ void DiLeptonHistograms::TauMonitor(const pat::Tau* tau,const int n_Tau, double 
   hTauChargedHadronIso[process]->Fill(tau->chargedHadronIso(),weight);
   hTauPhotonIso[process]->Fill(tau->photonIso(),weight);
   hTauNeutralHadronIso[process]->Fill(tau->neutralHadronIso(),weight);
+  if (debug) std::cout <<" < iso";
   hTauNSignalTracks[process]->Fill(tau->signalPFChargedHadrCands().size(),weight);
   double sumIsoPt = 0.;
   const reco::PFCandidateRefVector isoCands = tau->isolationPFCands();
+    if (debug) std::cout <<" < gotIsoCands";
   for( reco::PFCandidateRefVector::const_iterator it = isoCands.begin();
-       it != isoCands.end(); ++it)      sumIsoPt += (*it)->pt();
-  
+       it != isoCands.end(); ++it)      {
+    if( (*it).isAvailable())
+      sumIsoPt += (*it)->pt();
+  }
   hTauSumIsoPt[process]->Fill(sumIsoPt,weight);
   hTauRelSumIsoPt[process]->Fill(sumIsoPt/tau->pt(),weight);
-  
+  if (debug) std::cout <<" < sumIso";
   if (mcInfo){
     if(tau->genLepton()){
       h2dMatchedTauEtaPt[process]->Fill(tau->pt(),tau->eta(),weight);
     }
   }
+  if (debug) std::cout <<" < done Monitor";
 }
  
 //Event loop
