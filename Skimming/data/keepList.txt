@@ -11,4 +11,6 @@ drop *_cleanPatTaus_*_*
 drop *_cleanPatPhotons_*_*
 keep *_triggerMatchedPat*_*_*
 keep *_patTaus_*_*
+keep *_mergedTruth_*_*
+drop *_genParticles_*_*
 drop *_towerMaker_*_*
