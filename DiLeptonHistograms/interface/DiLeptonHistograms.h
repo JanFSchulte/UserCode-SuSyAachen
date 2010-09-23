@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/08/09 16:03:40 $
- *  $Revision: 1.26 $
+ *  $Date: 2010/09/22 15:10:56 $
+ *  $Revision: 1.27 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -328,6 +328,9 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     
     //reduction factor for 2D binning
     double reduce2d;
+
+    //safety cutoff for alpha_T
+    unsigned int maxJetsForAlphaT;
 
     //Set weight via cfg
     double externalWeight;

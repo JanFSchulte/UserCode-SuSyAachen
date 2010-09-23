@@ -29,7 +29,9 @@ acc_ElectronEta = cms.untracked.double(2.) ,
 user_bJetAlgo = cms.untracked.string("trackCountingHighPurBJetTags"),
 user_bTagDiscriminator = cms.untracked.double(3.),
 #to be removed
-trackSource = cms.InputTag("generalTracks")
+trackSource = cms.InputTag("generalTracks"),
 #jetMcSource = cms.InputTag(""),
+
+maxJetsForAlphaT = cms.uint32(10)
 
 )

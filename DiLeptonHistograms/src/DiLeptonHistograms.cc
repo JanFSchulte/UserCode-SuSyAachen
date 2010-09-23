@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/08/18 20:55:13 $
- *  $Revision: 1.32 $ for CMSSW 3_6_X
+ *  $Date: 2010/09/22 15:10:56 $
+ *  $Revision: 1.33 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -32,6 +32,8 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
 
     // reduction factor for 2D histograms
     reduce2d = iConfig.getUntrackedParameter<double>   ("reduce2d",0.1);
+    //safety cutoff for alpha_T
+    maxJetsForAlphaT = iConfig.getParameter<unsigned int>   ("maxJetsForAlphaT");
 
     // how many tauDiscriminators to take
     maxTauDiscriminators_ = 20; //TODO read from config
@@ -968,10 +970,12 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
         lVector += *lep_i;
         lHT += (*lep_i).pt();
     }
-    double hAlphaT = alpha_T()(jetP4s);
+    double hAlphaT =  (jetP4s.size() > maxJetsForAlphaT) ? -1. * jetP4s.size() : alpha_T()(jetP4s);
     jetP4s.push_back(lVector);
-    double alphaT = alpha_T()(jetP4s);
-    
+    double alphaT = (jetP4s.size() > maxJetsForAlphaT) ?  -1. *jetP4s.size(): alpha_T()(jetP4s);
+
+    if (debug) std::cout << "  < a_T "<< alphaT<< "  < a_Th "<< hAlphaT;
+
     //Effictive mass (Atlas) 
     hMEff[process]->Fill(MET+HT+lHT,weight);
     halphaT[process]->Fill(alphaT,weight);
@@ -988,7 +992,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
     //Lepton multiplicity
     hLightLeptonMult[general]->Fill(n_Electrons+n_Muons, weight);
     hLeptonMult[general]->Fill(n_Electrons+n_Muons+n_Taus, weight);
-    if (debug) std::cout <<" < tau done."<<std::endl;
+    if (debug) std::cout <<" < done."<<std::endl;
 }
 
 //Fill all muon inv mass related quantities
