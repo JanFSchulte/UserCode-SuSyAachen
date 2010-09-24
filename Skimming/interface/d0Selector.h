@@ -21,6 +21,8 @@ struct d0Selector {
   d0Selector ( const edm::ParameterSet & cfg ):
     d0Min_( cfg.getParameter<double>( "d0Min") ),
     d0Max_( cfg.getParameter<double>( "d0Max" ) ),
+    dZMin_( cfg.getParameter<double>( "dZMin") ),
+    dZMax_( cfg.getParameter<double>( "dZMax" ) ),
     beamSpotSrc_( cfg.getParameter<edm::InputTag>( "beamSpotSource" ) )  { }
   
   const_iterator begin() const { return selected_.begin(); }
@@ -32,30 +34,32 @@ struct d0Selector {
     point_ = getPoint(beamSpotHandle);
 
     selected_.clear();
-    double d0 = 0.0;
+    std::pair<double, double> dS (0.,0.);
     for(typename collection::const_iterator it = col.product()->begin(); 
 	 it != col.product()->end(); ++it ){
       
-      d0 = calcD0( *it, point_);
-      if ( d0 >= d0Min_ && d0 < d0Max_ )
+      dS = calcDs( *it, point_);
+      //std::cout << "d0 = " << dS.first << "  dZ = " << dS.second << std::endl;
+      if ( dS.first >= d0Min_ && dS.first < d0Max_ && dS.second >= dZMin_ && dS.second < dZMax_ )
+      //std::cout << "Selected it d0 = " << dS.first << "  dZ = " << dS.second << std::endl;
 	selected_.push_back( & (*it) );
     }
   }
-  double calcD0( reco::PFCandidate p, math::XYZPoint vx)
+  std::pair<double, double> calcDs( reco::PFCandidate p, math::XYZPoint vx)
   {    
     if(p.gsfTrackRef().isNonnull())
-      return fabs( p.gsfTrackRef()->dxy( vx ));  
-    return fabs( p.trackRef()->dxy( vx ));  
+      return std::make_pair(std::abs( p.gsfTrackRef()->dxy( vx )), std::abs( p.gsfTrackRef()->dz( vx )));  
+    return std::make_pair(std::abs( p.trackRef()->dxy( vx )), std::abs( p.trackRef()->dz( vx )));  
   }
   // fast hack: this should be specialized
-  double calcD0( pat::Electron p, math::XYZPoint vx)
+  std::pair<double, double> calcDs( pat::Electron p, math::XYZPoint vx)
   {    
-    return fabs( p.gsfTrack()->dxy( vx ));  
+    return std::make_pair(std::abs( p.gsfTrack()->dxy( vx )), std::abs( p.gsfTrack()->dz( vx )));  
   }
   // fast hack: this should be the normal one
-  double calcD0( pat::Muon p, math::XYZPoint vx )
+  std::pair<double, double> calcDs( pat::Muon p, math::XYZPoint vx )
   {
-    return fabs( p.track()->dxy( vx ));  
+    return std::make_pair(std::abs( p.track()->dxy( vx )), std::abs( p.track()->dz( vx )));  
   }
   // fast hack: this should be specialized
   math::XYZPoint getPoint( edm::Handle<reco::BeamSpot> beamSpotHandle)
@@ -79,6 +83,8 @@ private:
   container selected_;
   double d0Min_;
   double d0Max_;
+  double dZMin_;
+  double dZMax_;
   math::XYZPoint point_;
   edm::InputTag beamSpotSrc_;
 };

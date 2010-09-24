@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/09/22 15:10:56 $
- *  $Revision: 1.27 $
+ *  $Date: 2010/09/23 14:04:08 $
+ *  $Revision: 1.28 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -206,12 +206,16 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH1F**       hGenMuonEta;
         
     TH1F**       hMuonChi2;
+    TH1F**       hMuonGtChi2;
     TH1F**       hMuond0Pv;
     TH1F**       hMuond0Bs;
+    TH1F**       hMuondZPv;
+    TH1F**       hMuondZBs;
     TH1F**       hMuond0SigPv;
     TH1F**       hMuond0SigBs;
     TH1F**       hMuonnHits;
     TH1F**       hMuonPixelHits;
+    TH1F**       hMuonMatches;
     TH2F**       hMuonPfIsoPt;
     TH2F**       hMuonPfIsod0Pv;
     TH2F**       hMuonPfIsod0Bs;
@@ -231,6 +235,8 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH1F**       hElectronLostHits;
     TH1F**       hElectrond0Pv;
     TH1F**       hElectrond0Bs;
+    TH1F**       hElectrondZPv;
+    TH1F**       hElectrondZBs;
     TH1F**       hElectrond0SigPv;
     TH1F**       hElectrond0SigBs;
     TH1F**       hGenElectronPt;
