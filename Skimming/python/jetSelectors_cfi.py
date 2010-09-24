@@ -20,6 +20,19 @@ patJetFlagFilter = cms.EDFilter("PATJetFlagSelector", filter = cms.bool(False),
   cut = cms.string("")
 )
 
+patPFJetIDFilter = cms.EDFilter("PATPFJetIDSelector", 
+  filter = cms.bool(False),
+  src = cms.InputTag("basicJets"),
+  version = cms.string('FIRSTDATA'),
+  quality = cms.string('LOOSE')
+)
+
+patJetIDFilter = cms.EDFilter("PATJetIDSelector", 
+  filter = cms.bool(False),
+  src = cms.InputTag("basicJets"),
+  version = cms.string('PURE09'),
+  quality = cms.string('LOOSE')
+)
 
 resCorrectedJetProducer = cms.EDProducer('ResCorrJetsProducer',
   src = cms.InputTag("basicJets"),

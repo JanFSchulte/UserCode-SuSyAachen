@@ -26,6 +26,22 @@ patJetFlagSelector =  patJetFlagFilter.clone(
            cut = cms.string("pat::Flags::Overlap::Electrons")
 )
 
+from SuSyAachen.Skimming.jetSelectors_cfi import patPFJetIDFilter
+patPFJetIDSelector =  patPFJetIDFilter.clone(
+           filter = cms.bool(True),
+           src = cms.InputTag("cleanLayer1JetsAK5"),
+           version = cms.string('FIRSTDATA'),
+           quality = cms.string('LOOSE')
+)
+
+from SuSyAachen.Skimming.jetSelectors_cfi import patJetIDFilter
+patJetIDSelector =  patJetIDFilter.clone(
+           filter = cms.bool(True),
+           src = cms.InputTag("cleanLayer1JetsAK5"),
+           version = cms.string('PURE09'),
+           quality = cms.string('LOOSE')
+)
+
 
 from SuSyAachen.Skimming.jetSelectors_cfi import candViewCountFilter 
 genJetCountSelector = candViewCountFilter.clone(
