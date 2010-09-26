@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 triggerResultsCounter = cms.EDAnalyzer('TriggerResultsCounter',
-  prefix = cms.string("filterPathFor"),
+  prefix = cms.vstring("filterPathFor"),
   triggerTag = cms.InputTag("TriggerResults"),
   count = cms.VPSet(
         cms.PSet(
@@ -20,6 +20,8 @@ def makeFilterPaths(process, prefix="filterPathFor"):
     for filter in [ i for i in process.schedule_().moduleNames() if(i in process.filters)]:
         process.__setattr__("%s%s"%(prefix,filter),cms.Path(process.__getattribute__(filter)))
         process.schedule_().append(process.__getattribute__("filterPathFor%s"%filter))
+#        print "appending:", "filterPathFor%s"%filter
 	
     for endpath in process.endpaths:
         process.schedule_().append( process.endpaths[endpath])
+#    print process.schedule_()

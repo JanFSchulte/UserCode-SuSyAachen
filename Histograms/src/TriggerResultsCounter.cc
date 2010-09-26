@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: TriggerResultsCounter.cc,v 1.3 2010/04/01 09:36:57 sprenger Exp $
+// $Id: TriggerResultsCounter.cc,v 1.4 2010/04/27 12:52:06 nmohr Exp $
 //
 //
 
@@ -59,27 +59,29 @@ private:
 
   void addTriggerSet( const edm::ParameterSet& tSet);
   edm::InputTag triggerTag_;
-  std::string prefix_;
+  std::vector< std::string > prefix_;
 
   //histos
   std::map<std::string, TH1F* > count_; 
   std::map<std::string, std::vector<std::string> > triggerNames_; 
+  bool debug;
 };
 
 // constructors and destructor
 TriggerResultsCounter::TriggerResultsCounter(const edm::ParameterSet& iConfig)
 {
+  debug = false;
   // read config
   //  subDir_ = iConfig.getParameter<std::string> ("subDir");
   triggerTag_ = iConfig.getParameter<edm::InputTag>("triggerTag");
-  prefix_ = iConfig.getParameter<std::string> ("prefix");
+  prefix_ = iConfig.getParameter< std::vector<std::string> > ("prefix");
   // init histos
   //  fs->mkdir(subDir_);
-  std::cout << triggerTag_<<" "<<prefix_<<std::endl;
+  //std::cout << triggerTag_<<" "<<prefix_<<std::endl;
   std::vector<edm::ParameterSet> triggerSets = iConfig.getParameter<std::vector<edm::ParameterSet> >("count");
   for( std::vector<edm::ParameterSet>::const_iterator iSet = triggerSets.begin();
        iSet != triggerSets.end(); ++iSet){
-    std::cout << iSet->dump() <<std::endl;
+    if(debug) std::cout << iSet->dump() <<std::endl;
     addTriggerSet(*iSet);
   }
   //  setBinLabels(count_);
@@ -87,13 +89,13 @@ TriggerResultsCounter::TriggerResultsCounter(const edm::ParameterSet& iConfig)
 
 void TriggerResultsCounter::addTriggerSet( const edm::ParameterSet& tSet)
 {
-
   edm::Service<TFileService> fs;
   std::string name = tSet.getParameter<std::string>("name");
   triggerNames_[name] = tSet.getParameter<std::vector<std::string> >("triggerNames");
-  count_[name] = fs->make<TH1F>(name.c_str() , name.c_str() , triggerNames_[name].size() , 0 ,  triggerNames_[name].size());
+  count_[name] = fs->make<TH1F>(name.c_str() , name.c_str() , triggerNames_[name].size()+1 , 0 ,  triggerNames_[name].size()+1);
+  count_[name]->GetXaxis()->SetBinLabel(1, "None");
   for(unsigned int i = 0; i< triggerNames_[name].size(); ++i){
-    count_[name]->GetXaxis()->SetBinLabel(i+1, triggerNames_[name].at(i).c_str());
+    count_[name]->GetXaxis()->SetBinLabel(i+2, triggerNames_[name].at(i).c_str());
   }
 }
 
@@ -128,23 +130,29 @@ TriggerResultsCounter::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     std::cout<<" could not get: "<<triggerTag_<<std::endl;
     return;
   }
-
   const edm::TriggerNames & triggerNames = iEvent.triggerNames(*triggerResults);
   //  triggerNames.triggerIndex(HLTPathsByName_[trig]);
-  for(unsigned int i = 0; i < triggerNames.size(); ++i){
-    for(std::map<std::string, std::vector<std::string> >::iterator iNameVec = triggerNames_.begin();
-	iNameVec != triggerNames_.end(); ++iNameVec){
+  for(std::map<std::string, std::vector<std::string> >::iterator iNameVec = triggerNames_.begin();
+      iNameVec != triggerNames_.end(); ++iNameVec){
+    count_[iNameVec->first]->Fill("None", 1.0);
+    for(unsigned int i = 0; i < triggerNames.size(); ++i){
       for(std::vector<std::string>::iterator iName = iNameVec->second.begin();
 	  iName != iNameVec->second.end(); ++iName){
-	if( triggerNames.triggerName(i) == prefix_+(*iName) && triggerResults->accept(i)){
-	  count_[iNameVec->first]->Fill((*iName).c_str(), 1.0);
+	bool nameMatch = false;
+	for(std::vector<std::string>::iterator iPrefix = prefix_.begin();
+	  iPrefix != prefix_.end(); ++iPrefix){
+	  if(debug) std::cout << triggerNames.triggerName(i) 
+			      << " =? " <<(*iPrefix)<<(*iName)
+			      <<"| accept = "<< triggerResults->accept(i)
+			      << std::endl;
+	  nameMatch |= triggerNames.triggerName(i) == (*iPrefix)+(*iName);
 	}
+	if( nameMatch && triggerResults->accept(i))
+	  count_[iNameVec->first]->Fill((*iName).c_str(), 1.0);
       }
     }
   }
-
 }
-
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
