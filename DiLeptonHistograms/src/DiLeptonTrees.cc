@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.2 2010/04/01 09:36:57 edelhoff Exp $
+// $Id: DiLeptonTrees.cc,v 1.1 2010/09/26 12:19:32 edelhoff Exp $
 //
 //
 
@@ -70,7 +70,6 @@ private:
 
   void initFloatBranch( const std::string &name);
   void initIntBranch( const std::string &name);
-  void initMasses(float mE, float mMu, float mTau);
   template <class aT, class bT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT >&b, const edm::EventID &id, double &weight);
   template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const edm::EventID &id, double &weight);
   template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, double &weight);
@@ -83,7 +82,6 @@ private:
   std::map<std::string, TTree*> trees_;  
   std::map<std::string, std::map< std::string, float*> > floatBranches_; 
   std::map<std::string, std::map< std::string, int*> > intBranches_; 
-  std::map<std::string, std::pair<float, float> > daughterMasses_;
 
   bool debug;
 };
@@ -97,11 +95,6 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig)
   eTag_ = iConfig.getParameter<edm::InputTag>("electrons");
   muTag_ = iConfig.getParameter<edm::InputTag>("muons");
   tauTag_ = iConfig.getParameter<edm::InputTag>("taus");
-
-  initMasses( iConfig.getParameter<double>("electronMass"),
-	      iConfig.getParameter<double>("muonMass"),
-	      iConfig.getParameter<double>("tauMass") );
-  
 
   // init trees
   edm::Service<TFileService> file;
@@ -122,18 +115,6 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig)
   initIntBranch( "matched" );
   initIntBranch( "motherPdgId" );
 }
-
-void
-DiLeptonTrees::initMasses(float mE, float mMu, float mTau)
-{
-  daughterMasses_["EE"] = std::pair<float, float>(mE, mE);
-  daughterMasses_["EMu"] = std::pair<float, float>(mE, mMu);
-  daughterMasses_["MuMu"] = std::pair<float, float>(mMu, mMu);
-  daughterMasses_["ETau"] = std::pair<float, float>(mE, mTau);
-  daughterMasses_["MuTau"] = std::pair<float, float>(mMu, mTau);
-  daughterMasses_["TauTau"] = std::pair<float, float>(mTau, mTau);
-}
-
 
 void 
 DiLeptonTrees::initFloatBranch(const std::string &name)
@@ -231,11 +212,9 @@ DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector
 template <class aT, class bT> void 
 DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b, double &weight)
 {
-  float aMass = daughterMasses_[ treeName ].first;
-  float bMass = daughterMasses_[ treeName ].second;
   if(debug) std::cout << treeName << "- pts:"<< a.pt() << " " << b.pt();
-  TLorentzVector aVec(a.px(), a.py(), a.pz(), sqrt(a.p()*a.p() + aMass*aMass));
-  TLorentzVector bVec(b.px(), b.py(), b.pz(), sqrt(b.p()*b.p() + bMass*bMass));
+  TLorentzVector aVec( a.px(), a.py(), a.pz(), a.energy() );
+  TLorentzVector bVec( b.px(), b.py(), b.pz(), b.energy() );
   TLorentzVector comb = aVec+bVec;
   *(floatBranches_[treeName]["weight"]) = weight;
   *(floatBranches_[treeName]["chargeProduct"]) = a.charge()*b.charge();

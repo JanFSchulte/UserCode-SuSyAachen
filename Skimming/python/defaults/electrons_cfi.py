@@ -26,7 +26,8 @@ PATElectronD0PVSelector = cms.EDFilter("PATElectronD0PVSelector",
            beamSpotSource  = cms.InputTag("offlinePrimaryVertices") #offlinePrimeryVertices
 )
 
-PATElectronConversionSelector = cms.EDFilter("PATElectronConversionSelector", 
+PATElectronConversionSelector = cms.EDFilter("PATElectronConversionSelector",
+           filter = cms.bool(True),
            src = cms.InputTag("cleanLayer1Electrons"),
            minLostHits = cms.int32(0),
            maxLostHits = cms.int32(1)
