@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.1 2010/09/26 12:19:32 edelhoff Exp $
+// $Id: DiLeptonTrees.cc,v 1.2 2010/09/27 16:23:44 edelhoff Exp $
 //
 //
 
@@ -73,6 +73,7 @@ private:
   template <class aT, class bT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT >&b, const edm::EventID &id, double &weight);
   template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const edm::EventID &id, double &weight);
   template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, double &weight);
+  int getMotherPdgId( const reco::GenParticle &p);
 
   edm::InputTag eTag_;
   edm::InputTag muTag_;
@@ -225,19 +226,14 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b, 
   int matched = 0;
   int aMother = -99999;
   int bMother = -99999;
-  if(a.genLepton() != NULL) {
+
+  if(a.genLepton() != NULL){
     matched |= 1;
-    if(a.genLepton()->status() == 3)
-      aMother = a.genLepton()->mother()->pdgId();
-    else
-      aMother = a.genLepton()->mother()->mother()->pdgId();
+    aMother = getMotherPdgId(*(a.genLepton()));
   }
   if(b.genLepton() != NULL){
     matched |= 2;
-    if(a.genLepton()->status() == 3)
-      bMother = a.genLepton()->mother()->pdgId();
-    else
-      bMother = a.genLepton()->mother()->mother()->pdgId();
+    bMother = getMotherPdgId(*(b.genLepton()));
   }
   if( matched == 3 && aMother == bMother ) {
     matched |= 4;
@@ -247,9 +243,20 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b, 
   if(debug) std::cout << ", matched = "<<matched<<", motherId = "<<aMother;
   if(debug) std::cout<<", M = "<< comb.M() <<", chargeProduct = "<< a.charge()*b.charge() <<std::endl;
   
-  
-
   trees_[treeName]->Fill();
+}
+
+int 
+DiLeptonTrees::getMotherPdgId( const reco::GenParticle &p)
+{
+  int result = -9999;
+  if(p.mother() != NULL){
+    if(p.status() == 3)
+      result = p.mother()->pdgId();
+    else if(p.mother()->mother() != NULL)
+      result = p.mother()->mother()->pdgId();
+  }
+  return result;
 }
 
 // ------------ method called once each job just before starting event loop  ------------
