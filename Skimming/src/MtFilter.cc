@@ -13,7 +13,7 @@
 //
 // Original Author:  Matthias Edelhoff
 //         Created:  Mon Nov 16 11:26:19 CET 2009
-// $Id: MtFilter.cc,v 1.1 2010/06/09 20:49:42 edelhoff Exp $
+// $Id: MtFilter.cc,v 1.2 2010/06/11 14:15:44 nmohr Exp $
 //
 //
 
@@ -62,7 +62,9 @@ private:
   edm::InputTag inputTagMET_;
 
   double minMT_;
+  double maxMT_;
 
+  bool debug;
 };
 
 // constructors and destructor
@@ -71,7 +73,8 @@ MtFilter::MtFilter(const edm::ParameterSet& iConfig)
   inputTagMET_ = iConfig.getParameter<edm::InputTag> ("srcMET");
   inputTag_ = iConfig.getParameter<edm::InputTag> ("src");
   minMT_ = iConfig.getParameter<double> ("minMT");
-
+  maxMT_ = iConfig.getParameter<double> ("maxMT");
+  debug = false;
 }
 
 MtFilter::~MtFilter(){}
@@ -90,12 +93,16 @@ MtFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel(inputTagMET_, metCollection);
 
   pat::MET met = *((*metCollection).begin());
-  bool result = false;
+  bool passedMin = false;
+  bool failedMax = false;
   for(collection::const_iterator it = candidates->begin(); it != candidates->end() ; ++it){
-
-    result |= sqrt( 2*(*it).et()*met.et()*( 1 - cos(reco::deltaPhi(((*it).p4()).phi(),met.phi())) )) >= minMT_;
+    double mT = sqrt( 2*(*it).et()*met.et()*( 1 - cos(reco::deltaPhi(((*it).p4()).phi(),met.phi())) ));
+    passedMin |= mT >= minMT_;
+    if (maxMT_ >= 0) failedMax |= mT > maxMT_;
+    if(debug) std::cout << mT <<","<< passedMin << ","<<failedMax <<"; ";
   }
-  return result;
+  if(debug)  if(candidates->size() > 0) std::cout << (passedMin && (!failedMax)) <<std::endl;
+  return passedMin && (!failedMax);
 }
 
 // ------------ method called once each job just before starting event loop  ------------
