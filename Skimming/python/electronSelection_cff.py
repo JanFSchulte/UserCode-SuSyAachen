@@ -38,5 +38,9 @@ isoElectrons = cms.EDFilter("PATElectronSelector", filter = filterElectrons,
   cut = cms.string('(trackIso + ecalIso + hcalIso) / pt < 0.4')
 )
 
+pfElectronProducer = cms.EDProducer('PfElectronProducer',
+  src = cms.InputTag("basicElectrons"),
+)
+
 seqElectrons = cms.Sequence(basicElectrons * qualityElectrons * d0Electrons * cleanElectrons *
                         isoElectrons)

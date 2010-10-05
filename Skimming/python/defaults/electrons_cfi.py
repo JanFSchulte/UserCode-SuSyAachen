@@ -40,6 +40,11 @@ patMatchedElectronSelector = cms.EDFilter("PATElectronMatchedSelector",
    autoCharge = cms.bool(True)
 )
 
+from SuSyAachen.Skimming.electronSelection_cff import pfElectronProducer
+pfPatElectrons = pfElectronProducer.clone(
+    src = cms.InputTag("cleanLayer1Electrons"),
+)
+
 from SuSyAachen.Skimming.electronSelection_cff import bJetElectronProducer
 bJetElectrons = bJetElectronProducer.clone(
     src = cms.InputTag("cleanLayer1Electrons"),

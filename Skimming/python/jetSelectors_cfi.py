@@ -21,14 +21,14 @@ patJetFlagFilter = cms.EDFilter("PATJetFlagSelector", filter = cms.bool(False),
 )
 
 patPFJetIDFilter = cms.EDFilter("PATPFJetIDSelector", 
-  filter = cms.bool(False),
+  filter = cms.bool(True),
   src = cms.InputTag("basicJets"),
   version = cms.string('FIRSTDATA'),
   quality = cms.string('LOOSE')
 )
 
 patJetIDFilter = cms.EDFilter("PATJetIDSelector", 
-  filter = cms.bool(False),
+  filter = cms.bool(True),
   src = cms.InputTag("basicJets"),
   version = cms.string('PURE09'),
   quality = cms.string('LOOSE')
