@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.2 2010/09/27 16:23:44 edelhoff Exp $
+// $Id: DiLeptonTrees.cc,v 1.3 2010/09/30 18:58:36 edelhoff Exp $
 //
 //
 
@@ -70,6 +70,7 @@ private:
 
   void initFloatBranch( const std::string &name);
   void initIntBranch( const std::string &name);
+  void initTLorentzVectorBranch( const std::string &name);
   template <class aT, class bT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT >&b, const edm::EventID &id, double &weight);
   template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const edm::EventID &id, double &weight);
   template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, double &weight);
@@ -83,6 +84,7 @@ private:
   std::map<std::string, TTree*> trees_;  
   std::map<std::string, std::map< std::string, float*> > floatBranches_; 
   std::map<std::string, std::map< std::string, int*> > intBranches_; 
+  std::map<std::string, std::map< std::string, TLorentzVector*> > tLorentzVectorBranches_; 
 
   bool debug;
 };
@@ -99,7 +101,7 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig)
 
   // init trees
   edm::Service<TFileService> file;
-  trees_["EE"] = file->make<TTree>("EEDileptonTree", "E DileponTree");
+  trees_["EE"] = file->make<TTree>("EEDileptonTree", "EE DileponTree");
   trees_["EMu"] = file->make<TTree>("EMuDileptonTree", "EMu DileponTree");
   trees_["MuMu"] = file->make<TTree>("MuMuDileptonTree", "MuMu DileponTree");
   trees_["ETau"] = file->make<TTree>("ETauDileptonTree", "ETau DileponTree");
@@ -107,14 +109,24 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig)
   trees_["TauTau"] = file->make<TTree>("TauTauDileptonTree", "TauTau DileponTree");
   initFloatBranch( "weight" );
   initFloatBranch( "chargeProduct" );
-  initFloatBranch( "invMass" );
-  initFloatBranch( "beta" );
+  initTLorentzVectorBranch( "p4" );
   initFloatBranch( "deltaPhi" );
   initFloatBranch( "deltaR" );
   initIntBranch( "runNr" );
   initIntBranch( "eventNr" );
   initIntBranch( "matched" );
   initIntBranch( "motherPdgId" );
+}
+
+void 
+DiLeptonTrees::initTLorentzVectorBranch(const std::string &name)
+{
+  for( std::map<std::string, TTree*>::const_iterator it = trees_.begin();
+       it != trees_.end(); ++it){
+    if(debug) std::cout << (*it).first <<" - "<< name << std::endl;
+    tLorentzVectorBranches_[(*it).first][name] = new TLorentzVector;
+    (*it).second->Branch(name.c_str(), "TLorentzVector" ,&tLorentzVectorBranches_[(*it).first][name]);
+  }
 }
 
 void 
@@ -219,8 +231,7 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b, 
   TLorentzVector comb = aVec+bVec;
   *(floatBranches_[treeName]["weight"]) = weight;
   *(floatBranches_[treeName]["chargeProduct"]) = a.charge()*b.charge();
-  *(floatBranches_[treeName]["invMass"]) = comb.M();
-  *(floatBranches_[treeName]["beta"]) = comb.Beta();
+  *(tLorentzVectorBranches_[treeName]["p4"]) = comb;
   *(floatBranches_[treeName]["deltaPhi"]) = aVec.DeltaPhi( bVec );
   *(floatBranches_[treeName]["deltaR"]) = aVec.DeltaR( bVec );
   int matched = 0;

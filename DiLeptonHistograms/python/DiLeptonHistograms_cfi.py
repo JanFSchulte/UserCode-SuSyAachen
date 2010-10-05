@@ -21,13 +21,13 @@ jetSource = cms.InputTag("cleanLayer1JetsAK5"),
 CSA_weighted = cms.untracked.bool(False),
 
 acc_MuonPt = cms.untracked.double(5.), 
-acc_MuonEta = cms.untracked.double(2.), 
+acc_MuonEta = cms.untracked.double(2.5), 
 
 acc_ElectronPt = cms.untracked.double(5.), 
-acc_ElectronEta = cms.untracked.double(2.) ,
+acc_ElectronEta = cms.untracked.double(2.5) ,
 
-user_bJetAlgo = cms.untracked.string("trackCountingHighPurBJetTags"),
-user_bTagDiscriminator = cms.untracked.double(3.),
+user_bJetAlgo = cms.untracked.string("trackCountingHighEffBJetTags"),
+user_bTagDiscriminator = cms.untracked.double(1.7),
 #to be removed
 trackSource = cms.InputTag("generalTracks"),
 #jetMcSource = cms.InputTag(""),

@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/09/23 14:04:06 $
- *  $Revision: 1.34 $ for CMSSW 3_6_X
+ *  $Date: 2010/09/24 10:28:23 $
+ *  $Revision: 1.35 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -54,7 +54,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
 
     //Cuts
     cut_GeneratorPt     = iConfig.getUntrackedParameter<double> ("acc_GeneratorPt",5.);
-    cut_GeneratorEta    = iConfig.getUntrackedParameter<double> ("acc_GeneratorEta",2.);
+    cut_GeneratorEta    = iConfig.getUntrackedParameter<double> ("acc_GeneratorEta",2.5);
     
     cut_MuonPt     = iConfig.getUntrackedParameter<double> ("acc_MuonPt");
     cut_MuonEta    = iConfig.getUntrackedParameter<double> ("acc_MuonEta");
