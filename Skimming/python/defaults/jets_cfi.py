@@ -68,6 +68,16 @@ mhtJetFilter = mhtFilter.clone(
             minMHT = cms.double(100.00)
 )
 
+from SuSyAachen.Skimming.jetSelectors_cfi import jetMuonCleaner
+muonCleanJets = jetMuonCleaner.clone(
+    src = cms.InputTag("selectedPatJetsPF")
+)
+
+from SuSyAachen.Skimming.jetSelectors_cfi import jetElectronCleaner
+electronCleanJets = jetElectronCleaner.clone(
+    src = cms.InputTag("selectedPatJetsPF")
+)
+
 from SuSyAachen.Skimming.jetSelectors_cfi import resCorrectedJetProducer
 resCorrectedJets = resCorrectedJetProducer.clone(
     src = cms.InputTag("selectedPatJetsPF")

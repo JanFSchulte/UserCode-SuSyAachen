@@ -34,6 +34,18 @@ patJetIDFilter = cms.EDFilter("PATJetIDSelector",
   quality = cms.string('LOOSE')
 )
 
+jetMuonCleaner = cms.EDProducer('jetMuonCleaner',
+    src = cms.InputTag("basicJets"),
+    leptSrc = cms.InputTag("basicMuons"),
+    dRJetLepton = cms.double(0.4)
+)
+
+jetElectronCleaner = cms.EDProducer('jetElectronCleaner',
+    src = cms.InputTag("basicJets"),
+    leptSrc = cms.InputTag("basicElectron"),
+    dRJetLepton = cms.double(0.4)
+)
+
 resCorrectedJetProducer = cms.EDProducer('ResCorrJetsProducer',
   src = cms.InputTag("basicJets"),
   jetCorrections = cms.string("CondFormats/JetMETObjects/data/Spring10DataV2_L2L3Residual_AK5PF.txt")
