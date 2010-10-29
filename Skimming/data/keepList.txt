@@ -9,7 +9,8 @@ drop *_cleanPatElectrons_*_*
 drop *_cleanPatMuons_*_*
 drop *_cleanPatTaus_*_*
 drop *_cleanPatPhotons_*_*
-keep *_triggerMatchedPat*_*_*
+keep *_selectedPat*TriggerMatchPF_*_*
+keep *_cleanPat*TriggerMatch*_*_*
 keep *_patTaus_*_*
 keep *_mergedTruth_*_*
 drop *_genParticles_*_*
