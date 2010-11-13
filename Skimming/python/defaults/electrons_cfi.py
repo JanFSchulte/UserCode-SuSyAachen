@@ -29,6 +29,9 @@ PATElectronD0PVSelector = cms.EDFilter("PATElectronD0PVSelector",
 PATElectronConversionSelector = cms.EDFilter("PATElectronConversionSelector",
            filter = cms.bool(True),
            src = cms.InputTag("cleanLayer1Electrons"),
+           convInfo = cms.bool(False),
+           maxDistance = cms.double(0.02),
+           maxCotangentTheta = cms.double(0.02),
            minLostHits = cms.int32(0),
            maxLostHits = cms.int32(1)
 )

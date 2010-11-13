@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: IsoTreeWriter.cc,v 1.9 2010/08/18 20:55:13 nmohr Exp $
+// $Id: IsoTreeWriter.cc,v 1.1 2010/10/05 13:44:51 nmohr Exp $
 //
 //
 
@@ -48,6 +48,7 @@
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
+#include "DataFormats/PatCandidates/interface/MET.h"
 
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 //
@@ -74,6 +75,8 @@ class IsoTreeWriter : public edm::EDAnalyzer {
         // Switch for debug output
         bool mcInfo;
         edm::InputTag leptonSrc;
+        edm::InputTag jetTag_;
+        edm::InputTag metTag_;
         
         TFile *theFile;
 
@@ -81,7 +84,8 @@ class IsoTreeWriter : public edm::EDAnalyzer {
         TTree*  treeIso;
         TTree*  treeIsoEvent;
         float pfIso;
-        float stIso;
+        float ht;
+        float met;
         int nLept;
         int nJets;
 };
@@ -102,7 +106,8 @@ IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig)
     //now do what ever initialization is needed
     //Input collections
     leptonSrc          = iConfig.getParameter<edm::InputTag> ("src");
-    //jetSrc          = iConfig.getParameter<edm::InputTag> ("jetSource");
+    jetTag_          = iConfig.getParameter<edm::InputTag> ("jets");
+    metTag_          = iConfig.getParameter<edm::InputTag> ("met");
     
     // Create the root file
     edm::Service<TFileService> theFile;
@@ -110,7 +115,8 @@ IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig)
     TFileDirectory Tree = theFile->mkdir( "Trees" );
     treeIso = Tree.make<TTree>("Iso","Iso"); 
     treeIso->Branch("pfIso",&pfIso,"pfIso/F");
-    treeIso->Branch("stIso",&stIso,"stIso/F");
+    treeIso->Branch("ht",&ht,"ht/F");
+    treeIso->Branch("met",&met,"met/F");
     treeIso->Branch("nLept",&nLept,"nLept/I");
     
 
@@ -150,7 +156,6 @@ void IsoTreeWriter<T>::fillIso(const edm::Handle< std::vector<T> >& leptons)
     for (typename std::vector<T>::const_iterator lep_i = leptons->begin(); lep_i != leptons->end(); ++lep_i){
             ++nLept;
             pfIso = calcPfIso(*lep_i);
-            stIso = calcIso(*lep_i);
             treeIso->Fill();
     }
 }
@@ -164,7 +169,20 @@ void IsoTreeWriter<T >::analyze(const edm::Event& iEvent, const edm::EventSetup&
     //Collection
     edm::Handle< std::vector<T> > leptons;
     iEvent.getByLabel(leptonSrc, leptons);
-  
+
+    edm::Handle< std::vector< pat::Jet > > jets;
+    iEvent.getByLabel(jetTag_, jets);
+
+    edm::Handle< std::vector< pat::MET > > mets;
+    iEvent.getByLabel(metTag_, mets);
+
+    met = mets->front().pt();
+
+    ht = 0.0;
+    for(std::vector<pat::Jet>::const_iterator it = jets->begin(); it != jets->end() ; ++it){
+         ht += (*it).pt();
+    }
+
     //Probes
     //run the TnP
     fillIso(leptons);

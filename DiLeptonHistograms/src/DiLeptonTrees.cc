@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.4 2010/10/05 13:41:16 nmohr Exp $
+// $Id: DiLeptonTrees.cc,v 1.5 2010/10/21 11:33:13 nmohr Exp $
 //
 //
 
@@ -42,6 +42,7 @@
 #include <DataFormats/PatCandidates/interface/Electron.h>
 #include <DataFormats/PatCandidates/interface/Muon.h>
 #include <DataFormats/PatCandidates/interface/Tau.h>
+#include <DataFormats/PatCandidates/interface/Jet.h>
 #include <DataFormats/PatCandidates/interface/MET.h>
 
 #include <DataFormats/Provenance/interface/EventID.h>
@@ -72,14 +73,15 @@ private:
   void initFloatBranch( const std::string &name);
   void initIntBranch( const std::string &name);
   void initTLorentzVectorBranch( const std::string &name);
-  template <class aT, class bT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT >&b, const edm::EventID &id, const TLorentzVector &met, double &weight);
-  template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const edm::EventID &id, const TLorentzVector &met, double &weight);
-  template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const TLorentzVector &met, double &weight);
+  template <class aT, class bT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT >&b, const edm::EventID &id, double &ht, const TLorentzVector &met, double &weight);
+  template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const edm::EventID &id, double &ht, const TLorentzVector &met, double &weight);
+  template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, double &ht, const TLorentzVector &met, double &weight);
   int getMotherPdgId( const reco::GenParticle &p);
 
   edm::InputTag eTag_;
   edm::InputTag muTag_;
   edm::InputTag tauTag_;
+  edm::InputTag jetTag_;
   edm::InputTag metTag_;
 
   //data
@@ -100,6 +102,7 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig)
   eTag_ = iConfig.getParameter<edm::InputTag>("electrons");
   muTag_ = iConfig.getParameter<edm::InputTag>("muons");
   tauTag_ = iConfig.getParameter<edm::InputTag>("taus");
+  jetTag_ = iConfig.getParameter<edm::InputTag>("jets");
   metTag_ = iConfig.getParameter<edm::InputTag>("met");
 
   // init trees
@@ -116,6 +119,7 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig)
   initFloatBranch( "deltaPhi" );
   initFloatBranch( "deltaR" );
   initFloatBranch( "jzb" );
+  initFloatBranch( "ht" );
   initFloatBranch( "met" );
   initIntBranch( "runNr" );
   initIntBranch( "eventNr" );
@@ -191,49 +195,56 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle< std::vector< pat::Tau > > taus;
   iEvent.getByLabel(tauTag_, taus);
   
+  edm::Handle< std::vector< pat::Jet > > jets;
+  iEvent.getByLabel(jetTag_, jets);
+  
   edm::Handle< std::vector< pat::MET > > mets;
   iEvent.getByLabel(metTag_, mets);
 
   TLorentzVector met(mets->front().px(), mets->front().py(), mets->front().pz(), mets->front().energy());
 
+  double ht = 0.0;
+  for(std::vector<pat::Jet>::const_iterator it = jets->begin(); it != jets->end() ; ++it){
+        ht += (*it).pt();
+  }
   double weight = 1.;// TODO get weight...
 
-  makeCombinations< pat::Electron >("EE", *electrons, iEvent.id(), met, weight);
-  makeCombinations< pat::Electron, pat::Muon >("EMu", *electrons, *muons, iEvent.id(), met, weight);
-  makeCombinations< pat::Muon >("MuMu", *muons, iEvent.id(), met , weight);
-  makeCombinations< pat::Electron, pat::Tau >("ETau", *electrons, *taus, iEvent.id(), met , weight);
-  makeCombinations< pat::Muon, pat::Tau>("MuTau", *muons, *taus, iEvent.id(), met, weight);
-  makeCombinations< pat::Tau >("TauTau", *taus, iEvent.id(), met, weight);
+  makeCombinations< pat::Electron >("EE", *electrons, iEvent.id(), ht, met, weight);
+  makeCombinations< pat::Electron, pat::Muon >("EMu", *electrons, *muons, iEvent.id(), ht,met, weight);
+  makeCombinations< pat::Muon >("MuMu", *muons, iEvent.id(), ht, met , weight);
+  makeCombinations< pat::Electron, pat::Tau >("ETau", *electrons, *taus, iEvent.id(), ht, met , weight);
+  makeCombinations< pat::Muon, pat::Tau>("MuTau", *muons, *taus, iEvent.id(), ht, met, weight);
+  makeCombinations< pat::Tau >("TauTau", *taus, iEvent.id(), ht, met, weight);
 
   //  if( nMu != 2) std::cout << "-------! "<<nMu<<std::endl;
 }
 
 template <class aT, class bT> void 
-DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT> &b, const edm::EventID &id, const TLorentzVector &met, double &weight)
+DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT> &b, const edm::EventID &id, double &ht, const TLorentzVector &met, double &weight)
 {
   *(intBranches_[treeName]["runNr"]) = id.run();
   *(intBranches_[treeName]["eventNr"]) = id.event();
   for( typename std::vector<aT>::const_iterator itA = a.begin(); itA != a.end(); ++itA){
     for( typename std::vector<bT>::const_iterator itB = b.begin(); itB != b.end(); ++itB){
-      fillTree<aT,bT>( treeName, *itA, *itB, met, weight); 
+      fillTree<aT,bT>( treeName, *itA, *itB, ht, met, weight); 
     }
   }
 }
 
 template <class aT> void 
-DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const edm::EventID &id, const TLorentzVector &met, double &weight)
+DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const edm::EventID &id, double &ht, const TLorentzVector &met, double &weight)
 {
   *(intBranches_[treeName]["runNr"]) = id.run();
   *(intBranches_[treeName]["eventNr"]) = id.event();
   for( typename std::vector<aT>::const_iterator itA = a.begin(); itA != a.end(); ++itA){
     for( typename std::vector<aT>::const_iterator itB = a.begin(); itB != itA; ++itB){
-      fillTree<aT, aT>( treeName, *itA, *itB, met, weight); 
+      fillTree<aT, aT>( treeName, *itA, *itB, ht, met, weight); 
     }
   }
 }
 
 template <class aT, class bT> void 
-DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b, const TLorentzVector &met, double &weight)
+DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b, double &ht, const TLorentzVector &met, double &weight)
 {
   if(debug) std::cout << treeName << "- pts:"<< a.pt() << " " << b.pt();
   TLorentzVector aVec( a.px(), a.py(), a.pz(), a.energy() );
@@ -245,6 +256,7 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b, 
   *(floatBranches_[treeName]["deltaPhi"]) = aVec.DeltaPhi( bVec );
   *(floatBranches_[treeName]["deltaR"]) = aVec.DeltaR( bVec );
   *(floatBranches_[treeName]["jzb"]) = (met+comb).Pt() - comb.Pt();
+  *(floatBranches_[treeName]["ht"]) = ht;
   *(floatBranches_[treeName]["met"]) = (met).Pt();
   int matched = 0;
   int aMother = -99999;
