@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: TagAndProbeTreeWriter.cc,v 1.8 2010/08/09 16:02:42 nmohr Exp $
+// $Id: TagAndProbeTreeWriter.cc,v 1.9 2010/08/18 20:55:13 nmohr Exp $
 //
 //
 
@@ -102,6 +102,8 @@ class TagAndProbeTreeWriter : public edm::EDAnalyzer {
         float mva;
         int nMatchProbe;
         int nJets;
+        int chargeMethodsProbe;
+        int chargeDeviatingProbe;
 };
 
 //
@@ -146,6 +148,8 @@ TagAndProbeTreeWriter<T,P>::TagAndProbeTreeWriter(const edm::ParameterSet& iConf
     treeTnP->Branch("nJets",&nJets,"nJets/I");
     treeTnP->Branch("pfIso",&pfIso,"pfIso/F");
     treeTnP->Branch("mva",&mva,"mva/F");
+    treeTnP->Branch("chargeMethods",&chargeMethodsProbe,"chargeMethods/I");
+    treeTnP->Branch("chargeDeviatingMethod",&chargeDeviatingProbe,"chargeDeviatingMethod/I");
 
     if (mcInfo){ 
         treeGen = Tree.make<TTree>("Gen tree", "Gen tree"); 
@@ -177,19 +181,44 @@ TagAndProbeTreeWriter<T,P>::~TagAndProbeTreeWriter()
 //
 // member functions
 template< class PB > 
-void fillExtraVars(const PB *pb_j, float *iso, float *mva){
+void fillExtraVars(const PB *pb_j, float *iso, float *mva,
+		   int *chargeMethodsProbe, int *chargeDeviatingProbe){
     *iso = -1.;
     *mva = -1.;
+
+    // charge methods
+    *chargeMethodsProbe = -1;
+    *chargeDeviatingProbe = -1;
 }
 template< > 
-void fillExtraVars(const pat::Muon *lepton, float *iso, float *mva){
+void fillExtraVars(const pat::Muon *lepton, float *iso, float *mva,
+		   int *chargeMethodsProbe, int *chargeDeviatingProbe){
     *iso = (lepton->chargedHadronIso()+lepton->photonIso()+lepton->neutralHadronIso())/lepton->pt();
     *mva = -1.;
+
+    // charge methods
+    *chargeMethodsProbe = -1;
+    *chargeDeviatingProbe = -1;
 }
 template< > 
-void fillExtraVars(const pat::Electron *lepton, float *iso, float *mva){
+void fillExtraVars(const pat::Electron *lepton, float *iso, float *mva,
+		   int *chargeMethodsProbe, int *chargeDeviatingProbe){
     *iso = (lepton->chargedHadronIso()+lepton->photonIso()+lepton->neutralHadronIso())/lepton->pt();
     *mva = lepton->mva();
+
+    // charge methods
+    *chargeMethodsProbe = 2;
+    if (lepton->isGsfCtfScPixChargeConsistent()){
+      *chargeMethodsProbe += 1;
+      *chargeDeviatingProbe = 0;
+    }else{
+      if (lepton->isGsfScPixChargeConsistent())
+	*chargeDeviatingProbe = 1; //CTF
+      else if (lepton->isGsfCtfChargeConsistent())
+	*chargeDeviatingProbe = 2; //SC
+      else
+	*chargeDeviatingProbe = 3; //GSF
+    }
 }
 
 template< typename T, typename P > 
@@ -200,8 +229,10 @@ void TagAndProbeTreeWriter<T,P>::TnP(const edm::Handle< std::vector<T> >& tags, 
             invM = 0.;
             ptProbe = pb_j->pt();
             etaProbe = pb_j->eta();
-            chargeTagProbe = tag_i->charge()*pb_j->charge(); 
-            double deltaRTnP = 9999999.;
+            chargeTagProbe = tag_i->charge()*pb_j->charge();
+
+            
+	    double deltaRTnP = 9999999.;
             for (typename std::vector<T>::const_iterator tag_j = pass_probes->begin(); tag_j != pass_probes->end(); ++tag_j){
                 deltaRTnP = reco::deltaR(tag_j->eta(),tag_j->phi(),pb_j->eta(),pb_j->phi());
                 if (deltaRTnP < cut_Dr){
@@ -209,11 +240,11 @@ void TagAndProbeTreeWriter<T,P>::TnP(const edm::Handle< std::vector<T> >& tags, 
                 }
             }
             reco::Particle::LorentzVector pb = reco::Particle::LorentzVector(pb_j->px(),pb_j->py(),pb_j->pz(),pb_j->p());
-            fillExtraVars(&(*pb_j),&pfIso,&mva);
+            fillExtraVars(&(*pb_j),&pfIso,&mva, &chargeMethodsProbe, &chargeDeviatingProbe);
 
             invM = (tag_i->p4()+pb).M();
             if (invM > cut_lowInvM && invM < cut_highInvM){treeTnP->Fill();}
-        }
+	}
     }
 }
 
@@ -251,8 +282,9 @@ void TagAndProbeTreeWriter<T,P>::analyze(const edm::Event& iEvent, const edm::Ev
   
     //Probes
     edm::Handle< P > probes;
+    //edm::Handle< pat::ElectronCollection > probes;
     iEvent.getByLabel(probeSrc, probes);
-    
+
     //Passing Probes
     edm::Handle< std::vector< T > > pass_probes;
     iEvent.getByLabel(passProbeSrc, pass_probes);
@@ -269,7 +301,7 @@ void TagAndProbeTreeWriter<T,P>::analyze(const edm::Event& iEvent, const edm::Ev
 
     //run the TnP
     TnP(tags,probes,pass_probes);
-
+   
     if (mcInfo){
         //MC gen Particle
         edm::Handle< std::vector<reco::GenParticle> > genParticles;
