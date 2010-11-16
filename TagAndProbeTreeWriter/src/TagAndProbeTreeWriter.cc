@@ -13,13 +13,14 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: TagAndProbeTreeWriter.cc,v 1.9 2010/08/18 20:55:13 nmohr Exp $
+// $Id: TagAndProbeTreeWriter.cc,v 1.10 2010/11/16 12:23:18 sprenger Exp $
 //
 //
 
 
 // system include files
 #include <memory>
+#include <math.h>
 #include "TFile.h"
 #include "TTree.h"
 
@@ -99,6 +100,10 @@ class TagAndProbeTreeWriter : public edm::EDAnalyzer {
         float etaProbe;
         int chargeTagProbe;
         float pfIso;
+        float eOverP;
+        float fBrem;
+        float logSigIetaIeta;
+        float deltaEtaIn;
         float mva;
         int nMatchProbe;
         int nJets;
@@ -147,6 +152,9 @@ TagAndProbeTreeWriter<T,P>::TagAndProbeTreeWriter(const edm::ParameterSet& iConf
     treeTnP->Branch("nMatch",&nMatchProbe,"nMatchProbe/I");
     treeTnP->Branch("nJets",&nJets,"nJets/I");
     treeTnP->Branch("pfIso",&pfIso,"pfIso/F");
+    treeTnP->Branch("eOverP",&eOverP,"eOverP/F");
+    treeTnP->Branch("fBrem",&fBrem,"fBrem/F");
+    treeTnP->Branch("logSigIetaIeta",&logSigIetaIeta,"logSigIetaIeta/F");
     treeTnP->Branch("mva",&mva,"mva/F");
     treeTnP->Branch("chargeMethods",&chargeMethodsProbe,"chargeMethods/I");
     treeTnP->Branch("chargeDeviatingMethod",&chargeDeviatingProbe,"chargeDeviatingMethod/I");
@@ -182,30 +190,44 @@ TagAndProbeTreeWriter<T,P>::~TagAndProbeTreeWriter()
 // member functions
 template< class PB > 
 void fillExtraVars(const PB *pb_j, float *iso, float *mva,
+        float *fBrem,  float *deltaEtaIn, float *logSigIetaIeta, float *eOverP,
 		   int *chargeMethodsProbe, int *chargeDeviatingProbe){
     *iso = -1.;
     *mva = -1.;
-
+    *eOverP = -1;
+    *fBrem = -1;
+    *deltaEtaIn =-1;
+    *logSigIetaIeta = -1;
     // charge methods
     *chargeMethodsProbe = -1;
     *chargeDeviatingProbe = -1;
 }
 template< > 
 void fillExtraVars(const pat::Muon *lepton, float *iso, float *mva,
+        float *fBrem, float *deltaEtaIn, float *logSigIetaIeta, float *eOverP,
 		   int *chargeMethodsProbe, int *chargeDeviatingProbe){
     *iso = (lepton->chargedHadronIso()+lepton->photonIso()+lepton->neutralHadronIso())/lepton->pt();
     *mva = -1.;
-
+    *eOverP = -1;
+    *fBrem = -1;
+    *deltaEtaIn =-1;
+    *logSigIetaIeta = -1;
     // charge methods
     *chargeMethodsProbe = -1;
     *chargeDeviatingProbe = -1;
 }
 template< > 
-void fillExtraVars(const pat::Electron *lepton, float *iso, float *mva,
+void fillExtraVars(const pat::Electron *lepton, float *iso, float *mva, 
+        float *fBrem, float *deltaEtaIn, float *logSigIetaIeta, float *eOverP,
 		   int *chargeMethodsProbe, int *chargeDeviatingProbe){
     *iso = (lepton->chargedHadronIso()+lepton->photonIso()+lepton->neutralHadronIso())/lepton->pt();
     *mva = lepton->mva();
-
+    *eOverP = lepton->eSuperClusterOverP();
+    float pin  = lepton->trackMomentumAtVtx().R();
+    float pout = lepton->trackMomentumOut().R();
+    *fBrem = (pin-pout)/pin;
+    *logSigIetaIeta = log(lepton->sigmaIetaIeta());
+    *deltaEtaIn = lepton->deltaEtaSuperClusterTrackAtVtx();
     // charge methods
     *chargeMethodsProbe = 2;
     if (lepton->isGsfCtfScPixChargeConsistent()){
@@ -240,7 +262,7 @@ void TagAndProbeTreeWriter<T,P>::TnP(const edm::Handle< std::vector<T> >& tags, 
                 }
             }
             reco::Particle::LorentzVector pb = reco::Particle::LorentzVector(pb_j->px(),pb_j->py(),pb_j->pz(),pb_j->p());
-            fillExtraVars(&(*pb_j),&pfIso,&mva, &chargeMethodsProbe, &chargeDeviatingProbe);
+            fillExtraVars(&(*pb_j),&pfIso,&mva,&fBrem,&deltaEtaIn,&logSigIetaIeta,&eOverP,&chargeMethodsProbe, &chargeDeviatingProbe);
 
             invM = (tag_i->p4()+pb).M();
             if (invM > cut_lowInvM && invM < cut_highInvM){treeTnP->Fill();}
