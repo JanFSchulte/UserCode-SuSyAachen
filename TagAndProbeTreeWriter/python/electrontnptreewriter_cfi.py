@@ -9,7 +9,8 @@ mcSource = cms.InputTag("genParticles"),
 tagSource = cms.InputTag("cleanLayer1Electrons"),
 probeSource = cms.InputTag("cleanLayer1Electrons"),
 passProbeSource = cms.InputTag("cleanLayer1Electrons"),
-jetSource = cms.InputTag("cleanLayer1JetsAK5")
+jetSource = cms.InputTag("cleanLayer1JetsAK5"),
+vertexSource = cms.InputTag("offlinePrimaryVertices")
 )
 
 electrontracktnptreewriter = cms.EDAnalyzer('ElectronTrackTnPTreeWriter',
@@ -21,7 +22,8 @@ mcSource = cms.InputTag("genParticles"),
 tagSource = cms.InputTag("cleanLayer1Electrons"),
 probeSource = cms.InputTag("cleanLayer1Electrons"),
 passProbeSource = cms.InputTag("cleanLayer1Electrons"),
-jetSource = cms.InputTag("cleanLayer1JetsAK5")
+jetSource = cms.InputTag("cleanLayer1JetsAK5"),
+vertexSource = cms.InputTag("offlinePrimaryVertices")
 )
 
 electronisotnptreewriter = cms.EDAnalyzer('ElectronIsoTnPTreeWriter',
@@ -33,5 +35,6 @@ mcSource = cms.InputTag("genParticles"),
 tagSource = cms.InputTag("cleanLayer1Electrons"),
 probeSource = cms.InputTag("cleanLayer1Electrons"),
 passProbeSource = cms.InputTag("cleanLayer1Electrons"),
-jetSource = cms.InputTag("cleanLayer1JetsAK5")
+jetSource = cms.InputTag("cleanLayer1JetsAK5"),
+vertexSource = cms.InputTag("offlinePrimaryVertices")
 )

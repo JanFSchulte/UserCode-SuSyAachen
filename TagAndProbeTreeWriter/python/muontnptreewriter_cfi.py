@@ -9,7 +9,8 @@ mcSource = cms.InputTag("genParticles"),
 tagSource = cms.InputTag("cleanLayer1Muons"),
 probeSource = cms.InputTag("generalTracks"),
 passProbeSource = cms.InputTag("cleanLayer1Muons"),
-jetSource = cms.InputTag("cleanLayer1JetsAK5")
+jetSource = cms.InputTag("cleanLayer1JetsAK5"),
+vertexSource = cms.InputTag("offlinePrimaryVertices")
 )
 
 muonisotnptreewriter = cms.EDAnalyzer('MuonIsoTnPTreeWriter',
@@ -21,5 +22,6 @@ mcSource = cms.InputTag("genParticles"),
 tagSource = cms.InputTag("cleanLayer1Muons"),
 probeSource = cms.InputTag("generalTracks"),
 passProbeSource = cms.InputTag("cleanLayer1Muons"),
-jetSource = cms.InputTag("cleanLayer1JetsAK5")
+jetSource = cms.InputTag("cleanLayer1JetsAK5"),
+vertexSource = cms.InputTag("offlinePrimaryVertices")
 )

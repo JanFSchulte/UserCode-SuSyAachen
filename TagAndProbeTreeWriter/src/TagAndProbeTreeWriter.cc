@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: TagAndProbeTreeWriter.cc,v 1.11 2010/11/16 14:09:13 nmohr Exp $
+// $Id: TagAndProbeTreeWriter.cc,v 1.12 2010/11/18 10:17:36 nmohr Exp $
 //
 //
 
@@ -42,6 +42,7 @@
 
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
 
 #include "DataFormats/PatCandidates/interface/PATObject.h"
 #include "DataFormats/PatCandidates/interface/Particle.h"
@@ -67,7 +68,7 @@ class TagAndProbeTreeWriter : public edm::EDAnalyzer {
         virtual void analyze(const edm::Event&, const edm::EventSetup&);
         virtual void endJob() ;
 
-        virtual void TnP(const edm::Handle< std::vector<T> >&,const edm::Handle< P >&,const edm::Handle< std::vector<T> >&);
+        virtual void TnP(const edm::Handle< std::vector<T> >&,const edm::Handle< P >&,const edm::Handle< std::vector<T> >&,const edm::Handle< std::vector<pat::Jet> >&);
         virtual void mcAnalysis(const edm::Handle< std::vector<T> >&,const edm::Handle< std::vector<reco::GenParticle> >&);
 
         // ----------member data ---------------------------
@@ -78,6 +79,7 @@ class TagAndProbeTreeWriter : public edm::EDAnalyzer {
         edm::InputTag probeSrc;
         edm::InputTag passProbeSrc;
         edm::InputTag jetSrc;
+        edm::InputTag vertexSrc;
 
         double cut_Dr;
         double cut_lowInvM;
@@ -98,6 +100,7 @@ class TagAndProbeTreeWriter : public edm::EDAnalyzer {
         float invM;
         float ptProbe;
         float etaProbe;
+        float dRJet;
         int chargeTagProbe;
         float pfIso;
         float eOverP;
@@ -107,6 +110,7 @@ class TagAndProbeTreeWriter : public edm::EDAnalyzer {
         float mva;
         int nMatchProbe;
         int nJets;
+        int nVertices;
         int chargeMethodsProbe;
         int chargeDeviatingProbe;
 };
@@ -135,6 +139,7 @@ TagAndProbeTreeWriter<T,P>::TagAndProbeTreeWriter(const edm::ParameterSet& iConf
     probeSrc        = iConfig.getParameter<edm::InputTag> ("probeSource");
     passProbeSrc    = iConfig.getParameter<edm::InputTag> ("passProbeSource");
     jetSrc          = iConfig.getParameter<edm::InputTag> ("jetSource");
+    vertexSrc       = iConfig.getParameter<edm::InputTag> ("vertexSource");
     
     cut_Dr          = iConfig.getUntrackedParameter<double> ("cut_TnPDr",0.2);
     cut_lowInvM     = iConfig.getUntrackedParameter<double> ("cut_TnPlowInvM",40.);
@@ -148,9 +153,11 @@ TagAndProbeTreeWriter<T,P>::TagAndProbeTreeWriter(const edm::ParameterSet& iConf
     treeTnP->Branch("inv",&invM,"invM/F");
     treeTnP->Branch("pt",&ptProbe,"ptProbe/F");
     treeTnP->Branch("eta",&etaProbe,"etaProbe/F");
+    treeTnP->Branch("dRJet",&dRJet,"dRJet/F");
     treeTnP->Branch("chargeTP",&chargeTagProbe,"chargeTagProbe/I");
     treeTnP->Branch("nMatch",&nMatchProbe,"nMatchProbe/I");
     treeTnP->Branch("nJets",&nJets,"nJets/I");
+    treeTnP->Branch("nVertices",&nVertices,"nVertices/I");
     treeTnP->Branch("pfIso",&pfIso,"pfIso/F");
     treeTnP->Branch("eOverP",&eOverP,"eOverP/F");
     treeTnP->Branch("fBrem",&fBrem,"fBrem/F");
@@ -244,7 +251,7 @@ void fillExtraVars(const pat::Electron *lepton, float *iso, float *mva,
 }
 
 template< typename T, typename P > 
-void TagAndProbeTreeWriter<T,P>::TnP(const edm::Handle< std::vector<T> >& tags, const edm::Handle< P >& probes, const edm::Handle< std::vector<T> >& pass_probes){
+void TagAndProbeTreeWriter<T,P>::TnP(const edm::Handle< std::vector<T> >& tags, const edm::Handle< P >& probes, const edm::Handle< std::vector<T> >& pass_probes, const edm::Handle< std::vector<pat::Jet> >& jets){
     for (typename std::vector<T>::const_iterator tag_i = tags->begin(); tag_i != tags->end(); ++tag_i){
         for (typename P::const_iterator pb_j = probes->begin(); pb_j != probes->end(); ++pb_j){
             nMatchProbe = 0;
@@ -252,9 +259,11 @@ void TagAndProbeTreeWriter<T,P>::TnP(const edm::Handle< std::vector<T> >& tags, 
             ptProbe = pb_j->pt();
             etaProbe = pb_j->eta();
             chargeTagProbe = tag_i->charge()*pb_j->charge();
-
-            
-	    double deltaRTnP = 9999999.;
+	        dRJet = 9999999.;
+            for (typename std::vector<pat::Jet>::const_iterator jet_i = jets->begin(); jet_i != jets->end(); ++jet_i){
+                dRJet = std::min(dRJet,(float)reco::deltaR(jet_i->eta(),jet_i->phi(),pb_j->eta(),pb_j->phi()));
+            }
+	        double deltaRTnP = 9999999.;
             for (typename std::vector<T>::const_iterator tag_j = pass_probes->begin(); tag_j != pass_probes->end(); ++tag_j){
                 deltaRTnP = reco::deltaR(tag_j->eta(),tag_j->phi(),pb_j->eta(),pb_j->phi());
                 if (deltaRTnP < cut_Dr){
@@ -314,15 +323,18 @@ void TagAndProbeTreeWriter<T,P>::analyze(const edm::Event& iEvent, const edm::Ev
     //Jets
     edm::Handle< std::vector<pat::Jet> > jets;
     iEvent.getByLabel(jetSrc, jets);
+    
+    //Vertices
+    edm::Handle<reco::VertexCollection> vertices;
+    iEvent.getByLabel(vertexSrc, vertices);
 
     //count the number of jets
-    nJets = 0;
-    for (std::vector<pat::Jet>::const_iterator jet_i = jets->begin(); jet_i != jets->end(); ++jet_i){       
-        ++nJets;
-    }
+    nJets = jets->size();
+    
+    nVertices = vertices->size();
 
     //run the TnP
-    TnP(tags,probes,pass_probes);
+    TnP(tags,probes,pass_probes,jets);
    
     if (mcInfo){
         //MC gen Particle
