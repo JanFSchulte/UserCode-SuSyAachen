@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: TagAndProbeTreeWriter.cc,v 1.10 2010/11/16 12:23:18 sprenger Exp $
+// $Id: TagAndProbeTreeWriter.cc,v 1.11 2010/11/16 14:09:13 nmohr Exp $
 //
 //
 
@@ -347,9 +347,11 @@ void TagAndProbeTreeWriter<T,P>::endJob() {
 //define this as a plug-in
 typedef TagAndProbeTreeWriter< pat::Muon, reco::TrackCollection > MuonTnPTreeWriter;
 typedef TagAndProbeTreeWriter< pat::Electron, reco::CandidateCollection > ElectronTnPTreeWriter;
+typedef TagAndProbeTreeWriter< pat::Electron, reco::TrackCollection > ElectronTrackTnPTreeWriter;
 typedef TagAndProbeTreeWriter< pat::Muon, pat::MuonCollection > MuonIsoTnPTreeWriter;
 typedef TagAndProbeTreeWriter< pat::Electron, pat::ElectronCollection > ElectronIsoTnPTreeWriter;
 DEFINE_FWK_MODULE(MuonTnPTreeWriter);
 DEFINE_FWK_MODULE(ElectronTnPTreeWriter);
+DEFINE_FWK_MODULE(ElectronTrackTnPTreeWriter);
 DEFINE_FWK_MODULE(MuonIsoTnPTreeWriter);
 DEFINE_FWK_MODULE(ElectronIsoTnPTreeWriter);
