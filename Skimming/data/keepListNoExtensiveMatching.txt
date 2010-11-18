@@ -12,3 +12,4 @@ drop *_cleanPatPhotons_*_*
 keep *_selectedPat*TriggerMatchPF_*_*
 keep *_cleanPat*TriggerMatch*_*_*
 keep *_patTaus_*_*
+keep *_patMETsTypeIPF_*_
