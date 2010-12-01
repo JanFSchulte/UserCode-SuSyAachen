@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.5 2010/10/21 11:33:13 nmohr Exp $
+// $Id: DiLeptonTrees.cc,v 1.6 2010/11/13 17:58:14 nmohr Exp $
 //
 //
 
@@ -77,6 +77,7 @@ private:
   template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const edm::EventID &id, double &ht, const TLorentzVector &met, double &weight);
   template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, double &ht, const TLorentzVector &met, double &weight);
   int getMotherPdgId( const reco::GenParticle &p);
+  std::pair<double, double> calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, const TLorentzVector& met);
 
   edm::InputTag eTag_;
   edm::InputTag muTag_;
@@ -121,7 +122,10 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig)
   initFloatBranch( "jzb" );
   initFloatBranch( "ht" );
   initFloatBranch( "met" );
+  initFloatBranch( "pZeta" );
+  initFloatBranch( "pZetaVis" );
   initIntBranch( "runNr" );
+  initIntBranch( "lumiSec" );
   initIntBranch( "eventNr" );
   initIntBranch( "matched" );
   initIntBranch( "motherPdgId" );
@@ -223,6 +227,7 @@ template <class aT, class bT> void
 DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT> &b, const edm::EventID &id, double &ht, const TLorentzVector &met, double &weight)
 {
   *(intBranches_[treeName]["runNr"]) = id.run();
+  *(intBranches_[treeName]["lumiSec"]) = id.luminosityBlock();
   *(intBranches_[treeName]["eventNr"]) = id.event();
   for( typename std::vector<aT>::const_iterator itA = a.begin(); itA != a.end(); ++itA){
     for( typename std::vector<bT>::const_iterator itB = b.begin(); itB != b.end(); ++itB){
@@ -235,6 +240,7 @@ template <class aT> void
 DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const edm::EventID &id, double &ht, const TLorentzVector &met, double &weight)
 {
   *(intBranches_[treeName]["runNr"]) = id.run();
+  *(intBranches_[treeName]["lumiSec"]) = id.luminosityBlock();
   *(intBranches_[treeName]["eventNr"]) = id.event();
   for( typename std::vector<aT>::const_iterator itA = a.begin(); itA != a.end(); ++itA){
     for( typename std::vector<aT>::const_iterator itB = a.begin(); itB != itA; ++itB){
@@ -250,6 +256,7 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b, 
   TLorentzVector aVec( a.px(), a.py(), a.pz(), a.energy() );
   TLorentzVector bVec( b.px(), b.py(), b.pz(), b.energy() );
   TLorentzVector comb = aVec+bVec;
+  std::pair<double, double> pZeta = calcPZeta(a.p(), b.p(), met);
   *(floatBranches_[treeName]["weight"]) = weight;
   *(floatBranches_[treeName]["chargeProduct"]) = a.charge()*b.charge();
   *(tLorentzVectorBranches_[treeName]["p4"]) = comb;
@@ -258,6 +265,9 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b, 
   *(floatBranches_[treeName]["jzb"]) = (met+comb).Pt() - comb.Pt();
   *(floatBranches_[treeName]["ht"]) = ht;
   *(floatBranches_[treeName]["met"]) = (met).Pt();
+  *(floatBranches_[treeName]["pZeta"]) = pZeta.first;
+  *(floatBranches_[treeName]["pZetaVis"]) = pZeta.second;
+
   int matched = 0;
   int aMother = -99999;
   int bMother = -99999;
@@ -293,6 +303,34 @@ DiLeptonTrees::getMotherPdgId( const reco::GenParticle &p)
   }
   return result;
 }
+
+//from DQM/Physics/src/EwkTauDQM.cc
+std::pair<double, double>
+DiLeptonTrees::calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, const TLorentzVector& met)
+{
+	double cosPhi1 = cos(p1.Phi());
+	double sinPhi1 = sin(p1.Phi());
+	double cosPhi2 = cos(p2.Phi());
+	double sinPhi2 = sin(p2.Phi());
+	double zetaX = cosPhi1 + cosPhi2;
+	double zetaY = sinPhi1 + sinPhi2;
+	double zetaR = TMath::Sqrt(zetaX*zetaX + zetaY*zetaY);
+	if ( zetaR > 0. ) {
+		zetaX /= zetaR;
+		zetaY /= zetaR;
+	}
+
+	double pxVis = p1.Px() + p2.Px();
+	double pyVis = p1.Py() + p2.Py();
+	double pZetaVis = pxVis*zetaX + pyVis*zetaY;
+
+	double px = pxVis + met.Px();
+	double py = pyVis + met.Py();
+	double pZeta = px*zetaX + py*zetaY;
+
+	return std::pair<double, double>(pZeta, pZetaVis);
+}
+
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
