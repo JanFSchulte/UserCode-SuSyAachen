@@ -6,6 +6,17 @@ defaultSelector = cms.EDFilter("GenParticleSelector",
         cut = cms.string('abs( eta ) <= 5.0 & pt >= 5')#GeV
 )
 
+from SuSyAachen.Skimming.genSelection_cff import muonMatchedGenParticles
+muonMatchedGenParticles = muonMatchedGenParticles.clone(
+    src = cms.InputTag("cleanLayer1Muons"),
+)
+
+from SuSyAachen.Skimming.genSelection_cff import electronMatchedGenParticles
+electronMatchedGenParticles = electronMatchedGenParticles.clone(
+    src = cms.InputTag("cleanLayer1Electrons"),
+)
+
+
 signatureFilter = cms.EDFilter("SignatureFilter",
     src = cms.InputTag("genParticles"),
     IDs = cms.vint32( 23 ),

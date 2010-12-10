@@ -36,6 +36,10 @@ isoElectronMatchedParticles = patMatchers.patMatchedElectronSelector.clone( filt
    src = cms.InputTag("isoElectrons"),
 )
 
+electronMatchedGenParticles = cms.EDProducer('GenParticleElectronProducer',
+    src = cms.InputTag("basicElectrons"),
+)
+
 #------------ Muons
 muonGenParticles = cms.EDFilter( "GenParticlePruner", filter = filterGenMuons,
     src = cms.InputTag("genParticles"),
@@ -61,6 +65,10 @@ basicMuonMatchedParticles = patMatchers.patMatchedMuonSelector.clone( filter = f
 
 isoMuonMatchedParticles = patMatchers.patMatchedMuonSelector.clone( filter = filterGenMuons,
    src = cms.InputTag("isoMuons"),
+)
+
+muonMatchedGenParticles = cms.EDProducer('GenParticleMuonProducer',
+    src = cms.InputTag("basicMuons"),
 )
 
 #------------ Taus
