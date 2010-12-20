@@ -11,3 +11,9 @@ vertexCountFilter = cms.EDFilter("nVertexCountFilter",
   minNumber = cms.uint32(0),
   maxNumber = cms.uint32(9999999)
 )
+
+candViewCountFilter = cms.EDFilter("CandViewCountFilter",
+  src = cms.InputTag("selectedPatJetsPF"),
+  minNumber = cms.uint32(0),
+  maxNumber = cms.uint32(9999999)
+)

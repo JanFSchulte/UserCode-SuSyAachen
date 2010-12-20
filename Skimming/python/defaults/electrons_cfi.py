@@ -55,3 +55,7 @@ bJetElectrons = bJetElectronProducer.clone(
 )
 
 
+from SuSyAachen.Skimming.countFilter_cfi import candViewCountFilter
+countSelector = candViewCountFilter.clone(
+    src = cms.InputTag("cleanLayer1Electrons")
+)

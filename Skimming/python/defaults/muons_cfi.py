@@ -39,4 +39,8 @@ bJetMuons = bJetMuonProducer.clone(
     jetSrc = cms.InputTag("cleanLayer1Jets")
 )
 
+from SuSyAachen.Skimming.countFilter_cfi import candViewCountFilter
+countSelector = candViewCountFilter.clone(
+    src = cms.InputTag("cleanLayer1Muons")
+)
 
