@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/09/24 10:28:23 $
- *  $Revision: 1.35 $ for CMSSW 3_6_X
+ *  $Date: 2010/10/05 13:41:16 $
+ *  $Revision: 1.36 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -79,7 +79,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     numTotTaus = 0;
     numTotJets = 0;
 
-    const int nHistos=6;
+    int nHistos = 7;
 
     // Create the root file
     edm::Service<TFileService> theFile;
@@ -307,6 +307,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     TFileDirectory Promt = theFile->mkdir( "Promt" );
     TFileDirectory Decay = theFile->mkdir( "Decay" );
     TFileDirectory LightResonances = theFile->mkdir( "LightResonances" );
+    TFileDirectory FakeEstimate = theFile->mkdir( "FakeEstimate" );
     //Trees for unbinned maximum likelihood fit
     if (treeInfo){
         TFileDirectory Tree = theFile->mkdir( "Trees" );
@@ -327,13 +328,14 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
         treeElectronIso = Tree.make<TTree>("Electron iso tree", "Electron iso tree"); 
         treeElectronIso->Branch("pfIso",&isoPfElectron,"isoPfElectron/F");
     }
-   
+
     general = 0;
     effcor = 1;
     unmatched = 2;
     promt = 3;
     decay = 4;
     lightResonances = 5;
+    fakeEstimate = 6;
     tauInitialized_ =  new bool[nHistos];
     for(int i =0; i< nHistos; ++i){
       tauInitialized_[i] = false;
@@ -345,11 +347,17 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
         InitHisto(&Unmatched,unmatched);
         InitHisto(&Promt,promt);
         InitHisto(&Decay,decay);
-	InitHisto(&LightResonances,lightResonances);
+        InitHisto(&LightResonances,lightResonances);
     }
-   
+
     //Read the efficiencies from the files 
     ReadEfficiency();
+    //Read fake-rate weights
+    fakeRates_.SetSource(iConfig,"fakeRates");
+
+    if(fakeRates_.isUseable()){
+    	InitHisto(&FakeEstimate, fakeEstimate);
+    }
 }
 
 //Initialize all histos including their boundaries
@@ -816,7 +824,8 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
         if (debug) std::cout <<"mu eta = "<< mu_i->eta() << std::endl;
         ++numTotMuons;
         ++n_Muons;
-	MuonMonitor(&(*mu_i),n_Muons,weight,general); 
+	MuonMonitor(&(*mu_i),n_Muons,weight,general);
+	if(fakeRates_.isUseable()) MuonMonitor(&(*mu_i),n_Muons,weight, fakeEstimate);
 	if(mcInfo){MuonMonitor(&(*mu_i),n_Muons,weight,GetLeptKind(&(*mu_i), tauIsPrompt));}   
         if(n_Muons==1){hMuonTransverseMass[process]->Fill(transverseMass(*mu_i,meti));}
 	    //Clean and isolated muons
@@ -899,6 +908,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
         ++numTotElectrons;
 	    ++n_Electrons;
    	    ElectronMonitor(&(*ele_i),n_Electrons,weight,general); 
+   	    if(fakeRates_.isUseable()) ElectronMonitor(&(*ele_i),n_Electrons,weight, fakeEstimate);
 	    if(mcInfo){ElectronMonitor(&(*ele_i),n_Electrons,weight,GetLeptKind(&(*ele_i), tauIsPrompt));}  
         if(n_Electrons==1){hElectronTransverseMass[process]->Fill(transverseMass(*ele_i,meti));}
         elePt += ele_i->pt();
@@ -956,6 +966,7 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
         ++numTotTaus;
 	    ++n_Taus;
    	    TauMonitor(&(*tau_i),n_Taus,weight,general); 
+   	    if(fakeRates_.isUseable()) TauMonitor(&(*tau_i),n_Taus,weight, fakeEstimate);
 	    if (debug) std::cout <<" < monitor";
 	    if(n_Taus==1){hTauTransverseMass[process]->Fill( sqrt( tau_i->et()*meti.et()*( 1 - cos(reco::deltaPhi((tau_i->p4()).phi(),meti.phi())) )));}
 	    if(mcInfo){TauMonitor(&(*tau_i),n_Taus,weight,GetLeptKind(&(*tau_i), tauIsPrompt));}  
@@ -1075,6 +1086,8 @@ void DiLeptonHistograms::TriggerMonitor(const edm::Handle< edm::TriggerResults>&
 //Fill all electron related quantities
 void DiLeptonHistograms::ElectronMonitor(const pat::Electron* electron,const int n_Electron, double weight, const int process){
     if(process==effcor){weight=getElectronWeight(electron);}
+    if(process==fakeEstimate) weight*=fakeRates_(*electron);
+
     //Electron base plot
     hElectronPt[process]->Fill(electron->pt(),weight);
 
@@ -1175,6 +1188,7 @@ void DiLeptonHistograms::ElectronMonitor(const pat::Electron* electron,const int
 //Fill all muon related quantities
 void DiLeptonHistograms::MuonMonitor(const pat::Muon* muon,const int n_Muon, double weight, const int process){
     if(process==effcor){weight=getMuonWeight(muon);}
+    if(process==fakeEstimate) weight*=fakeRates_(*muon);
     h2dMuonEtaPt[process]->Fill(muon->pt(),muon->eta(),weight);
     //Muon base plots
     hMuonPt[process]->Fill(muon->pt(),weight);
@@ -1284,7 +1298,7 @@ void DiLeptonHistograms::InitTauHistos( const pat::Tau& tau, const int process)
 
 //Fill all tau related quantities
 void DiLeptonHistograms::TauMonitor(const pat::Tau* tau,const int n_Tau, double weight, const int process){
-  
+	if(process==fakeEstimate) weight*=fakeRates_(*tau);
   if(!tauInitialized_[process]) InitTauHistos(*tau, process);
   std::vector< pat::Tau::IdPair  > tauIds = tau->tauIDs();
   hTauDiscriminators[process]->Fill("None", weight);

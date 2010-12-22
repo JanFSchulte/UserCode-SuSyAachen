@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.7 2010/12/01 11:01:19 edelhoff Exp $
+// $Id: DiLeptonTrees.cc,v 1.8 2010/12/10 20:57:29 nmohr Exp $
 //
 //
 
@@ -46,6 +46,8 @@
 #include <DataFormats/PatCandidates/interface/MET.h>
 
 #include <DataFormats/Provenance/interface/EventID.h>
+
+#include <SuSyAachen/DiLeptonHistograms/interface/WeightFunctor.h>
 
 //ROOT
 #include "TTree.h"
@@ -90,7 +92,9 @@ private:
   std::map<std::string, TTree*> trees_;  
   std::map<std::string, std::map< std::string, float*> > floatBranches_; 
   std::map<std::string, std::map< std::string, int*> > intBranches_; 
-  std::map<std::string, std::map< std::string, TLorentzVector*> > tLorentzVectorBranches_; 
+  std::map<std::string, std::map< std::string, TLorentzVector*> > tLorentzVectorBranches_;
+
+  WeightFunctor fakeRates_;
 
   bool debug;
 };
@@ -107,6 +111,8 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig)
   jetTag_ = iConfig.getParameter<edm::InputTag>("jets");
   metTag_ = iConfig.getParameter<edm::InputTag>("met");
   susyVars_ = iConfig.getParameter< std::vector<edm::ParameterSet> >("susyVars");
+
+  fakeRates_.SetSource(iConfig,"fakeRates");
 
   // init trees
   edm::Service<TFileService> file;
@@ -251,6 +257,8 @@ DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector
   }
   for( typename std::vector<aT>::const_iterator itA = a.begin(); itA != a.end(); ++itA){
     for( typename std::vector<bT>::const_iterator itB = b.begin(); itB != b.end(); ++itB){
+//      std::cout << treeName <<": "<< fakeRates_(*itA) << std::endl;
+//      weight *= fakeRates_();
       fillTree<aT,bT>( treeName, *itA, *itB, ht, met, weight); 
     }
   }
@@ -273,6 +281,8 @@ DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector
 
   for( typename std::vector<aT>::const_iterator itA = a.begin(); itA != a.end(); ++itA){
     for( typename std::vector<aT>::const_iterator itB = a.begin(); itB != itA; ++itB){
+      //std::cout << treeName<<"("<<(*itA).pt()<<", "<<(*itA).eta() <<"): "<< fakeRates_(*itA) << std::endl;
+//      weight *= fakeRates_();
       fillTree<aT, aT>( treeName, *itA, *itB, ht, met, weight); 
     }
   }

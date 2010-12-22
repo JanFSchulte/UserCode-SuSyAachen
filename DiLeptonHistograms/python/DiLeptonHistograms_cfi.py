@@ -32,6 +32,40 @@ user_bTagDiscriminator = cms.untracked.double(1.7),
 trackSource = cms.InputTag("generalTracks"),
 #jetMcSource = cms.InputTag(""),
 
-maxJetsForAlphaT = cms.uint32(10)
+maxJetsForAlphaT = cms.uint32(10),
+fakeRates =  cms.PSet(
+        electrons = cms.VPSet(
+            cms.PSet(
+                etaMin = cms.double(-2.4), etaMax = cms.double(2.4),
+                ptMin = cms.double(0), ptMax = cms.double(10999999),
+                
+                weight = cms.double(0.5)
+            ),
+            cms.PSet(
+                etaMin = cms.double(-1.3),  etaMax = cms.double(1.3),
+                ptMin = cms.double(0), ptMax = cms.double(10999999),
+    
+                weight = cms.double(0.2)
+            ),
+        ),
+
+        muons =  cms.VPSet(
+            cms.PSet(
+                etaMin = cms.double(-1.3),  etaMax = cms.double(1.3),
+                ptMin = cms.double(0), ptMax = cms.double(10999999),
+    
+                weight = cms.double(0.2)
+            ),                   
+        ),
+        taus = cms.VPSet(
+                                     cms.PSet(
+                etaMin = cms.double(-1.3),  etaMax = cms.double(1.3),
+                ptMin = cms.double(0), ptMax = cms.double(10999999),
+    
+                weight = cms.double(0.2)
+            ),
+        )
+),
+#fakeRates = cms.bool(False),
 
 )

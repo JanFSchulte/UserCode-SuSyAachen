@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/09/23 14:04:08 $
- *  $Revision: 1.28 $
+ *  $Date: 2010/09/24 10:28:22 $
+ *  $Revision: 1.29 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -62,6 +62,7 @@
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
 #include "SuSyAachen/DiLeptonHistograms/interface/Combinations.h"
+#include "SuSyAachen/DiLeptonHistograms/interface/WeightFunctor.h"
 
 
 class DiLeptonHistograms : public edm::EDAnalyzer {
@@ -384,6 +385,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     int promt;
     int decay;
     int lightResonances;
+    int fakeEstimate;
   
     //Global counters
     int numTotEvents;
@@ -391,6 +393,9 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     int numTotMuons;
     int numTotTaus;
     int numTotJets;
+
+    //weight definition
+    WeightFunctor fakeRates_;
 
     inline void InitHisto(TFileDirectory *fs, const int process);
     inline void ReadEfficiency();
