@@ -39,6 +39,9 @@ DiLeptonTreesmSugra = DiLeptonTrees.clone(
        cms.PSet(var = cms.string("susyScanM12"), type = cms.string("float")),
        cms.PSet(var = cms.string("susyScantanbeta"), type = cms.string("float")),
        cms.PSet(var = cms.string("susyScanCrossSection"), type = cms.string("float")),
+       cms.PSet(var = cms.string("susyScanNLOCrossSection"), type = cms.string("float")),
+       cms.PSet(var = cms.string("susyScanNLOCrossSectionScale2"), type = cms.string("float")),
+       cms.PSet(var = cms.string("susyScanNLOCrossSectionScale05"), type = cms.string("float")),
        cms.PSet(var = cms.string("susyScanRun"), type = cms.string("float")),
        cms.PSet(var = cms.string("susyScanMu"), type = cms.string("int"))
        )

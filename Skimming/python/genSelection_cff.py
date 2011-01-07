@@ -141,6 +141,19 @@ basicTauJetMatchedParticles = patMatchers.patMatchedTauSelector.clone( filter = 
 isoTauJetMatchedParticles = patMatchers.patMatchedTauSelector.clone( filter = filterGenTaus,
    src = cms.InputTag("isoTaus"),
 )
+
+susyCrossSectionProducer = cms.EDProducer( "SusyXSecProducer", src = cms.InputTag("genParticles"),
+    susyVars = cms.VPSet(
+    cms.PSet(var = cms.string("susyScanM0")),
+    cms.PSet(var = cms.string("susyScanM12")),
+    cms.PSet(var = cms.string("susyScantanbeta"))
+    ),
+    crossSections = cms.VPSet(
+    cms.PSet(susyScanM0 = cms.double(270.), susyScanM12 = cms.double(450.), susyScantanbeta = cms.double(3.), susyScanA0 = cms.double(0.), susyScanMu = cms.double(-1.), ng = cms.double(0.224611), ns =  cms.double(0.0101205), nn = cms.double(53.1719), ll = cms.double(3.5998e-06), sb = cms.double(0.00592), ss = cms.double(0.0386), tb = cms.double(0.024632), bb = cms.double(0.001203), gg = cms.double(66.1), sg = cms.double(2.3)),
+    )
+)
+
+
 #------------ Sequences
 seqGenParticles = cms.Sequence( electronGenParticles + muonGenParticles + tauGenParticles +nutauGenParticles + (tauGenJets*hadronicGenTauJets)
                                 + (genTausWithHistory * hadronicGenTaus * hadronicTauGenParticles) )
