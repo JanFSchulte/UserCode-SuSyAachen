@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: TagAndProbeTreeWriter.cc,v 1.12 2010/11/18 10:17:36 nmohr Exp $
+// $Id: TagAndProbeTreeWriter.cc,v 1.14 2010/12/10 15:59:06 nmohr Exp $
 //
 //
 
@@ -100,6 +100,7 @@ class TagAndProbeTreeWriter : public edm::EDAnalyzer {
         float invM;
         float ptProbe;
         float etaProbe;
+        float dPt;
         float dRJet;
         int chargeTagProbe;
         float pfIso;
@@ -153,6 +154,7 @@ TagAndProbeTreeWriter<T,P>::TagAndProbeTreeWriter(const edm::ParameterSet& iConf
     treeTnP->Branch("inv",&invM,"invM/F");
     treeTnP->Branch("pt",&ptProbe,"ptProbe/F");
     treeTnP->Branch("eta",&etaProbe,"etaProbe/F");
+    treeTnP->Branch("dPt",&dPt,"dPt/F");
     treeTnP->Branch("dRJet",&dRJet,"dRJet/F");
     treeTnP->Branch("chargeTP",&chargeTagProbe,"chargeTagProbe/I");
     treeTnP->Branch("nMatch",&nMatchProbe,"nMatchProbe/I");
@@ -264,9 +266,11 @@ void TagAndProbeTreeWriter<T,P>::TnP(const edm::Handle< std::vector<T> >& tags, 
                 dRJet = std::min(dRJet,(float)reco::deltaR(jet_i->eta(),jet_i->phi(),pb_j->eta(),pb_j->phi()));
             }
 	        double deltaRTnP = 9999999.;
+	        dPt = 9999999.;
             for (typename std::vector<T>::const_iterator tag_j = pass_probes->begin(); tag_j != pass_probes->end(); ++tag_j){
                 deltaRTnP = reco::deltaR(tag_j->eta(),tag_j->phi(),pb_j->eta(),pb_j->phi());
                 if (deltaRTnP < cut_Dr){
+                    if (std::abs(pb_j->pt() - tag_j->pt()) < std::abs(dPt)) dPt = pb_j->pt()-tag_j->pt();
                     ++nMatchProbe;
                 }
             }
