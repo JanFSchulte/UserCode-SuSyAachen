@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: IsoTreeWriter.cc,v 1.2 2010/11/13 17:58:15 nmohr Exp $
+// $Id: IsoTreeWriter.cc,v 1.3 2010/12/10 15:59:06 nmohr Exp $
 //
 //
 
@@ -85,6 +85,7 @@ class IsoTreeWriter : public edm::EDAnalyzer {
         TTree*  treeIsoEvent;
         float pfIso;
         float pt;
+        float eta;
         float ht;
         float met;
         int nLept;
@@ -117,6 +118,7 @@ IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig)
     treeIso = Tree.make<TTree>("Iso","Iso"); 
     treeIso->Branch("pfIso",&pfIso,"pfIso/F");
     treeIso->Branch("pt",&pt,"pt/F");
+    treeIso->Branch("eta",&eta,"eta/F");
     treeIso->Branch("ht",&ht,"ht/F");
     treeIso->Branch("met",&met,"met/F");
     treeIso->Branch("nLept",&nLept,"nLept/I");
@@ -159,6 +161,7 @@ void IsoTreeWriter<T>::fillIso(const edm::Handle< std::vector<T> >& leptons)
             ++nLept;
             pfIso = calcPfIso(*lep_i);
             pt = lep_i->pt();
+            eta = lep_i->eta();
             treeIso->Fill();
     }
 }
