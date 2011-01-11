@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: IsoTreeWriter.cc,v 1.3 2010/12/10 15:59:06 nmohr Exp $
+// $Id: IsoTreeWriter.cc,v 1.4 2011/01/07 13:08:19 sprenger Exp $
 //
 //
 
@@ -47,6 +47,7 @@
 #include "DataFormats/PatCandidates/interface/Lepton.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
+#include "DataFormats/PatCandidates/interface/Tau.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
 
@@ -68,6 +69,9 @@ class IsoTreeWriter : public edm::EDAnalyzer {
         virtual void endJob() ;
 
         virtual void fillIso(const edm::Handle< std::vector<T> >&);
+        virtual void fillExtraVars(const pat::Electron&);
+        virtual void fillExtraVars(const pat::Muon&);
+        virtual void fillExtraVars(const pat::Tau&);
         virtual double calcIso(const T &);
         virtual double calcPfIso(const T &);
 
@@ -86,6 +90,7 @@ class IsoTreeWriter : public edm::EDAnalyzer {
         float pfIso;
         float pt;
         float eta;
+        float tanc;
         float ht;
         float met;
         int nLept;
@@ -119,6 +124,7 @@ IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig)
     treeIso->Branch("pfIso",&pfIso,"pfIso/F");
     treeIso->Branch("pt",&pt,"pt/F");
     treeIso->Branch("eta",&eta,"eta/F");
+    treeIso->Branch("tanc",&tanc,"tanc/F");
     treeIso->Branch("ht",&ht,"ht/F");
     treeIso->Branch("met",&met,"met/F");
     treeIso->Branch("nLept",&nLept,"nLept/I");
@@ -143,13 +149,31 @@ double IsoTreeWriter<T>::calcIso(const T & lepton)
     return value;
 }
 
-
 template < typename T >
 double IsoTreeWriter<T>::calcPfIso(const T & lepton)
 {
     double value = (lepton.chargedHadronIso()+lepton.photonIso()+lepton.neutralHadronIso())/lepton.pt();
     return value;
 }
+
+template< typename T > 
+void IsoTreeWriter<T>::fillExtraVars(const pat::Electron& lepton)
+{
+  tanc = -1.0;
+}
+
+template< typename T > 
+void IsoTreeWriter<T>::fillExtraVars(const pat::Muon& lepton)
+{
+  tanc = -1.0;
+}
+
+template< typename T > 
+void IsoTreeWriter<T>::fillExtraVars(const pat::Tau& lepton)
+{
+  tanc = lepton.tauID("byTaNCfrOnePercent");
+}
+
 
 //
 // member functions
@@ -162,9 +186,11 @@ void IsoTreeWriter<T>::fillIso(const edm::Handle< std::vector<T> >& leptons)
             pfIso = calcPfIso(*lep_i);
             pt = lep_i->pt();
             eta = lep_i->eta();
+	    fillExtraVars(*lep_i);
             treeIso->Fill();
     }
 }
+
 
 // ------------ method called to for each event  ------------
 template< typename T  > 
@@ -211,5 +237,7 @@ void IsoTreeWriter<T>::endJob()
 //define this as a plug-in
 typedef IsoTreeWriter< pat::Muon > MuonIsoTreeWriter;
 typedef IsoTreeWriter< pat::Electron > ElectronIsoTreeWriter;
+typedef IsoTreeWriter< pat::Tau > TauIsoTreeWriter;
 DEFINE_FWK_MODULE(MuonIsoTreeWriter);
 DEFINE_FWK_MODULE(ElectronIsoTreeWriter);
+DEFINE_FWK_MODULE(TauIsoTreeWriter);

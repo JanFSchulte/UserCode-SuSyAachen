@@ -5,6 +5,7 @@
 <use name=CommonTools/Utils>
 <use name=DataFormats/TrackReco>
 <use name=DataFormats/EgammaReco>
+<use name=DataFormats/PatCandidates>
 <use name=FWCore/ParameterSet>
 <flags EDM_PLUGIN=1>
 <export>
