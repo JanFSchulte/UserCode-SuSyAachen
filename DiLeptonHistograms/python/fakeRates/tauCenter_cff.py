@@ -1,0 +1,88 @@
+import FWCore.ParameterSet.Config as cms
+
+fakes =  cms.VPSet(
+        cms.PSet(
+            weight = cms.double(0.043374),
+            etaMin = cms.double(-9999.000000),
+            ptMin = cms.double(10.000000),
+            ptMax = cms.double(20.000000),
+            etaMax = cms.double(-1.000000),
+        ),
+        cms.PSet(
+            weight = cms.double(0.041926),
+            etaMin = cms.double(-9999.000000),
+            ptMin = cms.double(20.000000),
+            ptMax = cms.double(60.000000),
+            etaMax = cms.double(-1.000000),
+        ),
+        cms.PSet(
+            weight = cms.double(0.034002),
+            etaMin = cms.double(-9999.000000),
+            ptMin = cms.double(60.000000),
+            ptMax = cms.double(100.000000),
+            etaMax = cms.double(-1.000000),
+        ),
+        cms.PSet(
+            weight = cms.double(0.036945),
+            etaMin = cms.double(-9999.000000),
+            ptMin = cms.double(100.000000),
+            ptMax = cms.double(99995.000000),
+            etaMax = cms.double(-1.000000),
+        ),
+        cms.PSet(
+            weight = cms.double(0.048015),
+            etaMin = cms.double(-1.000000),
+            ptMin = cms.double(10.000000),
+            ptMax = cms.double(20.000000),
+            etaMax = cms.double(1.000000),
+        ),
+        cms.PSet(
+            weight = cms.double(0.037486),
+            etaMin = cms.double(-1.000000),
+            ptMin = cms.double(20.000000),
+            ptMax = cms.double(60.000000),
+            etaMax = cms.double(1.000000),
+        ),
+        cms.PSet(
+            weight = cms.double(0.028284),
+            etaMin = cms.double(-1.000000),
+            ptMin = cms.double(60.000000),
+            ptMax = cms.double(100.000000),
+            etaMax = cms.double(1.000000),
+        ),
+        cms.PSet(
+            weight = cms.double(0.038739),
+            etaMin = cms.double(-1.000000),
+            ptMin = cms.double(100.000000),
+            ptMax = cms.double(99995.000000),
+            etaMax = cms.double(1.000000),
+        ),
+        cms.PSet(
+            weight = cms.double(0.045705),
+            etaMin = cms.double(1.000000),
+            ptMin = cms.double(10.000000),
+            ptMax = cms.double(20.000000),
+            etaMax = cms.double(9999.000000),
+        ),
+        cms.PSet(
+            weight = cms.double(0.043164),
+            etaMin = cms.double(1.000000),
+            ptMin = cms.double(20.000000),
+            ptMax = cms.double(60.000000),
+            etaMax = cms.double(9999.000000),
+        ),
+        cms.PSet(
+            weight = cms.double(0.034573),
+            etaMin = cms.double(1.000000),
+            ptMin = cms.double(60.000000),
+            ptMax = cms.double(100.000000),
+            etaMax = cms.double(9999.000000),
+        ),
+        cms.PSet(
+            weight = cms.double(0.040872),
+            etaMin = cms.double(1.000000),
+            ptMin = cms.double(100.000000),
+            ptMax = cms.double(99995.000000),
+            etaMax = cms.double(9999.000000),
+        ),
+)

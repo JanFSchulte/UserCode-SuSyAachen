@@ -13,7 +13,7 @@
 //
 // Original Author:  Matthias Edelhoff
 //         Created:  Mon Nov 16 11:26:19 CET 2009
-// $Id: CompositeDiLeptonFilter.cc,v 1.6 2010/05/14 11:10:08 edelhoff Exp $
+// $Id: CompositeDiLeptonFilter.cc,v 1.1 2011/01/05 16:22:57 edelhoff Exp $
 //
 //
 
@@ -87,7 +87,7 @@ private:
 CompositeDiLeptonFilter::CompositeDiLeptonFilter(const edm::ParameterSet& iConfig):
 		channels_( iConfig.getParameter< std::vector<std::string> > ("channels") ),
 		sameSign_(iConfig.getParameter<bool> ("sameSign")),
-		debug_(true)
+		debug_(false)
 {
 	for(std::vector<std::string>::const_iterator it = channels_.begin(); it != channels_.end(); ++it){
 		modes_[*it] = iConfig.getParameter<std::string> (*it);

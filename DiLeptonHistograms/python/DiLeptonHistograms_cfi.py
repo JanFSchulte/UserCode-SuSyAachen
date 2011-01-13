@@ -1,5 +1,9 @@
 import FWCore.ParameterSet.Config as cms
 
+from SuSyAachen.DiLeptonHistograms.fakeRates.electronCenter_cff import fakes as electronCenterFakeRates
+from SuSyAachen.DiLeptonHistograms.fakeRates.muonCenter_cff import fakes as muonCenterFakeRates
+from SuSyAachen.DiLeptonHistograms.fakeRates.tauCenter_cff import fakes as tauCenterFakeRates
+
 DiLeptonAnalysis = cms.EDAnalyzer('DiLeptonHistograms',
 
 debug = cms.untracked.bool(False),
@@ -34,37 +38,9 @@ trackSource = cms.InputTag("generalTracks"),
 
 maxJetsForAlphaT = cms.uint32(10),
 fakeRates =  cms.PSet(
-        electrons = cms.VPSet(
-            cms.PSet(
-                etaMin = cms.double(-2.4), etaMax = cms.double(2.4),
-                ptMin = cms.double(0), ptMax = cms.double(10999999),
-                
-                weight = cms.double(0.5)
-            ),
-            cms.PSet(
-                etaMin = cms.double(-1.3),  etaMax = cms.double(1.3),
-                ptMin = cms.double(0), ptMax = cms.double(10999999),
-    
-                weight = cms.double(0.2)
-            ),
-        ),
-
-        muons =  cms.VPSet(
-            cms.PSet(
-                etaMin = cms.double(-1.3),  etaMax = cms.double(1.3),
-                ptMin = cms.double(0), ptMax = cms.double(10999999),
-    
-                weight = cms.double(0.2)
-            ),                   
-        ),
-        taus = cms.VPSet(
-                                     cms.PSet(
-                etaMin = cms.double(-1.3),  etaMax = cms.double(1.3),
-                ptMin = cms.double(0), ptMax = cms.double(10999999),
-    
-                weight = cms.double(0.2)
-            ),
-        )
+        electrons = electronCenterFakeRates,
+        muons =  muonCenterFakeRates,
+        taus = tauCenterFakeRates,
 ),
 #fakeRates = cms.bool(False),
 
