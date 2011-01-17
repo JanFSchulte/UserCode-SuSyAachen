@@ -4,6 +4,7 @@ def ScanNLOCrossSectionTanBeta10(process):
     from SuSyAachen.Skimming.scale_xsection_nlo10_tanssdat10_cfi import scale_xsection_nlo10_tanssdat10
     from SuSyAachen.Skimming.scale_xsection_nlo20_tanssdat10_cfi import scale_xsection_nlo20_tanssdat10
     from SuSyAachen.Skimming.scale_xsection_nlo05_tanssdat10_cfi import scale_xsection_nlo05_tanssdat10
+    from SuSyAachen.Skimming.scale_kfactorssdat10_cfi import scale_kfactorssdat10
     process.susyScanNLOCrossSection = susyCrossSectionProducer.clone(
                 crossSections = scale_xsection_nlo10_tanssdat10
                 )
@@ -13,6 +14,9 @@ def ScanNLOCrossSectionTanBeta10(process):
     process.susyScanNLOCrossSectionScale05 = susyCrossSectionProducer.clone(
                 crossSections = scale_xsection_nlo05_tanssdat10
                 )
+    process.susyScankFactor = susyCrossSectionProducer.clone(
+                crossSections = scale_kfactorssdat10
+                )
 
-    process.seqScanNLOCrossSectionTanBeta10 = cms.Sequence(process.susyScanNLOCrossSection+process.susyScanNLOCrossSectionScale2+process.susyScanNLOCrossSectionScale05)
+    process.seqScanNLOCrossSectionTanBeta10 = cms.Sequence(process.susyScanNLOCrossSection+process.susyScanNLOCrossSectionScale2+process.susyScanNLOCrossSectionScale05+process.susyScankFactor)
                          

@@ -153,6 +153,18 @@ susyCrossSectionProducer = cms.EDProducer( "SusyXSecProducer", src = cms.InputTa
     )
 )
 
+# Produce PDF weights (maximum is 3)
+pdfWeights = cms.EDProducer("PdfWeightProducer",
+    # Fix POWHEG if buggy (this PDF set will also appear on output, 
+    #FixPOWHEG = cms.untracked.string("cteq66.LHgrid"),
+    GenTag = cms.untracked.InputTag("genParticles"),
+    PdfInfoTag = cms.untracked.InputTag("generator"),
+    PdfSetNames = cms.untracked.vstring(
+        "cteq66.LHgrid",
+        #"MRST2006nnlo.LHgrid",
+        #"MRST2007lomod.LHgrid"
+    )
+)
 
 #------------ Sequences
 seqGenParticles = cms.Sequence( electronGenParticles + muonGenParticles + tauGenParticles +nutauGenParticles + (tauGenJets*hadronicGenTauJets)
