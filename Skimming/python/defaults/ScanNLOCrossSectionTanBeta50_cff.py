@@ -15,7 +15,7 @@ def ScanNLOCrossSectionTanBeta50(process):
                 crossSections = scale_xsection_nlo05_tandat50
                 )
     process.susyScankFactor = susyCrossSectionProducer.clone(
-                crossSections = scale_kfactordat3
+                crossSections = scale_kfactordat50
                 )
 
     process.seqScanNLOCrossSectionTanBeta50 = cms.Sequence(process.susyScanNLOCrossSection+process.susyScanNLOCrossSectionScale2+process.susyScanNLOCrossSectionScale05+process.susyScankFactor)
