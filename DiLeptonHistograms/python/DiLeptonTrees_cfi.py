@@ -7,6 +7,7 @@ DiLeptonTrees = cms.EDAnalyzer("DiLeptonTrees",
    jets = cms.InputTag("triggerMatchedPatJetsPF"),
    met = cms.InputTag("patMETsPF"),
    susyVars = cms.VPSet(),
+   pdfWeightTags = cms.VPSet(),
 
 # NOT USED RIGHT NOW
    fakeRates =  cms.PSet(
@@ -42,7 +43,11 @@ DiLeptonTreesmSugra = DiLeptonTrees.clone(
        cms.PSet(var = cms.string("susyScanNLOCrossSection"), type = cms.string("float")),
        cms.PSet(var = cms.string("susyScanNLOCrossSectionScale2"), type = cms.string("float")),
        cms.PSet(var = cms.string("susyScanNLOCrossSectionScale05"), type = cms.string("float")),
+       cms.PSet(var = cms.string("susyScankFactor"), type = cms.string("float")),
        cms.PSet(var = cms.string("susyScanRun"), type = cms.string("float")),
        cms.PSet(var = cms.string("susyScanMu"), type = cms.string("int"))
+       ),
+   pdfWeightTags = cms.VInputTag(
+        "susyScanPdfWeights:cteq66"
        )
 )

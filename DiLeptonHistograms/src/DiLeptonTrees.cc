@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.8 2010/12/10 20:57:29 nmohr Exp $
+// $Id: DiLeptonTrees.cc,v 1.9 2010/12/22 16:41:00 edelhoff Exp $
 //
 //
 
@@ -80,6 +80,7 @@ private:
   template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, double &ht, const TLorentzVector &met, double &weight);
   int getMotherPdgId( const reco::GenParticle &p);
   std::pair<double, double> calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, const TLorentzVector& met);
+  void fillPdfUncert(const edm::Handle< std::vector<double> >& weightHandle, const std::string& pdfIdentifier, const std::string& treeName);
 
   edm::InputTag eTag_;
   edm::InputTag muTag_;
@@ -87,6 +88,7 @@ private:
   edm::InputTag jetTag_;
   edm::InputTag metTag_;
   std::vector<edm::ParameterSet> susyVars_;
+  std::vector<edm::InputTag> pdfs_;
 
   //data
   std::map<std::string, TTree*> trees_;  
@@ -111,6 +113,7 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig)
   jetTag_ = iConfig.getParameter<edm::InputTag>("jets");
   metTag_ = iConfig.getParameter<edm::InputTag>("met");
   susyVars_ = iConfig.getParameter< std::vector<edm::ParameterSet> >("susyVars");
+  pdfs_ = iConfig.getParameter<std::vector<edm::InputTag> > ("pdfWeightTags");
 
   fakeRates_.SetSource(iConfig,"fakeRates");
 
@@ -125,6 +128,10 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig)
   initFloatBranch( "weight" );
   initFloatBranch( "chargeProduct" );
   initTLorentzVectorBranch( "p4" );
+  initFloatBranch( "pt1" );
+  initFloatBranch( "pt2" );
+  initFloatBranch( "eta1" );
+  initFloatBranch( "eta2" );
   initFloatBranch( "deltaPhi" );
   initFloatBranch( "deltaR" );
   initFloatBranch( "jzb" );
@@ -146,7 +153,14 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig)
         else throw cms::Exception("Unrecognized type") << 
             "Unknown type " << type << " for variable" << var << " found\n";
   }
-
+  for ( std::vector<edm::InputTag>::iterator pdf_i = pdfs_.begin(); pdf_i != pdfs_.end(); ++pdf_i ) {
+     std::string pdfIdentifier = (*pdf_i).instance();
+     std::string up = "Up";
+     std::string down = "Down";
+     initFloatBranch( pdfIdentifier );
+     initFloatBranch( pdfIdentifier+up );
+     initFloatBranch( pdfIdentifier+down );
+  }
 }
 
 void 
@@ -255,6 +269,12 @@ DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector
         if (type=="float") *(floatBranches_[treeName][var]) = float(*var_);
         else if (type=="int") *(intBranches_[treeName][var]) = int(*var_);
   }
+  for ( std::vector<edm::InputTag>::iterator pdf_i = pdfs_.begin(); pdf_i != pdfs_.end(); ++pdf_i ) {
+     const std::string pdfIdentifier = (*pdf_i).instance();
+     edm::Handle<std::vector<double> > weightHandle;
+     ev.getByLabel((*pdf_i), weightHandle);
+     fillPdfUncert(weightHandle,pdfIdentifier,treeName);
+  }
   for( typename std::vector<aT>::const_iterator itA = a.begin(); itA != a.end(); ++itA){
     for( typename std::vector<bT>::const_iterator itB = b.begin(); itB != b.end(); ++itB){
 //      std::cout << treeName <<": "<< fakeRates_(*itA) << std::endl;
@@ -278,6 +298,12 @@ DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector
         if (type=="int") *(intBranches_[treeName][var]) = int(*var_);
         else if (type=="float") *(floatBranches_[treeName][var]) = float(*var_);
   }
+  for ( std::vector<edm::InputTag>::iterator pdf_i = pdfs_.begin(); pdf_i != pdfs_.end(); ++pdf_i ) {
+     std::string pdfIdentifier = (*pdf_i).instance();
+     edm::Handle<std::vector<double> > weightHandle;
+     ev.getByLabel((*pdf_i), weightHandle);
+     fillPdfUncert(weightHandle,pdfIdentifier,treeName);
+  }
 
   for( typename std::vector<aT>::const_iterator itA = a.begin(); itA != a.end(); ++itA){
     for( typename std::vector<aT>::const_iterator itB = a.begin(); itB != itA; ++itB){
@@ -299,6 +325,10 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b, 
   *(floatBranches_[treeName]["weight"]) = weight;
   *(floatBranches_[treeName]["chargeProduct"]) = a.charge()*b.charge();
   *(tLorentzVectorBranches_[treeName]["p4"]) = comb;
+  *(floatBranches_[treeName]["pt1"]) = aVec.Pt();
+  *(floatBranches_[treeName]["pt2"]) = bVec.Pt();
+  *(floatBranches_[treeName]["eta1"]) = aVec.Eta();
+  *(floatBranches_[treeName]["eta2"]) = bVec.Eta();
   *(floatBranches_[treeName]["deltaPhi"]) = aVec.DeltaPhi( bVec );
   *(floatBranches_[treeName]["deltaR"]) = aVec.DeltaR( bVec );
   *(floatBranches_[treeName]["jzb"]) = (met+comb).Pt() - comb.Pt();
@@ -370,6 +400,35 @@ DiLeptonTrees::calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, cons
 	return std::pair<double, double>(pZeta, pZetaVis);
 }
 
+void DiLeptonTrees::fillPdfUncert(const edm::Handle< std::vector<double> >& weightHandle, const std::string& pdfIdentifier, const std::string& treeName){
+     std::string up = "Up";
+     std::string down = "Down";
+     double centralValue = (*weightHandle)[0];
+     *(floatBranches_[treeName][pdfIdentifier]) = float(centralValue);
+     if(debug) std::cout << "Cen" << treeName << ": " << centralValue << std::endl;
+     unsigned int nmembers = weightHandle->size();
+     double wminus = 0.;
+     double wplus = 0.;
+     for (unsigned int j=1; j<nmembers; j+=2) {
+        float wa = ((*weightHandle)[j]-centralValue)/centralValue;
+        float wb = ((*weightHandle)[j+1]-centralValue)/centralValue;
+        if (wa>wb) {
+            if (wa<0.) wa = 0.;
+            if (wb>0.) wb = 0.;
+            wplus += wa*wa;
+            wminus += wb*wb;
+        } else {
+            if (wb<0.) wb = 0.;
+            if (wa>0.) wa = 0.;
+            wplus += wb*wb;
+            wminus += wa*wa;
+        }
+    }
+    if (wplus>0.) wplus = sqrt(wplus);
+    if (wminus>0.) wminus = sqrt(wminus);
+    *(floatBranches_[treeName][pdfIdentifier+down]) = float(wminus);
+    *(floatBranches_[treeName][pdfIdentifier+up]) = float(wplus);
+}
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
