@@ -7,7 +7,7 @@ DiLeptonTrees = cms.EDAnalyzer("DiLeptonTrees",
    jets = cms.InputTag("triggerMatchedPatJetsPF"),
    met = cms.InputTag("patMETsPF"),
    susyVars = cms.VPSet(),
-   pdfWeightTags = cms.VPSet(),
+   pdfWeightTags = cms.VInputTag(),
 
 # NOT USED RIGHT NOW
    fakeRates =  cms.PSet(
