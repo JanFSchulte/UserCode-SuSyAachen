@@ -52,7 +52,7 @@ struct patConversionSelector {
             /*std::cout << dist << std::endl;
             std::cout << dcot << std::endl;*/
         }
-        if(it->gsfTrack()->trackerExpectedHitsInner().numberOfHits() >= cutLow_ && it->gsfTrack()->trackerExpectedHitsInner().numberOfHits() <= cutHigh_ && (not conv_ || not (std::abs( dcot ) <= cutCot_ && std::abs( dist ) <= cutDist_)) ) selected_.push_back( & (*it) );
+        if(it->gsfTrack()->trackerExpectedHitsInner().numberOfLostHits() >= cutLow_ && it->gsfTrack()->trackerExpectedHitsInner().numberOfLostHits() <= cutHigh_ && (not conv_ || not (std::abs( dcot ) <= cutCot_ && std::abs( dist ) <= cutDist_)) ) selected_.push_back( & (*it) );
     }
   }
   
