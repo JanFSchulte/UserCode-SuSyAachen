@@ -1,5 +1,4 @@
-#!/usr/bin/env VERSIONER_PYTHON_PREFER_32_BIT=yes python
-
+#!/usr/bin/env python
 '''
 Created on 22.12.2010
 
@@ -16,6 +15,7 @@ import ROOT
 
 
 def generateFakeRate(cfgFile):
+    from time import asctime
     # ROOT
     ROOT.gROOT.Reset()
     rootContainer = []
@@ -23,8 +23,7 @@ def generateFakeRate(cfgFile):
     log.logInfo("Loading config file %s" % cfgFile)
     parser = SafeConfigParser()
     parser.read(cfgFile)
-    variables = parser.sections()
-    variables.remove("default")
+    variables = [ i[len("variable:"):] for i in parser.sections() if i.startswith("variable:")]
     log.logDebug("variables: %s" % variables)
 
     fileName = parser.get('default', 'file')
@@ -32,15 +31,11 @@ def generateFakeRate(cfgFile):
     treePath = parser.get('default', 'tree')
     tree = getTreeFromFile(fileName, treePath)
     rootContainer.extend([tree])
-
-    selectionLoose = "ht > 350 && met < 20 && nLept == 1"
-    #selectionTight = "ht > 350 && met < 20 && nLept == 1 && tanc > 0.5"
-    selectionTight = "ht > 350 && met < 20 && nLept == 1 && pfIso < 0.2"
-
+    
     log.logInfo("Generating bins")
     bins = [{'selection': ""}]
     for variable in variables:
-        binBorders = eval(parser.get(variable, "binBorders"))
+        binBorders = eval(parser.get("variable:%s"%variable, "binBorders"))
 
         newBins = []
         for bin in bins:
@@ -61,8 +56,24 @@ def generateFakeRate(cfgFile):
 
     log.logDebug("Writing to file: %s" % outputFileName)
     file = open(outputFileName, 'w')
-    file.write("fakes =  cms.VPSet(\n")
+    file.write("""#created at %s
+#created from  '%s'  
 
+"""%(asctime(), fileName.split()))
+    file.close()
+    writePSet(outputFileName, parser, tree, bins, "Center")
+    writePSet(outputFileName, parser, tree, bins, "Upper")
+    writePSet(outputFileName, parser, tree, bins, "Lower")
+    return
+
+def writePSet(path, parser, tree, bins, name):
+    from ROOT import TEfficiency
+    file = open(path, 'a')
+    file.write("%s =  cms.VPSet(\n"%(parser.get("default","outputPSet", raw=True)%name))
+
+    selectionLoose = parser.get("selections","selectionLoose") 
+    selectionTight = parser.get("selections","selectionTight")
+   
     log.logInfo("Looping bins")
     for bin in bins:
         selectionLooseBin = appendSelection(bin['selection'], selectionLoose)
@@ -71,7 +82,13 @@ def generateFakeRate(cfgFile):
         log.logDebug("tight selection: %s" % selectionTightBin)
         loose = tree.GetEntries(selectionLooseBin)
         tight = tree.GetEntries(selectionTightBin)
+        if tight < 100: log.logWarning("small statistics n= %s for: '%s'"%(tight, bin["selection"]))
         fakeRate = 1.0 / loose * tight
+        if(name == "Upper"):
+          fakeRate = TEfficiency.ClopperPearson(loose, tight, 0.683, True)
+        if(name == "Lower"):
+          fakeRate = TEfficiency.ClopperPearson(loose, tight, 0.683, False)
+          
         log.logDebug("%s: %d/%d = %f" % (bin['selection'], tight, loose, fakeRate))
 
         # write pset for bin
@@ -84,7 +101,6 @@ def generateFakeRate(cfgFile):
         file.write("        ),\n")
     file.write(")\n")
     file.close()
-    return
 
 
 def appendSelection(selection1, selection2):
@@ -99,14 +115,15 @@ def appendSelection(selection1, selection2):
     return retValue
 
 
-def getTreeFromFile(fileName, treePath):
-    log.logDebug("Getting tree '%s'\n  from file %s" % (treePath, fileName))
+def getTreeFromFile(fileNames, treePath):
+    log.logDebug("Getting tree '%s'\n  from file %s" % (treePath, fileNames.split()))
 
     tree = ROOT.TChain(treePath)
-    tree.Add(fileName)
+    for fileName in fileNames.split():
+      tree.Add(fileName)
 
     if (tree == None):
-        log.logError("Could not get tree '%s'\n  from file %s" % (treePath, fileName))
+        log.logError("Could not get tree '%s'\n  from file %s" % (treePath, fileNames.split()))
         return None
     else:
         tree.SetDirectory(0)
