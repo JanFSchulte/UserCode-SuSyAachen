@@ -42,8 +42,12 @@ def generateFakeRate(cfgFile):
             for iV in range(0, len(binBorders) - 1):
                 vMin = binBorders[iV]
                 vMax = binBorders[iV + 1]
-                selectionV = "%f <= %s && %s < %f" % (vMin, variable, variable, vMax)
+                variableToCut = variable
+                if parser.has_option("variable:%s"%variable, "abs") and eval(parser.get("variable:%s"%variable, "abs")):
+                  variableToCut = "abs(%s)"%variableToCut
+                selectionV = "%f <= %s && %s < %f" % (vMin, variableToCut, variableToCut, vMax)
                 selectionBin = appendSelection(bin['selection'], selectionV)
+
                 log.logDebug("bin selection: %s" % selectionBin)
                 newBin = copy(bin)
                 newBin.update({
@@ -52,6 +56,14 @@ def generateFakeRate(cfgFile):
                                '%sMax' % variable: vMax,
                                })
                 newBins.append(newBin)
+                if parser.has_option("variable:%s"%variable, "abs") and eval(parser.get("variable:%s"%variable, "abs")):
+                    newBin = copy(bin)
+                    newBin.update({
+                                   'selection': selectionBin,
+                                   '%sMin' % variable: -vMax,
+                                   '%sMax' % variable: -vMin,
+                                   })
+                    newBins.append(newBin)  
         bins = newBins
 
     log.logDebug("Writing to file: %s" % outputFileName)
