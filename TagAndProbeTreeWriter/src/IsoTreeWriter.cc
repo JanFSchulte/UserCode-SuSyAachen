@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: IsoTreeWriter.cc,v 1.4 2011/01/07 13:08:19 sprenger Exp $
+// $Id: IsoTreeWriter.cc,v 1.5 2011/01/11 17:07:36 sprenger Exp $
 //
 //
 
@@ -52,6 +52,11 @@
 #include "DataFormats/PatCandidates/interface/MET.h"
 
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+
+#include "SuSyAachen/TagAndProbeTreeWriter/interface/LeptonKindFunctor.h"
+
+#include <iostream>
+
 //
 // class declaration
 //
@@ -72,7 +77,9 @@ class IsoTreeWriter : public edm::EDAnalyzer {
         virtual void fillExtraVars(const pat::Electron&);
         virtual void fillExtraVars(const pat::Muon&);
         virtual void fillExtraVars(const pat::Tau&);
-        virtual double calcIso(const T &);
+  //        virtual double calcIso(const T &);
+        virtual double calcIso(const pat::Electron &);
+        virtual double calcIsoMinPt(const pat::Electron &);
         virtual double calcPfIso(const T &);
 
         // ----------member data ---------------------------
@@ -84,10 +91,14 @@ class IsoTreeWriter : public edm::EDAnalyzer {
         
         TFile *theFile;
 
+        LeptonKindFunctor fctLeptonKind_;
+
         //Trees
         TTree*  treeIso;
         TTree*  treeIsoEvent;
         float pfIso;
+        float iso;
+        float isoMinPt;
         float pt;
         float eta;
         float tanc;
@@ -95,6 +106,7 @@ class IsoTreeWriter : public edm::EDAnalyzer {
         float met;
         int nLept;
         int nJets;
+        int leptonKind;
 };
 
 //
@@ -122,12 +134,15 @@ IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig)
     TFileDirectory Tree = theFile->mkdir( "Trees" );
     treeIso = Tree.make<TTree>("Iso","Iso"); 
     treeIso->Branch("pfIso",&pfIso,"pfIso/F");
+    treeIso->Branch("iso",&iso,"iso/F");
+    treeIso->Branch("isoMinPt",&isoMinPt,"isoMinPt/F");
     treeIso->Branch("pt",&pt,"pt/F");
     treeIso->Branch("eta",&eta,"eta/F");
     treeIso->Branch("tanc",&tanc,"tanc/F");
     treeIso->Branch("ht",&ht,"ht/F");
     treeIso->Branch("met",&met,"met/F");
     treeIso->Branch("nLept",&nLept,"nLept/I");
+    treeIso->Branch("leptonKind",&leptonKind,"leptonsKind/I");
     
 
 }
@@ -136,17 +151,33 @@ IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig)
 template< typename T  > 
 IsoTreeWriter<T>::~IsoTreeWriter()
 {
- 
    // do anything here that needs to be done at desctruction time
    // (e.g. close files, deallocate resources etc.)
 
 }
 
 template < typename T >
-double IsoTreeWriter<T>::calcIso(const T & lepton)
+double IsoTreeWriter<T>::calcIso(const pat::Electron & lepton)
 {
-    double value = (lepton.trackIso()+lepton.ecalIso()+lepton.hcalIso())/lepton.pt();
-    return value;
+  double value = -1.0;
+  if (lepton.eta() <= 1.479)
+    value = (lepton.dr03HcalTowerSumEt()+lepton.dr03EcalRecHitSumEt()+lepton.dr03TkSumPt())/lepton.pt();
+  else
+    value = (lepton.dr03HcalTowerSumEt() + std::max(0.0, lepton.dr03EcalRecHitSumEt() - 1.0) + lepton.dr03TkSumPt())/lepton.pt();
+
+  return value;
+}
+
+template < typename T >
+double IsoTreeWriter<T>::calcIsoMinPt(const pat::Electron & lepton)
+{
+  double value = -1.0;
+  if (lepton.eta() <= 1.479)
+    value = (lepton.dr03HcalTowerSumEt()+lepton.dr03EcalRecHitSumEt()+lepton.dr03TkSumPt())/std::max(lepton.pt(), 20.0);
+  else
+    value = (lepton.dr03HcalTowerSumEt() + std::max(0.0, lepton.dr03EcalRecHitSumEt() - 1.0) + lepton.dr03TkSumPt())/std::max(lepton.pt(), 20.0);
+
+  return value;
 }
 
 template < typename T >
@@ -160,18 +191,24 @@ template< typename T >
 void IsoTreeWriter<T>::fillExtraVars(const pat::Electron& lepton)
 {
   tanc = -1.0;
+  iso = calcIso(lepton);
+  isoMinPt = calcIsoMinPt(lepton);
 }
 
 template< typename T > 
 void IsoTreeWriter<T>::fillExtraVars(const pat::Muon& lepton)
 {
   tanc = -1.0;
+  iso = -1.0;
+  isoMinPt = -1.0;
 }
 
 template< typename T > 
 void IsoTreeWriter<T>::fillExtraVars(const pat::Tau& lepton)
 {
   tanc = lepton.tauID("byTaNCfrOnePercent");
+  iso = -1.0;
+  isoMinPt = -1.0;
 }
 
 
@@ -186,6 +223,7 @@ void IsoTreeWriter<T>::fillIso(const edm::Handle< std::vector<T> >& leptons)
             pfIso = calcPfIso(*lep_i);
             pt = lep_i->pt();
             eta = lep_i->eta();
+	    leptonKind = fctLeptonKind_(*lep_i);
 	    fillExtraVars(*lep_i);
             treeIso->Fill();
     }
@@ -196,7 +234,9 @@ void IsoTreeWriter<T>::fillIso(const edm::Handle< std::vector<T> >& leptons)
 template< typename T  > 
 void IsoTreeWriter<T >::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-    if (iEvent.isRealData()) mcInfo = false;
+    // does not work ?
+    if (iEvent.isRealData())
+      mcInfo = false;
 
     //Collection
     edm::Handle< std::vector<T> > leptons;
