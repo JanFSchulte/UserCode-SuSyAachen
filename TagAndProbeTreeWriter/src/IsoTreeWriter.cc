@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: IsoTreeWriter.cc,v 1.5 2011/01/11 17:07:36 sprenger Exp $
+// $Id: IsoTreeWriter.cc,v 1.6 2011/02/08 14:30:31 sprenger Exp $
 //
 //
 
@@ -97,11 +97,12 @@ class IsoTreeWriter : public edm::EDAnalyzer {
         TTree*  treeIso;
         TTree*  treeIsoEvent;
         float pfIso;
+        float mva;
         float iso;
         float isoMinPt;
         float pt;
         float eta;
-        float tanc;
+        float tauDiscr;
         float ht;
         float met;
         int nLept;
@@ -134,11 +135,12 @@ IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig)
     TFileDirectory Tree = theFile->mkdir( "Trees" );
     treeIso = Tree.make<TTree>("Iso","Iso"); 
     treeIso->Branch("pfIso",&pfIso,"pfIso/F");
+    treeIso->Branch("mva",&mva,"mva/F");
     treeIso->Branch("iso",&iso,"iso/F");
     treeIso->Branch("isoMinPt",&isoMinPt,"isoMinPt/F");
     treeIso->Branch("pt",&pt,"pt/F");
     treeIso->Branch("eta",&eta,"eta/F");
-    treeIso->Branch("tanc",&tanc,"tanc/F");
+    treeIso->Branch("tauDiscr",&tauDiscr,"tauDiscr/F");
     treeIso->Branch("ht",&ht,"ht/F");
     treeIso->Branch("met",&met,"met/F");
     treeIso->Branch("nLept",&nLept,"nLept/I");
@@ -157,7 +159,7 @@ IsoTreeWriter<T>::~IsoTreeWriter()
 }
 
 template < typename T >
-double IsoTreeWriter<T>::calcIso(const pat::Electron & lepton)
+double IsoTreeWriter<T>::calcIso(const pat::Electron& lepton)
 {
   double value = -1.0;
   if (lepton.eta() <= 1.479)
@@ -169,7 +171,7 @@ double IsoTreeWriter<T>::calcIso(const pat::Electron & lepton)
 }
 
 template < typename T >
-double IsoTreeWriter<T>::calcIsoMinPt(const pat::Electron & lepton)
+double IsoTreeWriter<T>::calcIsoMinPt(const pat::Electron& lepton)
 {
   double value = -1.0;
   if (lepton.eta() <= 1.479)
@@ -181,7 +183,7 @@ double IsoTreeWriter<T>::calcIsoMinPt(const pat::Electron & lepton)
 }
 
 template < typename T >
-double IsoTreeWriter<T>::calcPfIso(const T & lepton)
+double IsoTreeWriter<T>::calcPfIso(const T& lepton)
 {
     double value = (lepton.chargedHadronIso()+lepton.photonIso()+lepton.neutralHadronIso())/lepton.pt();
     return value;
@@ -190,7 +192,8 @@ double IsoTreeWriter<T>::calcPfIso(const T & lepton)
 template< typename T > 
 void IsoTreeWriter<T>::fillExtraVars(const pat::Electron& lepton)
 {
-  tanc = -1.0;
+  tauDiscr = -1.0;
+  mva = lepton.pfCandidateRef()->mva_e_pi();
   iso = calcIso(lepton);
   isoMinPt = calcIsoMinPt(lepton);
 }
@@ -198,7 +201,8 @@ void IsoTreeWriter<T>::fillExtraVars(const pat::Electron& lepton)
 template< typename T > 
 void IsoTreeWriter<T>::fillExtraVars(const pat::Muon& lepton)
 {
-  tanc = -1.0;
+  tauDiscr = -1.0;
+  mva = -1.0;
   iso = -1.0;
   isoMinPt = -1.0;
 }
@@ -206,7 +210,8 @@ void IsoTreeWriter<T>::fillExtraVars(const pat::Muon& lepton)
 template< typename T > 
 void IsoTreeWriter<T>::fillExtraVars(const pat::Tau& lepton)
 {
-  tanc = lepton.tauID("byTaNCfrOnePercent");
+  tauDiscr = lepton.tauID("byTaNCfrOnePercent");
+  mva = lepton.tauID("byTaNC");
   iso = -1.0;
   isoMinPt = -1.0;
 }
@@ -219,7 +224,7 @@ void IsoTreeWriter<T>::fillIso(const edm::Handle< std::vector<T> >& leptons)
 {
     nLept = 0;
     for (typename std::vector<T>::const_iterator lep_i = leptons->begin(); lep_i != leptons->end(); ++lep_i){
-            ++nLept;
+            nLept = leptons->size();
             pfIso = calcPfIso(*lep_i);
             pt = lep_i->pt();
             eta = lep_i->eta();

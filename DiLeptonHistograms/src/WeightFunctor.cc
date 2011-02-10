@@ -2,14 +2,16 @@
 
 WeightFunctor::WeightFunctor()
 {
-	initialized = false;
+	initialized_ = false;
+	bool looseNotTight_ = false;
 }
 
 void
-WeightFunctor::SetSource( const edm::ParameterSet& p, const std::string name )
+WeightFunctor::SetSource( const edm::ParameterSet& p, const std::string rawName, const bool mc )
 {
+	std::string name = rawName;
 	if(p.existsAs<edm::ParameterSet>(name)){
-		initialized = true;
+		initialized_ = true;
 		src_ = edm::ParameterSet(p.getParameter< edm::ParameterSet >(name));
 	}
 }

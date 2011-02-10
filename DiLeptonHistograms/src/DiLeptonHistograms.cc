@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/10/05 13:41:16 $
- *  $Revision: 1.36 $ for CMSSW 3_6_X
+ *  $Date: 2010/12/22 16:41:00 $
+ *  $Revision: 1.37 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -41,9 +41,12 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     mcSrc             = iConfig.getParameter<edm::InputTag> ("mcSource");
     beamSpotSrc        = iConfig.getParameter<edm::InputTag> ("beamSpotSource");
     primaryVertexSrc  = iConfig.getParameter<edm::InputTag> ("primaryVertexSource");
-    muonSrc           = iConfig.getParameter<edm::InputTag> ("muonSource");
     electronSrc       = iConfig.getParameter<edm::InputTag> ("electronSource");
+    muonSrc           = iConfig.getParameter<edm::InputTag> ("muonSource");
     tauSrc            = iConfig.getParameter<edm::InputTag> ("tauSource");
+    electronLooseSrc       = iConfig.getParameter<edm::InputTag> ("electronLooseSource");
+    muonLooseSrc           = iConfig.getParameter<edm::InputTag> ("muonLooseSource");
+    tauLooseSrc            = iConfig.getParameter<edm::InputTag> ("tauLooseSource");
     metSrc            = iConfig.getParameter<edm::InputTag> ("metSource");
     trgSrc            = iConfig.getParameter<edm::InputTag> ("triggerSource");
     jetSrc            = iConfig.getParameter<edm::InputTag> ("jetSource");
@@ -353,7 +356,8 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     //Read the efficiencies from the files 
     ReadEfficiency();
     //Read fake-rate weights
-    fakeRates_.SetSource(iConfig,"fakeRates");
+    fakeRates_.SetSource(iConfig,"fakeRates", mcInfo);
+    fakeRates_.looseNotTight();
 
     if(fakeRates_.isUseable()){
     	InitHisto(&FakeEstimate, fakeEstimate);
@@ -740,6 +744,46 @@ double DiLeptonHistograms::getElectronWeight(const pat::Electron* electron)
 }
 
 
+void DiLeptonHistograms::FakeAnalysis(const edm::Handle< std::vector<pat::Muon> >& muons, const edm::Handle< std::vector<pat::Electron> >& electrons, const edm::Handle< std::vector<pat::Tau> >& taus, const edm::Handle< std::vector<pat::Jet> >& jets, const edm::Handle< std::vector<pat::MET> >& met, double weight){
+
+	hWeight[fakeEstimate]->Fill(weight,weight);
+	int n_Electrons = 0; int n_Muons = 0; int n_Taus = 0;
+	float muonPt = 0; float elePt = 0; float tauPt  = 0;
+	float weight_Electrons = 1; float weight_Muons = 1; float weight_Taus = 1.;
+	for (std::vector<pat::Electron>::const_iterator ele_i = electrons->begin(); ele_i != electrons->end(); ++ele_i){
+		++n_Electrons;
+		weight_Electrons *= fakeRates_(*ele_i);
+		elePt += ele_i->pt();
+		ElectronMonitor(&(*ele_i),n_Electrons,weight, fakeEstimate);
+	}
+	for (std::vector<pat::Muon>::const_iterator mu_i = muons->begin(); mu_i != muons->end(); ++mu_i){
+		++n_Muons;
+		weight_Muons *= fakeRates_(*mu_i);
+		muonPt += mu_i->pt();
+		MuonMonitor(&(*mu_i),n_Muons,weight, fakeEstimate);
+	}
+	for (std::vector<pat::Tau>::const_iterator tau_i = taus->begin(); tau_i != taus->end(); ++tau_i){
+		if (debug) std::cout <<"tau eta = "<< tau_i->eta() << "pt = "<< tau_i->pt() << std::endl;
+		++n_Taus;
+		weight_Taus *= fakeRates_(*tau_i);
+		tauPt += tau_i->pt();
+		TauMonitor(&(*tau_i),n_Taus,weight, fakeEstimate);
+	}
+	//Electron multiplicity
+	hElectronMult[fakeEstimate]->Fill(n_Electrons,weight*weight_Muons);
+	hElectronSumPt[fakeEstimate]->Fill(elePt,weight*weight_Muons);
+	//Muon multiplicity
+	hMuonMult[fakeEstimate]->Fill(n_Muons,weight*weight_Muons);
+	hMuonSumPt[fakeEstimate]->Fill(muonPt,weight*weight_Muons);
+	//Tau multipilcity
+	hTauMult[fakeEstimate]->Fill(n_Taus,weight*weight_Muons);
+	hTauSumPt[fakeEstimate]->Fill(tauPt,weight*weight_Muons);
+	//Lepton multiplicity
+	hLightLeptonMult[fakeEstimate]->Fill(n_Electrons+n_Muons, weight*weight_Muons);
+	hLeptonMult[fakeEstimate]->Fill(n_Electrons+n_Muons+n_Taus, weight*weight_Muons);
+}
+
+
 //Filling of all histograms and calculation of kinematics
 //main part
 void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& muons, const edm::Handle< std::vector<pat::Electron> >& electrons, const edm::Handle< std::vector<pat::Tau> >& taus, const edm::Handle< std::vector<pat::Jet> >& jets, const edm::Handle< std::vector<pat::MET> >& met, double weight, const int process){
@@ -825,7 +869,6 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
         ++numTotMuons;
         ++n_Muons;
 	MuonMonitor(&(*mu_i),n_Muons,weight,general);
-	if(fakeRates_.isUseable()) MuonMonitor(&(*mu_i),n_Muons,weight, fakeEstimate);
 	if(mcInfo){MuonMonitor(&(*mu_i),n_Muons,weight,GetLeptKind(&(*mu_i), tauIsPrompt));}   
         if(n_Muons==1){hMuonTransverseMass[process]->Fill(transverseMass(*mu_i,meti));}
 	    //Clean and isolated muons
@@ -908,7 +951,6 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
         ++numTotElectrons;
 	    ++n_Electrons;
    	    ElectronMonitor(&(*ele_i),n_Electrons,weight,general); 
-   	    if(fakeRates_.isUseable()) ElectronMonitor(&(*ele_i),n_Electrons,weight, fakeEstimate);
 	    if(mcInfo){ElectronMonitor(&(*ele_i),n_Electrons,weight,GetLeptKind(&(*ele_i), tauIsPrompt));}  
         if(n_Electrons==1){hElectronTransverseMass[process]->Fill(transverseMass(*ele_i,meti));}
         elePt += ele_i->pt();
@@ -966,7 +1008,6 @@ void DiLeptonHistograms::Analysis(const edm::Handle< std::vector<pat::Muon> >& m
         ++numTotTaus;
 	    ++n_Taus;
    	    TauMonitor(&(*tau_i),n_Taus,weight,general); 
-   	    if(fakeRates_.isUseable()) TauMonitor(&(*tau_i),n_Taus,weight, fakeEstimate);
 	    if (debug) std::cout <<" < monitor";
 	    if(n_Taus==1){hTauTransverseMass[process]->Fill( sqrt( tau_i->et()*meti.et()*( 1 - cos(reco::deltaPhi((tau_i->p4()).phi(),meti.phi())) )));}
 	    if(mcInfo){TauMonitor(&(*tau_i),n_Taus,weight,GetLeptKind(&(*tau_i), tauIsPrompt));}  
@@ -1407,7 +1448,7 @@ void DiLeptonHistograms::analyze(const edm::Event &iEvent, const edm::EventSetup
     //Electrons
     edm::Handle< std::vector<pat::Electron> > electrons;
     iEvent.getByLabel(electronSrc, electrons);
-    
+
     //Taus
     edm::Handle< std::vector<pat::Tau> > taus;
     iEvent.getByLabel(tauSrc, taus);
@@ -1435,6 +1476,15 @@ void DiLeptonHistograms::analyze(const edm::Event &iEvent, const edm::EventSetup
 
     bool signal = false;
     ++numTotEvents;
+    if(fakeRates_.isUseable()){
+        edm::Handle< std::vector<pat::Electron> > electronsLoose;
+        iEvent.getByLabel(electronLooseSrc, electronsLoose);
+        edm::Handle< std::vector<pat::Muon> > muonsLoose;
+        iEvent.getByLabel(muonLooseSrc, muonsLoose);
+    	edm::Handle< std::vector<pat::Tau> > tausLoose;
+    	iEvent.getByLabel(tauLooseSrc, tausLoose);
+    	FakeAnalysis(muonsLoose, electronsLoose, tausLoose, jets, met, weight);
+    }
     if (mcInfo){
         //MC gen Particle
         edm::Handle< std::vector<reco::GenParticle> > genParticles;

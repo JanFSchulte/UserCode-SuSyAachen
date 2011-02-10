@@ -18,6 +18,9 @@ primaryVertexSource = cms.InputTag("offlinePrimaryVertices"),
 muonSource = cms.InputTag("cleanLayer1Muons"),
 electronSource = cms.InputTag("cleanLayer1Electrons"),
 tauSource = cms.InputTag("cleanLayer1Taus"),
+muonLooseSource = cms.InputTag("cleanLayer1Muons"),
+electronLooseSource = cms.InputTag("cleanLayer1Electrons"),
+tauLooseSource = cms.InputTag("cleanLayer1Taus"),
 triggerSource = cms.InputTag("TriggerResults","","HLT"),
 metSource = cms.InputTag("layer1METsAK5"),
 jetSource = cms.InputTag("cleanLayer1JetsAK5"),
@@ -37,11 +40,20 @@ trackSource = cms.InputTag("generalTracks"),
 #jetMcSource = cms.InputTag(""),
 
 maxJetsForAlphaT = cms.uint32(10),
-fakeRates =  cms.PSet(
+fakeRates = cms.bool(False),
+fakeRatesMc = cms.bool(False),
+
+)
+
+DiLeptonAnalysisInclFake = DiLeptonAnalysis.clone(
+    fakeRates =  cms.PSet(
         electrons = electronCenterFakeRates,
         muons =  muonCenterFakeRates,
         taus = tauCenterFakeRates,
-),
-#fakeRates = cms.bool(False),
-
+    ),
+    fakeRatesMc =  cms.PSet(
+        electrons = electronCenterFakeRates,
+        muons =  muonCenterFakeRates,
+        taus = tauCenterFakeRates,
+    ),                                          
 )

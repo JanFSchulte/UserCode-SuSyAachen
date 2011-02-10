@@ -22,19 +22,22 @@ class WeightFunctor
 {
 public:
 	WeightFunctor();
-	void SetSource( const edm::ParameterSet& p, const std::string name);
+	void SetSource( const edm::ParameterSet& p, const std::string name, const bool mc=false);
 	template<class T> double operator()(const T& lepton, const std::string type);
 	double operator()(const pat::Electron& lepton){return this->operator()(lepton, "electrons");};
 	double operator()(const pat::Muon& lepton){return this->operator()(lepton, "muons");};
 	double operator()(const pat::Tau& lepton){return this->operator()(lepton, "taus");};
-	bool isUseable(){return initialized;};
+	void looseNotTight(){looseNotTight_ = true;}
+	void plain(){looseNotTight_ = false;}
+	bool isUseable(){return initialized_;};
 
 
 private:
 	bool isInBin(const edm::ParameterSet& p, const std::string name, double value);
 
 	edm::ParameterSet	src_;
-	bool initialized;
+	bool initialized_;
+	bool looseNotTight_;
 };
 
 template<class T>
@@ -56,7 +59,7 @@ WeightFunctor::operator()(const T& lepton, const std::string type)
 				result = (*it).getParameter<double>("weight");
 		}
 	}
-
+	if(looseNotTight_) result = result/(1. - result);
 	return result;
 }
 

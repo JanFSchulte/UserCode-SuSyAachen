@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/09/24 10:28:22 $
- *  $Revision: 1.29 $
+ *  $Date: 2010/12/22 16:41:00 $
+ *  $Revision: 1.30 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -324,6 +324,9 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     edm::InputTag muonSrc;
     edm::InputTag electronSrc;
     edm::InputTag tauSrc;
+    edm::InputTag muonLooseSrc;
+    edm::InputTag electronLooseSrc;
+    edm::InputTag tauLooseSrc;
     edm::InputTag trgSrc;
     edm::InputTag metSrc;
     edm::InputTag jetSrc;
@@ -416,6 +419,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     virtual void TauInvMonitor(const double, const double, const double, const double, const double, const double, double, const int);
   
     virtual bool MCAnalysis(const edm::Handle< std::vector<pat::Muon> >&, const edm::Handle< std::vector<pat::Electron> >&, const edm::Handle< std::vector<reco::GenParticle> >& , double weight, const int process); 
+    void FakeAnalysis(const edm::Handle< std::vector<pat::Muon> >& muons, const edm::Handle< std::vector<pat::Electron> >& electrons, const edm::Handle< std::vector<pat::Tau> >& taus, const edm::Handle< std::vector<pat::Jet> >& jets, const edm::Handle< std::vector<pat::MET> >& met, double weight);
 
     virtual double getMuonWeight(const pat::Muon*);
     virtual double getElectronWeight(const pat::Electron*);

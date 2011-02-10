@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.9 2010/12/22 16:41:00 edelhoff Exp $
+// $Id: DiLeptonTrees.cc,v 1.10 2011/01/17 10:57:12 nmohr Exp $
 //
 //
 
@@ -115,7 +115,7 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig)
   susyVars_ = iConfig.getParameter< std::vector<edm::ParameterSet> >("susyVars");
   pdfs_ = iConfig.getParameter<std::vector<edm::InputTag> > ("pdfWeightTags");
 
-  fakeRates_.SetSource(iConfig,"fakeRates");
+  fakeRates_.SetSource(iConfig,"fakeRates");// TODO use these and add mcInfo flag to choose right rates...
 
   // init trees
   edm::Service<TFileService> file;
