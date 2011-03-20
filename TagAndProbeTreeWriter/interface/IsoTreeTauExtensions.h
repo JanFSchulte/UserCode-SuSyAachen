@@ -86,7 +86,7 @@ void IsoTreeTauExtensions::fill(TTree& tree, const pat::Tau& tau)
     etaTruth = -10.;
     phiTruth = -1.;
     if(debug_) std::cout << "dm("<<decayMode;
-    if(tau.genJet() != NULL){
+    if(tau.genLepton() != NULL && tau.genJet() != NULL){
     	assert(tau.genLepton()); //broken genLepton found while looking for true decay mode
     	decayModeTruth = trueDecayMode(*dynamic_cast<const reco::Candidate*>(tau.genLepton()));
     	if(debug_) std::cout <<","<<decayModeTruth;
@@ -105,7 +105,7 @@ void IsoTreeTauExtensions::fill(TTree& tree, const pat::Tau& tau)
 			if(debug_) std::cout <<"adding: " <<(*it).first<< " = "<<(*it).second<<", ";
 		}
 	}
-	tree.Fill();
+	//tree.Fill();
     if(debug_) std::cout << "Done!"<< std::endl;
 }
 

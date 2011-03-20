@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: HLTTreeWriter.cc,v 1.7 2011/02/10 15:44:34 edelhoff Exp $
+// $Id: HLTTreeWriter.cc,v 1.1 2011/02/24 14:18:48 edelhoff Exp $
 //
 //
 
@@ -79,6 +79,8 @@ class HLTTreeWriter : public edm::EDAnalyzer {
         edm::InputTag offlineJetTag_;
         edm::InputTag offlineMetTag_;
         edm::InputTag onlineJetTag_;
+        edm::InputTag onlineJetTagForMHT_;
+        edm::InputTag offlineJetNoEtaTag_;
         
         TFile *theFile;
 
@@ -90,6 +92,8 @@ class HLTTreeWriter : public edm::EDAnalyzer {
         float met;
         float ht;
         float mht;
+        float htNoEta;
+        float mhtNoEta;
 };
 
 //
@@ -110,8 +114,11 @@ HLTTreeWriter::HLTTreeWriter(const edm::ParameterSet& iConfig)
     //Input collections
     offlineJetTag_          = iConfig.getParameter<edm::InputTag> ("jets");
     offlineMetTag_          = iConfig.getParameter<edm::InputTag> ("met");
-	onlineJetTag_          = iConfig.getParameter<edm::InputTag> ("onlineJets");
-
+    onlineJetTag_           = iConfig.getParameter<edm::InputTag> ("onlineJets");
+    onlineJetTagForMHT_     = onlineJetTag_;
+    if(iConfig.existsAs<edm::InputTag>("onlineJetsForMHT"))
+    	onlineJetTagForMHT_ = iConfig.getParameter<edm::InputTag> ("onlineJetsForMHT");
+    offlineJetNoEtaTag_          = iConfig.getParameter<edm::InputTag> ("jetsNoEta");
     
     // Create the root file
     edm::Service<TFileService> theFile;
@@ -122,7 +129,9 @@ HLTTreeWriter::HLTTreeWriter(const edm::ParameterSet& iConfig)
     treeHLT->Branch("onlineMHt",&onlineMHt,"onlineMHt/F");	
     treeHLT->Branch("ht",&ht,"ht/F");
     treeHLT->Branch("met",&met,"met/F");
-    treeHLT->Branch("mht",&met,"mht/F");
+    treeHLT->Branch("mht",&mht,"mht/F");
+    treeHLT->Branch("htNoEta",&htNoEta,"htNoEta/F");
+    treeHLT->Branch("mhtNoEta",&mhtNoEta,"mhtNoEta/F");
     if(debug_) std::cout << "Done!"<< std::endl;
 }
 
@@ -152,6 +161,14 @@ void HLTTreeWriter::analyze(const edm::Event& iEvent, const edm::EventSetup&)
     
     edm::Handle< std::vector< pat::Jet > > onlineJets;
     iEvent.getByLabel(onlineJetTag_, onlineJets);
+
+    edm::Handle< std::vector< pat::Jet > > onlineJetsForMHT;
+    iEvent.getByLabel(onlineJetTagForMHT_, onlineJetsForMHT);
+
+
+    edm::Handle< std::vector< pat::Jet > > jetsNoEta;
+    iEvent.getByLabel(offlineJetNoEtaTag_, jetsNoEta);
+
     if(debug_) std::cout << ". met";
     met = mets->front().pt();
     
@@ -160,17 +177,28 @@ void HLTTreeWriter::analyze(const edm::Event& iEvent, const edm::EventSetup&)
     reco::Particle::LorentzVector vOfflineHt(0.,0.,0.,0.);
     for(std::vector<pat::Jet>::const_iterator it = jets->begin(); it != jets->end() ; ++it){
          ht += (*it).pt();
-         mht += (*it).pt();
          vOfflineHt += (*it).p4();
 	}	
     mht = vOfflineHt.pt();
+
+    htNoEta = 0.0;
+    reco::Particle::LorentzVector vOfflineHtNoEta(0.,0.,0.,0.);
+    for(std::vector<pat::Jet>::const_iterator it = jetsNoEta->begin(); it != jetsNoEta->end() ; ++it){
+      htNoEta += (*it).pt();
+      vOfflineHtNoEta += (*it).p4();
+    }
+    mhtNoEta = vOfflineHtNoEta.pt();
+
     if(debug_) std::cout << ". online";
     onlineHt = 0.0;
-    reco::Particle::LorentzVector vOnlineHt(0.,0.,0.,0.);
-    for(std::vector<pat::Jet>::const_iterator it = onlineJets->begin(); it != onlineJets->end() ; ++it){
+
+    for(std::vector<pat::Jet>::const_iterator it = onlineJets->begin(); it != onlineJets->end() ; ++it)
          onlineHt += (*it).pt();
-	     vOnlineHt += (*it).p4();
-    }
+
+    reco::Particle::LorentzVector vOnlineHt(0.,0.,0.,0.);
+    for(std::vector<pat::Jet>::const_iterator it = onlineJetsForMHT->begin(); it != onlineJetsForMHT->end() ; ++it)
+    	     vOnlineHt += (*it).p4();
+
     onlineMHt = vOnlineHt.pt();
     if(debug_) std::cout << ". filling";
     treeHLT->Fill();

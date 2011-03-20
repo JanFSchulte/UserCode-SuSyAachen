@@ -5,3 +5,10 @@ muonisotreewriter = cms.EDAnalyzer('MuonIsoTreeWriter',
     jets = cms.InputTag("triggerMatchedPatJetsPF"),
     met = cms.InputTag("patMETsPF")
 )
+
+muonisotreewriterWithSecondLepton = muonisotreewriter.clone(
+   secondLeptonElectronSrc = cms.InputTag("selectedPatElectrons"),
+   secondLeptonMuonSrc = cms.InputTag("selectedPatMuons"),
+   secondLeptonTauSrc = cms.InputTag("selectedPatTaus"),
+   secondLeptonMinDeltaR = cms.double(0.01)
+)

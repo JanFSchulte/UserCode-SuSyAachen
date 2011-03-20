@@ -13,10 +13,9 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: IsoTreeWriter.cc,v 1.7 2011/02/10 15:44:34 edelhoff Exp $
+// $Id: IsoTreeWriter.cc,v 1.8 2011/02/25 00:35:08 edelhoff Exp $
 //
 //
-
 
 // system include files
 #include <memory>
@@ -55,6 +54,7 @@
 
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/LeptonKindFunctor.h"
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/IsoTreeTauExtensions.h"
+#include "SuSyAachen/TagAndProbeTreeWriter/interface/IsoTreeSecondLeptonExtensions.h"
 
 #include <iostream>
 
@@ -74,7 +74,7 @@ private:
 	virtual void analyze(const edm::Event&, const edm::EventSetup&);
 	virtual void endJob() ;
 
-	virtual void fillIso(const edm::Handle< std::vector<T> >&);
+	virtual void fillIso(const edm::Handle< std::vector<T> >&, const edm::Event&);
 	virtual void fillExtraVars(const pat::Electron&);
 	virtual void fillExtraVars(const pat::Muon&);
 	virtual void fillExtraVars(const pat::Tau&);
@@ -87,6 +87,7 @@ private:
 	// Switch for debug output
 	bool mcInfo;
 	bool tauExtensionsActive_;
+	bool secondLeptonExtensionsActive_;
 
 	edm::InputTag leptonSrc;
 	edm::InputTag jetTag_;
@@ -114,6 +115,7 @@ private:
 
 	//Extensions
 	IsoTreeTauExtensions tauExtensions_;
+	IsoTreeSecondLeptonExtensions secondLeptonExtensions_;
 
 };
 
@@ -132,6 +134,7 @@ IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig)
 {
 	//now do what ever initialization is needed
 	tauExtensionsActive_ = true;
+	secondLeptonExtensionsActive_ = false;
 
 	//Input collections
 	leptonSrc          = iConfig.getParameter<edm::InputTag> ("src");
@@ -156,7 +159,13 @@ IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig)
 	treeIso->Branch("leptonKind",&leptonKind,"leptonsKind/I");
 
 	if(tauExtensionsActive_) tauExtensions_.init(iConfig, *treeIso);
-
+	if( iConfig.existsAs<edm::InputTag>("secondLeptonElectronSrc") &&
+	    iConfig.existsAs<edm::InputTag>("secondLeptonMuonSrc") &&
+	    iConfig.existsAs<edm::InputTag>("secondLeptonTauSrc") &&
+	    iConfig.existsAs<double>("secondLeptonMinDeltaR") ){
+		secondLeptonExtensionsActive_ = true;
+		secondLeptonExtensions_.init(iConfig, *treeIso);
+	}
 }
 
 
@@ -231,7 +240,7 @@ void IsoTreeWriter<T>::fillExtraVars(const pat::Tau& lepton)
 //
 // member functions
 template< typename T > 
-void IsoTreeWriter<T>::fillIso(const edm::Handle< std::vector<T> >& leptons)
+void IsoTreeWriter<T>::fillIso(const edm::Handle< std::vector<T> >& leptons, const edm::Event& iEvent)
 {
 	nLept = 0;
 	for (typename std::vector<T>::const_iterator lep_i = leptons->begin(); lep_i != leptons->end(); ++lep_i){
@@ -241,6 +250,7 @@ void IsoTreeWriter<T>::fillIso(const edm::Handle< std::vector<T> >& leptons)
 		eta = lep_i->eta();
 		leptonKind = fctLeptonKind_(*lep_i);
 		fillExtraVars(*lep_i);
+		if(secondLeptonExtensionsActive_) secondLeptonExtensions_.fill<T>(*treeIso, *lep_i, iEvent);
 		treeIso->Fill();
 	}
 }
@@ -273,7 +283,7 @@ void IsoTreeWriter<T >::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
 	//Probes
 	//run the TnP
-	fillIso(leptons);
+	fillIso(leptons, iEvent);
 
 }
 
