@@ -48,7 +48,7 @@ jetElectronCleaner = cms.EDProducer('jetElectronCleaner',
 
 resCorrectedJetProducer = cms.EDProducer('ResCorrJetsProducer',
   src = cms.InputTag("basicJets"),
-  jetCorrections = cms.string("CondFormats/JetMETObjects/data/Spring10DataV2_L2L3Residual_AK5PF.txt")
+  jetCorrections = cms.string("ak5PFJetsL2L3Residual")
 )
 
 unCorrectedJetProducer = cms.EDProducer('UnCorrJetsProducer',

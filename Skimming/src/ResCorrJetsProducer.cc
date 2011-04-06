@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr
 //         Created:  Wed Aug 18 15:37:34 CEST 2010
-// $Id: ResCorrJetsProducer.cc,v 1.1 2010/08/18 19:23:06 nmohr Exp $
+// $Id: ResCorrJetsProducer.cc,v 1.2 2010/08/18 20:55:13 nmohr Exp $
 //
 //
 
@@ -30,9 +30,9 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
-#include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
-#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
-
+//#include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
+//#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+#include "JetMETCorrections/Objects/interface/JetCorrector.h"
 
 //
 // class declaration
@@ -52,7 +52,8 @@ class ResCorrJetsProducer : public edm::EDProducer {
    private:
       edm::InputTag jetSrc;
       std::string jetCorrections;
-      FactorizedJetCorrector* JEC;
+  //FactorizedJetCorrector* JEC;
+      const JetCorrector* JEC;
       virtual void beginJob() ;
       virtual void produce(edm::Event&, const edm::EventSetup&);
       virtual void endJob() ;
@@ -79,11 +80,7 @@ ResCorrJetsProducer::ResCorrJetsProducer(const edm::ParameterSet& iConfig)
    jetSrc            = iConfig.getParameter<edm::InputTag> ("src");
    jetCorrections    = iConfig.getParameter<std::string> ("jetCorrections");
 
-   edm::FileInPath fipRes(jetCorrections);
-   JetCorrectorParameters *ResJetCorPar = new JetCorrectorParameters(fipRes.fullPath());
-   std::vector<JetCorrectorParameters> vParam;
-   vParam.push_back(*ResJetCorPar);
-   JEC = new FactorizedJetCorrector(vParam);
+   JEC = 0;
 }
 
 
@@ -104,16 +101,17 @@ ResCorrJetsProducer::~ResCorrJetsProducer()
 void
 ResCorrJetsProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+  if (JEC == 0)
+    JEC = JetCorrector::getJetCorrector(jetCorrections, iSetup);
+
    edm::Handle< std::vector<pat::Jet> > jets;
    iEvent.getByLabel(jetSrc, jets);
    bool isRealData = iEvent.isRealData();
 
    std::auto_ptr<std::vector<pat::Jet> > theJets ( new std::vector<pat::Jet>() );
    for (std::vector<pat::Jet>::const_iterator jet_i = jets->begin(); jet_i != jets->end(); ++jet_i){
-        JEC->setJetEta(jet_i->eta());
-        JEC->setJetPt(jet_i->pt());
         pat::Jet rescaledJet = *jet_i;
-        if (isRealData) rescaledJet.scaleEnergy(JEC ? JEC->getCorrection() : 1.);
+        if (isRealData) rescaledJet.scaleEnergy(JEC ? JEC->correction(jet_i->p4()) : 1.);
         theJets->push_back(rescaledJet);
     }
    std::sort(theJets->begin(), theJets->end(), PtGreater());
