@@ -1,0 +1,33 @@
+<use   name="FWCore/Framework"/>
+<use   name="FWCore/ParameterSet"/>
+<library   name="SuSyAachenD0Selectors" file="d0Selector.cc">
+  <use   name="CommonTools/UtilAlgos"/>
+  <use   name="DataFormats/PatCandidates"/>
+  <use   name="DataFormats/ParticleFlowCandidate"/>
+  <use   name="DataFormats/BeamSpot"/>
+</library>
+<library   name="SuSyAachenPatFlagSelectors" file="patFlagSelector.cc">
+  <use   name="CommonTools/UtilAlgos"/>
+  <use   name="DataFormats/PatCandidates"/>
+</library>
+<library   name="SuSyAachenPatConversionSelectors" file="patConversionSelector.cc">
+  <use   name="RecoEgamma/EgammaTools"/>
+  <use   name="RecoEcal/EgammaCoreTools"/>
+  <use   name="MagneticField/Engine"/>
+  <use   name="MagneticField/Records"/>
+  <use   name="CommonTools/UtilAlgos"/>
+  <use   name="DataFormats/PatCandidates"/>
+</library>
+<library   name="SuSyAachenMCSelectors" file="MCSelectors.cc">
+  <use   name="CommonTools/UtilAlgos"/>
+  <use   name="DataFormats/HepMCCandidate"/>
+  <use   name="DataFormats/PatCandidates"/>
+</library>
+<library   name="SuSyAachenJetSelectors" file="jetSelectors.cc">
+  <use   name="CommonTools/UtilAlgos"/>
+  <use   name="DataFormats/PatCandidates"/>
+</library>
+<library   name="SuSyAachenTrackSelectors" file="trackSelectors.cc">
+  <use   name="CommonTools/UtilAlgos"/>
+  <use   name="DataFormats/TrackReco"/>
+</library>
