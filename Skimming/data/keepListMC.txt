@@ -3,6 +3,7 @@ drop *_cleanPatJetsIC5Calo__PAT
 drop *_cleanPatJetsAK5PF__PAT
 drop *_cleanPatPhotons_*_*
 keep *_selectedPat*PF_*_*
+keep *_selectedPatTausPFShrinkingCone_*_*
 keep *_cleanPat*_*_*
 keep *_mergedTruth_*_*
 #drop *_genParticles_*_*
@@ -10,4 +11,3 @@ keep *_patMETsTypeIPF_*_
 drop recoGenJets_*GenJets*_*_*
 drop *_selectedPatPFParticlesPF_*_*
 drop *_cleanPatJetsAK5PF_*_* 
-

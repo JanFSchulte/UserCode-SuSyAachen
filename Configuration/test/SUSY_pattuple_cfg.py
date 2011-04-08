@@ -68,13 +68,25 @@ if options.GlobalTag:
 ############################# START SUSYPAT specifics ####################################
 from PhysicsTools.Configuration.SUSY_pattuple_cff import addDefaultSUSYPAT, getSUSY_pattuple_outputCommands
 #Apply SUSYPAT
-addDefaultSUSYPAT(process,options.mcInfo,options.hltName,options.jetCorrections,options.mcVersion,options.jetTypes,options.doValidation,options.doExtensiveMatching,options.doSusyTopProjection)
+addDefaultSUSYPAT(process,options.mcInfo,
+	options.hltName,
+	options.jetCorrections,
+	options.mcVersion,
+	options.jetTypes,
+	options.doValidation,
+	options.doExtensiveMatching,
+	options.doSusyTopProjection
+)
 SUSY_pattuple_outputCommands = getSUSY_pattuple_outputCommands( process )
 ############################## END SUSYPAT specifics ####################################
 
 ### AACHEN specific, need better place for this #####
-from SuSyAachen.Configuration.AachenSUSYPAT_cff import reduceEventsize
+from SuSyAachen.Configuration.AachenSUSYPAT_cff import reduceEventsize, additionalTaus
+additionalTaus(process,postfix="PF")
 reduceEventsize(process)
+
+#from PhysicsTools.PatAlgos.tools.pfTools import adaptPFTaus
+#adaptPFTaus(process,"hpsPFTau",postfix="PF")
 
 #-- HLT selection ------------------------------------------------------------
 import HLTrigger.HLTfilters.hltHighLevel_cfi as hlt
