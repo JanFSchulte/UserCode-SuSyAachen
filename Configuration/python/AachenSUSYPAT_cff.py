@@ -97,11 +97,13 @@ def additionalTaus(process,postfix="PF"):
         getattr(process,"patShrinkingConePFTauDiscrimination"+postfix+"ShrinkingCone") 
         )
 
-    getattr(process,"patDefaultSequence"+postfix).replace(
-        getattr(process,"patTaus"+postfix),
-        getattr(process,"patTaus"+postfix) +
-        getattr(process,"makePatTaus"+postfix+"ShrinkingCone") 
-        )
+    for modName in getattr(process,"makePatTaus"+postfix).moduleNames():
+        if modName in getattr(process,"patDefaultSequence"+postfix).moduleNames():
+            getattr(process,"patDefaultSequence"+postfix).replace(
+                getattr(process,modName),
+                getattr(process,modName) +
+                getattr(process,modName+"ShrinkingCone") 
+    	    	)
 
     getattr(process,"patDefaultSequence"+postfix).replace(
         getattr(process,"selectedPatTaus"+postfix),
