@@ -4,6 +4,7 @@ tauisotreewriter = cms.EDAnalyzer('TauIsoTreeWriter',
 src = cms.InputTag("TaNCTaus"),
 jets = cms.InputTag("triggerMatchedPatJetsPF"),
 met = cms.InputTag("patMETsPF"),
+vertices = cms.InputTag("offlinePrimaryVertices"),
 )
 
 tauisotreewriterWithSecondLepton = tauisotreewriter.clone(

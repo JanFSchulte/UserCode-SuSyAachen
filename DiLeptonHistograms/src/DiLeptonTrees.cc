@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.10 2011/01/17 10:57:12 nmohr Exp $
+// $Id: DiLeptonTrees.cc,v 1.11 2011/02/10 15:44:34 edelhoff Exp $
 //
 //
 
@@ -75,8 +75,8 @@ private:
   void initFloatBranch( const std::string &name);
   void initIntBranch( const std::string &name);
   void initTLorentzVectorBranch( const std::string &name);
-  template <class aT, class bT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT >&b, const edm::Event &ev, double &ht, const TLorentzVector &met, double &weight);
-  template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const edm::Event &ev, double &ht, const TLorentzVector &met, double &weight);
+  template <class aT, class bT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT >&b, const edm::Event &ev, double &ht, const TLorentzVector &met, int &nVertices, double &weight);
+  template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const edm::Event &ev, double &ht, const TLorentzVector &met, int &nVertices, double &weight);
   template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, double &ht, const TLorentzVector &met, double &weight);
   int getMotherPdgId( const reco::GenParticle &p);
   std::pair<double, double> calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, const TLorentzVector& met);
@@ -87,6 +87,7 @@ private:
   edm::InputTag tauTag_;
   edm::InputTag jetTag_;
   edm::InputTag metTag_;
+  edm::InputTag vertexTag_;
   std::vector<edm::ParameterSet> susyVars_;
   std::vector<edm::InputTag> pdfs_;
 
@@ -112,6 +113,7 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig)
   tauTag_ = iConfig.getParameter<edm::InputTag>("taus");
   jetTag_ = iConfig.getParameter<edm::InputTag>("jets");
   metTag_ = iConfig.getParameter<edm::InputTag>("met");
+  vertexTag_ = iConfig.getParameter<edm::InputTag>("vertices");
   susyVars_ = iConfig.getParameter< std::vector<edm::ParameterSet> >("susyVars");
   pdfs_ = iConfig.getParameter<std::vector<edm::InputTag> > ("pdfWeightTags");
 
@@ -139,6 +141,7 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig)
   initFloatBranch( "met" );
   initFloatBranch( "pZeta" );
   initFloatBranch( "pZetaVis" );
+  initIntBranch( "nVertices" );
   initIntBranch( "runNr" );
   initIntBranch( "lumiSec" );
   initIntBranch( "eventNr" );
@@ -237,6 +240,11 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle< std::vector< pat::MET > > mets;
   iEvent.getByLabel(metTag_, mets);
 
+  edm::Handle<reco::VertexCollection> vertices;
+  iEvent.getByLabel(vertexTag_, vertices);
+
+  int nVertices = vertices->size();
+
   TLorentzVector met(mets->front().px(), mets->front().py(), mets->front().pz(), mets->front().energy());
 
   double ht = 0.0;
@@ -245,22 +253,23 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
   double weight = 1.;// TODO get weight...
   
-  makeCombinations< pat::Electron >("EE", *electrons, iEvent, ht, met, weight);
-  makeCombinations< pat::Electron, pat::Muon >("EMu", *electrons, *muons, iEvent, ht,met, weight);
-  makeCombinations< pat::Muon >("MuMu", *muons, iEvent, ht, met , weight);
-  makeCombinations< pat::Electron, pat::Tau >("ETau", *electrons, *taus, iEvent, ht, met , weight);
-  makeCombinations< pat::Muon, pat::Tau>("MuTau", *muons, *taus, iEvent, ht, met, weight);
-  makeCombinations< pat::Tau >("TauTau", *taus, iEvent, ht, met, weight);
+  makeCombinations< pat::Electron >("EE", *electrons, iEvent, ht, met, nVertices, weight);
+  makeCombinations< pat::Electron, pat::Muon >("EMu", *electrons, *muons, iEvent, ht,met, nVertices, weight);
+  makeCombinations< pat::Muon >("MuMu", *muons, iEvent, ht, met, nVertices, weight);
+  makeCombinations< pat::Electron, pat::Tau >("ETau", *electrons, *taus, iEvent, ht, met, nVertices, weight);
+  makeCombinations< pat::Muon, pat::Tau>("MuTau", *muons, *taus, iEvent, ht, met, nVertices, weight);
+  makeCombinations< pat::Tau >("TauTau", *taus, iEvent, ht, met, nVertices, weight);
 
   //  if( nMu != 2) std::cout << "-------! "<<nMu<<std::endl;
 }
 
 template <class aT, class bT> void 
-DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT> &b, const edm::Event &ev, double &ht, const TLorentzVector &met, double &weight)
+DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT> &b, const edm::Event &ev, double &ht, const TLorentzVector &met, int &nVertices, double &weight)
 {
   *(intBranches_[treeName]["runNr"]) = ev.id().run();
   *(intBranches_[treeName]["lumiSec"]) = ev.id().luminosityBlock();
   *(intBranches_[treeName]["eventNr"]) = ev.id().event();
+  *(intBranches_[treeName]["nVertices"]) = nVertices;
   for ( std::vector<edm::ParameterSet>::iterator susyVar_i = susyVars_.begin(); susyVar_i != susyVars_.end(); ++susyVar_i ) {
         std::string var = susyVar_i->getParameter<std::string>( "var" );
         std::string type = susyVar_i->getParameter<std::string>( "type" );
@@ -285,11 +294,12 @@ DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector
 }
 
 template <class aT> void 
-DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const edm::Event &ev, double &ht, const TLorentzVector &met, double &weight)
+DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const edm::Event &ev, double &ht, const TLorentzVector &met, int &nVertices, double &weight)
 {
   *(intBranches_[treeName]["runNr"]) = ev.id().run();
   *(intBranches_[treeName]["lumiSec"]) = ev.id().luminosityBlock();
   *(intBranches_[treeName]["eventNr"]) = ev.id().event();
+  *(intBranches_[treeName]["nVertices"]) = nVertices;
   for ( std::vector<edm::ParameterSet>::iterator susyVar_i = susyVars_.begin(); susyVar_i != susyVars_.end(); ++susyVar_i ) {
         std::string var = susyVar_i->getParameter<std::string>( "var" );
         std::string type = susyVar_i->getParameter<std::string>( "type" );

@@ -6,6 +6,7 @@ DiLeptonTrees = cms.EDAnalyzer("DiLeptonTrees",
    taus = cms.InputTag("triggerMatchedPatTausPF"),
    jets = cms.InputTag("triggerMatchedPatJetsPF"),
    met = cms.InputTag("patMETsPF"),
+   vertices = cms.InputTag("offlinePrimaryVertices"),
    susyVars = cms.VPSet(),
    pdfWeightTags = cms.VInputTag(),
 

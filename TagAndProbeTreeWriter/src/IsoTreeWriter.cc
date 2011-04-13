@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: IsoTreeWriter.cc,v 1.8 2011/02/25 00:35:08 edelhoff Exp $
+// $Id: IsoTreeWriter.cc,v 1.9 2011/03/20 22:39:06 edelhoff Exp $
 //
 //
 
@@ -92,6 +92,7 @@ private:
 	edm::InputTag leptonSrc;
 	edm::InputTag jetTag_;
 	edm::InputTag metTag_;
+	edm::InputTag vertexTag_;
 
 	TFile *theFile;
 
@@ -111,6 +112,7 @@ private:
 	float met;
 	int nLept;
 	int nJets;
+	int nVertices;
 	int leptonKind;
 
 	//Extensions
@@ -133,13 +135,14 @@ template< typename T  >
 IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig)
 {
 	//now do what ever initialization is needed
-	tauExtensionsActive_ = true;
+	tauExtensionsActive_ = false;
 	secondLeptonExtensionsActive_ = false;
 
 	//Input collections
 	leptonSrc          = iConfig.getParameter<edm::InputTag> ("src");
 	jetTag_          = iConfig.getParameter<edm::InputTag> ("jets");
 	metTag_          = iConfig.getParameter<edm::InputTag> ("met");
+	vertexTag_       = iConfig.getParameter<edm::InputTag> ("vertices");
 
 	// Create the root file
 	edm::Service<TFileService> theFile;
@@ -156,6 +159,7 @@ IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig)
 	treeIso->Branch("ht",&ht,"ht/F");
 	treeIso->Branch("met",&met,"met/F");
 	treeIso->Branch("nLept",&nLept,"nLept/I");
+	treeIso->Branch("nVertices",&nVertices,"nVertices/I");
 	treeIso->Branch("leptonKind",&leptonKind,"leptonsKind/I");
 
 	if(tauExtensionsActive_) tauExtensions_.init(iConfig, *treeIso);
@@ -274,12 +278,18 @@ void IsoTreeWriter<T >::analyze(const edm::Event& iEvent, const edm::EventSetup&
 	edm::Handle< std::vector< pat::MET > > mets;
 	iEvent.getByLabel(metTag_, mets);
 
+	edm::Handle<reco::VertexCollection> vertices;
+	iEvent.getByLabel(vertexTag_, vertices);
+
 	met = mets->front().pt();
 
 	ht = 0.0;
 	for(std::vector<pat::Jet>::const_iterator it = jets->begin(); it != jets->end() ; ++it){
 		ht += (*it).pt();
 	}
+
+	// count number of vertices
+	nVertices = vertices->size();
 
 	//Probes
 	//run the TnP

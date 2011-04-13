@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2010/12/22 16:41:00 $
- *  $Revision: 1.37 $ for CMSSW 3_6_X
+ *  $Date: 2011/02/10 15:44:34 $
+ *  $Revision: 1.38 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -376,7 +376,7 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hTauMult[process] = Multiplicity.make<TH1F>( "TauMultiplicity", "Multiplicity of taus", 10, -0.5, 9.5);
     hJetMult[process] = Multiplicity.make<TH1F>( "JetMultiplicity", "Multiplicity of jets", 30, -0.5, 29.5);
     hbJetMult[process] = Multiplicity.make<TH1F>( "bJetMultiplicity", "Multiplicity of b jets", 15, -0.5, 14.5);
-    hVertexMult[process] = Multiplicity.make<TH1F>( "VertexMultiplicity", "Multiplicity of vertices", 10, -0.5, 9.5);
+    hVertexMult[process] = Multiplicity.make<TH1F>( "VertexMultiplicity", "Multiplicity of vertices", 40, -0.5, 39.5);
 
         
     TFileDirectory InvMass = theFile->mkdir("Invariant Mass"); 
