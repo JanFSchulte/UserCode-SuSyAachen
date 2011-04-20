@@ -34,13 +34,17 @@ const double DecayLengthFunctor::GetDecayLength(const pat::Electron& e1, const p
   // math::XYZTLorentzVectorD jpsi = e1.p4() + e2P4;
 
   // for debugging reasons slightly different return values if quality cuts fail
+  // --> removing sanity checks, can do all those on the final tree
+  /*
   if (jpsi.M() > 3.4)
     return -10.1;
   if (jpsi.M() < 2.8)
     return -10.2;
   if (e1.charge() + e2.charge()!=0)
     return -10.3;
-
+  */
+    
+  // what is this for?
   /*
   if (  it->trackRef().id() == pvtracks.id() && it2->trackRef().id() == pvtracks.id()) { 
     TrackCollection elecLess;

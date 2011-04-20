@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: IsoTreeWriter.cc,v 1.9 2011/03/20 22:39:06 edelhoff Exp $
+// $Id: IsoTreeWriter.cc,v 1.10 2011/04/13 13:55:04 sprenger Exp $
 //
 //
 
@@ -54,6 +54,7 @@
 
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/LeptonKindFunctor.h"
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/IsoTreeTauExtensions.h"
+#include "SuSyAachen/TagAndProbeTreeWriter/interface/IsolationFunctor.h"
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/IsoTreeSecondLeptonExtensions.h"
 
 #include <iostream>
@@ -81,7 +82,6 @@ private:
 	//        virtual double calcIso(const T &);
 	virtual double calcIso(const pat::Electron &);
 	virtual double calcIsoMinPt(const pat::Electron &);
-	virtual double calcPfIso(const T &);
 
 	// ----------member data ---------------------------
 	// Switch for debug output
@@ -97,11 +97,19 @@ private:
 	TFile *theFile;
 
 	LeptonKindFunctor fctLeptonKind_;
+        IsolationFunctor fctIsolation_;
+        ChargedHadronIsolationFunctor fctIsolationChargedHadrons_;
+        NeutralHadronIsolationFunctor fctIsolationNeutralHadrons_;
+        PhotonIsolationFunctor fctIsolationPhotons_;
 
 	//Trees
 	TTree*  treeIso;
 	TTree*  treeIsoEvent;
-	float pfIso;
+        float pfIso;
+        float pfIsoAbs;
+        float pfIsoAbsChargedHadrons;
+        float pfIsoAbsNeutralHadrons;
+        float pfIsoAbsPhotons;
 	float mva;
 	float iso;
 	float isoMinPt;
@@ -150,6 +158,10 @@ IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig)
 	TFileDirectory Tree = theFile->mkdir( "Trees" );
 	treeIso = Tree.make<TTree>("Iso","Iso");
 	treeIso->Branch("pfIso",&pfIso,"pfIso/F");
+	treeIso->Branch("pfIsoAbs",&pfIsoAbs,"pfIsoAbs/F");
+	treeIso->Branch("pfIsoAbsChargedHadrons",&pfIsoAbsChargedHadrons,"pfIsoAbsChargedHadrons/F");
+	treeIso->Branch("pfIsoAbsNeutralHadrons",&pfIsoAbsNeutralHadrons,"pfIsoAbsNeutralHadrons/F");
+	treeIso->Branch("pfIsoAbsPhtotons",&pfIsoAbsPhotons,"pfIsoAbsPhotons/F");
 	treeIso->Branch("mva",&mva,"mva/F");
 	treeIso->Branch("iso",&iso,"iso/F");
 	treeIso->Branch("isoMinPt",&isoMinPt,"isoMinPt/F");
@@ -205,13 +217,6 @@ double IsoTreeWriter<T>::calcIsoMinPt(const pat::Electron& lepton)
 	return value;
 }
 
-template < typename T >
-double IsoTreeWriter<T>::calcPfIso(const T& lepton)
-{
-	double value = (lepton.chargedHadronIso()+lepton.photonIso()+lepton.neutralHadronIso())/lepton.pt();
-	return value;
-}
-
 template< typename T > 
 void IsoTreeWriter<T>::fillExtraVars(const pat::Electron& lepton)
 {
@@ -249,11 +254,18 @@ void IsoTreeWriter<T>::fillIso(const edm::Handle< std::vector<T> >& leptons, con
 	nLept = 0;
 	for (typename std::vector<T>::const_iterator lep_i = leptons->begin(); lep_i != leptons->end(); ++lep_i){
 		nLept = leptons->size();
-		pfIso = calcPfIso(*lep_i);
 		pt = lep_i->pt();
 		eta = lep_i->eta();
 		leptonKind = fctLeptonKind_(*lep_i);
 		fillExtraVars(*lep_i);
+
+		// isolation
+		pfIsoAbs = fctIsolation_(*lep_i);
+		pfIso = fctIsolation_(*lep_i) / lep_i->pt();
+		pfIsoAbsChargedHadrons = fctIsolationChargedHadrons_(*lep_i);
+		pfIsoAbsNeutralHadrons = fctIsolationNeutralHadrons_(*lep_i);
+		pfIsoAbsPhotons = fctIsolationPhotons_(*lep_i);
+
 		if(secondLeptonExtensionsActive_) secondLeptonExtensions_.fill<T>(*treeIso, *lep_i, iEvent);
 		treeIso->Fill();
 	}

@@ -44,6 +44,7 @@
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/DecayLengthFunctor.h"
+#include "SuSyAachen/TagAndProbeTreeWriter/interface/IsolationFunctor.h"
 
 //
 // class declaration
@@ -97,6 +98,10 @@ private:
   TFile *theFile;
 
   DecayLengthFunctor fctDecayLength_;
+  IsolationFunctor fctIsolation_;
+  ChargedHadronIsolationFunctor fctIsolationChargedHadrons_;
+  NeutralHadronIsolationFunctor fctIsolationNeutralHadrons_;
+  PhotonIsolationFunctor fctIsolationPhotons_;
 
   //Trees
   TTree*  treeTnP;
@@ -110,11 +115,16 @@ private:
   int motherPdgIdLepton;
   float invM;
   float ptProbe;
+  float ptTP;
   float etaProbe;
   float dPt;
   float dRJet;
   int chargeTagProbe;
   float pfIso;
+  float pfIsoAbs;
+  float pfIsoAbsChargedHadrons;
+  float pfIsoAbsNeutralHadrons;
+  float pfIsoAbsPhotons;
   float eOverP;
   float fBrem;
   float logSigIetaIeta;
@@ -123,6 +133,7 @@ private:
   int nMatchProbe;
   int nJets;
   int nVertices;
+  int nLostHits;
   int chargeMethodsProbe;
   int chargeDeviatingProbe;
   float decayLength;
@@ -166,6 +177,7 @@ TagAndProbeTreeWriterDPC<T,P>::TagAndProbeTreeWriterDPC(const edm::ParameterSet&
     treeTnP = Tree.make<TTree>("TnP","TnP"); 
     treeTnP->Branch("inv",&invM,"invM/F");
     treeTnP->Branch("pt",&ptProbe,"ptProbe/F");
+    treeTnP->Branch("ptTP",&ptTP,"ptTP/F");
     treeTnP->Branch("eta",&etaProbe,"etaProbe/F");
     treeTnP->Branch("dPt",&dPt,"dPt/F");
     treeTnP->Branch("dRJet",&dRJet,"dRJet/F");
@@ -173,7 +185,12 @@ TagAndProbeTreeWriterDPC<T,P>::TagAndProbeTreeWriterDPC(const edm::ParameterSet&
     treeTnP->Branch("nMatch",&nMatchProbe,"nMatchProbe/I");
     treeTnP->Branch("nJets",&nJets,"nJets/I");
     treeTnP->Branch("nVertices",&nVertices,"nVertices/I");
+    treeTnP->Branch("nLostHits",&nLostHits,"nLostHits/I");
     treeTnP->Branch("pfIso",&pfIso,"pfIso/F");
+    treeTnP->Branch("pfIsoAbs",&pfIsoAbs,"pfIsoAbs/F");
+    treeTnP->Branch("pfIsoAbsChargedHadrons",&pfIsoAbsChargedHadrons,"pfIsoAbsChargedHadrons/F");
+    treeTnP->Branch("pfIsoAbsNeutralHadrons",&pfIsoAbsNeutralHadrons,"pfIsoAbsNeutralHadrons/F");
+    treeTnP->Branch("pfIsoAbsPhtotons",&pfIsoAbsPhotons,"pfIsoAbsPhotons/F");
     treeTnP->Branch("eOverP",&eOverP,"eOverP/F");
     treeTnP->Branch("fBrem",&fBrem,"fBrem/F");
     treeTnP->Branch("logSigIetaIeta",&logSigIetaIeta,"logSigIetaIeta/F");
@@ -213,12 +230,12 @@ TagAndProbeTreeWriterDPC<T,P>::~TagAndProbeTreeWriterDPC()
 // member functions
 template< typename T, typename P > 
 void TagAndProbeTreeWriterDPC<T,P>::fillExtraVars(const reco::Track& probe){
-  pfIso = -1.;
   mva = -1.;
   eOverP = -1;
   fBrem = -1;
   deltaEtaIn =-1;
   logSigIetaIeta = -1;
+  nLostHits = -1;
 
   // charge methods
   chargeMethodsProbe = -1;
@@ -227,12 +244,12 @@ void TagAndProbeTreeWriterDPC<T,P>::fillExtraVars(const reco::Track& probe){
 
 template< typename T, typename P > 
 void TagAndProbeTreeWriterDPC<T,P>::fillExtraVars(const reco::Candidate& probe){
-  pfIso = -1.;
   mva = -1.;
   eOverP = -1;
   fBrem = -1;
   deltaEtaIn =-1;
   logSigIetaIeta = -1;
+  nLostHits = -1;
 
   // charge methods
   chargeMethodsProbe = -1;
@@ -241,12 +258,12 @@ void TagAndProbeTreeWriterDPC<T,P>::fillExtraVars(const reco::Candidate& probe){
 
 template< typename T, typename P > 
 void TagAndProbeTreeWriterDPC<T,P>::fillExtraVars(const pat::Muon& probe){
-  pfIso = (probe.chargedHadronIso()+probe.photonIso()+probe.neutralHadronIso())/probe.pt();
   mva = -1.;
   eOverP = -1;
   fBrem = -1;
   deltaEtaIn =-1;
   logSigIetaIeta = -1;
+  nLostHits = -1;
 
   // charge methods
   chargeMethodsProbe = -1;
@@ -255,8 +272,6 @@ void TagAndProbeTreeWriterDPC<T,P>::fillExtraVars(const pat::Muon& probe){
 
 template< typename T, typename P > 
 void TagAndProbeTreeWriterDPC<T,P>::fillExtraVars(const pat::Electron& probe){
-  //*iso = (probe->chargedHadronIso()+probe->photonIso()+probe->neutralHadronIso())/probe->pt();
-  pfIso = 1.0/probe.pt();
   mva = probe.mva();
   eOverP = probe.eSuperClusterOverP();
   float pin  = probe.trackMomentumAtVtx().R();
@@ -264,6 +279,7 @@ void TagAndProbeTreeWriterDPC<T,P>::fillExtraVars(const pat::Electron& probe){
   fBrem = (pin-pout)/pin;
   logSigIetaIeta = log(probe.sigmaIetaIeta());
   deltaEtaIn = probe.deltaEtaSuperClusterTrackAtVtx();
+  nLostHits = probe.gsfTrack()->trackerExpectedHitsInner().numberOfLostHits();
  
   // charge methods
   chargeMethodsProbe = 2;
@@ -304,24 +320,30 @@ void TagAndProbeTreeWriterDPC<T,P>::fillDecayLength(const pat::Electron& tag, co
 template< typename T, typename P > 
 void TagAndProbeTreeWriterDPC<T,P>::TnP(const collection& pairs, const edm::Handle< std::vector<T> >& pass_probes, const edm::Handle< std::vector<pat::Jet> >& jets, const edm::Handle<reco::VertexCollection>& vertices, const edm::EventSetup& iSetup){
   for(collection::const_iterator it_pair = pairs.begin(); it_pair != pairs.end(); ++it_pair){
-    //std::cout << "11" << std::endl;
     edm::Ref<std::vector <T> > tag = (*it_pair).daughter("tag")->masterRef<edm::Ref< std::vector<T> > >();
-    //std::cout << "12" << std::endl;
     edm::Ref<std::vector <P> > probe = (*it_pair).daughter("probe")->masterRef<edm::Ref< std::vector<P> > >();
-    //std::cout << "13" << std::endl;
 
-    //P* probe = (P*)(*it_pair).daughter(1);
     nMatchProbe = 0;
     invM = 0.;
     ptProbe = probe->pt();
     etaProbe = probe->eta();
     chargeTagProbe = tag->charge()*probe->charge();
     dRJet = 9999999.;
+    ptTP = (tag->p4() + probe->p4()).Pt();
 
+    // isolation
+    pfIsoAbs = fctIsolation_(*probe);
+    pfIso = fctIsolation_(*probe) / probe->pt();
+    pfIsoAbsChargedHadrons = fctIsolationChargedHadrons_(*probe);
+    pfIsoAbsNeutralHadrons = fctIsolationNeutralHadrons_(*probe);
+    pfIsoAbsPhotons = fctIsolationPhotons_(*probe);
+
+    // jet information
     for (typename std::vector<pat::Jet>::const_iterator jet_i = jets->begin(); jet_i != jets->end(); ++jet_i){
       dRJet = std::min(dRJet,(float)reco::deltaR(jet_i->eta(),jet_i->phi(),probe->eta(),probe->phi()));
     }
 
+    // pass probe matches
     double deltaRTnP = 9999999.;
     dPt = 9999999.;
 

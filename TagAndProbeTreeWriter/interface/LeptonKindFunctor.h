@@ -18,12 +18,12 @@
 class LeptonKindFunctor
 {
 public:
-	LeptonKindFunctor();
-	template<class T> const int operator()(const T& lepton);
+  LeptonKindFunctor();
+  template<class T> const int operator()(const T& lepton);
 	
 private:
-	template<class T> const int GetLeptKind(const T * lepton);
-	const int PromptCategory(const reco::Candidate * genParticle);
+  template<class T> const int GetLeptKind(const T * lepton);
+  const int PromptCategory(const reco::Candidate * genParticle);
 };
 
 
