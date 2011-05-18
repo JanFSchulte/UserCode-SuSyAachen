@@ -25,6 +25,12 @@ electronBasicGenParticles = cms.EDFilter("GenParticleSelector", filter = filterG
    cut = electronSelection.basicElectrons.cut
 )
 
+stringGenJetSelector = cms.EDFilter("GenJetSelector",
+    src = cms.InputTag("iterativeCone5GenJets"),
+    cut = cms.string(''),
+    filter = cms.bool(True)
+)
+
 anyElectronMatchedParticles = patMatchers.patMatchedElectronSelector.clone( filter = filterGenElectrons,
 )
 
@@ -141,6 +147,15 @@ basicTauJetMatchedParticles = patMatchers.patMatchedTauSelector.clone( filter = 
 isoTauJetMatchedParticles = patMatchers.patMatchedTauSelector.clone( filter = filterGenTaus,
    src = cms.InputTag("isoTaus"),
 )
+
+isoGenLepton = cms.EDProducer('IsoGenParticleProducer',
+    src = cms.InputTag("basicElectrons"),
+    cut_dR = cms.double(0.4),
+    cut_iso = cms.double(0.2),
+    cut_pt = cms.double(0.75),
+    exclude = cms.vint32( 11,-11, 13,-13,15,-15) #leptons
+)
+
 
 susyCrossSectionProducer = cms.EDProducer( "SusyXSecProducer", src = cms.InputTag("genParticles"),
     susyVars = cms.VPSet(
