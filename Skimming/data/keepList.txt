@@ -12,3 +12,4 @@ keep *_patMETsTypeIPF_*_
 drop recoGenJets_*GenJets*_*_*
 drop *_selectedPatPFParticlesPF_*_*
 drop *_cleanPatJetsAK5PF_*_* 
+keep *_allConversions_*_*
