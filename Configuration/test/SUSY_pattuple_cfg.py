@@ -11,7 +11,7 @@ from PhysicsTools.PatAlgos.patTemplate_cfg import *
 
 #-- Meta data to be logged in DBS ---------------------------------------------
 process.configurationMetadata = cms.untracked.PSet(
-    version = cms.untracked.string('$Revision: 1.37 $'),
+    version = cms.untracked.string('$Revision: 1.38 $'),
     name = cms.untracked.string('$Source: /cvs/CMSSW/CMSSW/PhysicsTools/Configuration/test/SUSY_pattuple_cfg.py,v $'),
     annotation = cms.untracked.string('SUSY pattuple definition')
 )
@@ -33,7 +33,8 @@ options.maxEvents = 100
 #  for SusyPAT configuration
 options.register('GlobalTag', "", VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "GlobalTag to use (if empty default Pat GT is used)")
 options.register('mcInfo', True, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "process MonteCarlo data")
-options.register('jetCorrections', 'L2Relative', VarParsing.VarParsing.multiplicity.list, VarParsing.VarParsing.varType.string, "Level of jet corrections to use: Note the factors are read from DB via GlobalTag")
+options.register('jetCorrections', 'L1FastJet', VarParsing.VarParsing.multiplicity.list, VarParsing.VarParsing.varType.string, "Level of jet corrections to use: Note the factors are read from DB via GlobalTag")
+options.jetCorrections.append('L2Relative')
 options.jetCorrections.append('L3Absolute')
 options.register('hltName', 'HLT', VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "HLT menu to use for trigger matching")
 options.register('mcVersion', '', VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "Currently not needed and supported")
@@ -52,10 +53,8 @@ options._tagOrder =[]
 if options.files:
     process.source.fileNames = cms.untracked.vstring (options.files)
 #process.source.fileNames = [
-#    '/store/relval/CMSSW_4_1_3/RelValTTbar/GEN-SIM-RECO/START311_V2-v1/0038/12763BEE-5A52-E011-8988-003048679048.root'    
-#    '/store/data/Run2011A/DoubleElectron/AOD/PromptReco-v1/000/161/311/C244A2CB-BA57-E011-AAB9-001617C3B6E2.root'
 #     '/store/relval/CMSSW_3_7_0_pre5/RelValProdTTbar/GEN-SIM-RECO/MC_37Y_V4-v1/0023/BA92C6D3-8863-DF11-B3AF-002618943939.root'
-#]
+#    ]
 
 process.maxEvents.input = options.maxEvents
 # Due to problem in production of LM samples: same event number appears multiple times
@@ -68,15 +67,7 @@ if options.GlobalTag:
 ############################# START SUSYPAT specifics ####################################
 from PhysicsTools.Configuration.SUSY_pattuple_cff import addDefaultSUSYPAT, getSUSY_pattuple_outputCommands
 #Apply SUSYPAT
-addDefaultSUSYPAT(process,options.mcInfo,
-	options.hltName,
-	options.jetCorrections,
-	options.mcVersion,
-	options.jetTypes,
-	options.doValidation,
-	options.doExtensiveMatching,
-	options.doSusyTopProjection
-)
+addDefaultSUSYPAT(process,options.mcInfo,options.hltName,options.jetCorrections,options.mcVersion,options.jetTypes,options.doValidation,options.doExtensiveMatching,options.doSusyTopProjection)
 SUSY_pattuple_outputCommands = getSUSY_pattuple_outputCommands( process )
 ############################## END SUSYPAT specifics ####################################
 
@@ -84,9 +75,6 @@ SUSY_pattuple_outputCommands = getSUSY_pattuple_outputCommands( process )
 from SuSyAachen.Configuration.AachenSUSYPAT_cff import reduceEventsize, additionalTaus
 additionalTaus(process,postfix="PF")
 reduceEventsize(process)
-
-#from PhysicsTools.PatAlgos.tools.pfTools import adaptPFTaus
-#adaptPFTaus(process,"hpsPFTau",postfix="PF")
 
 #-- HLT selection ------------------------------------------------------------
 import HLTrigger.HLTfilters.hltHighLevel_cfi as hlt

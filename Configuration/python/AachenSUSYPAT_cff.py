@@ -118,20 +118,20 @@ def additionalTaus(process,postfix="PF"):
     getattr(process,"selectedPatTaus"+postfix+"ShrinkingCone").cut = 'pt > 10'
     getattr(process,"pfTaus"+postfix+"ShrinkingCone").discriminators = cms.VPSet()
 	#discriminators
-    
-    setattr(process,"hpsPFTauDiscriminationAgainstElectron2D"+postfix,
-            getattr(process,"hpsPFTauDiscriminationAgainstElectron"+postfix).clone(
+
+    setattr(process,"hpsPFTauDiscriminationByLooseElectronRejection2D"+postfix,
+            getattr(process,"hpsPFTauDiscriminationByLooseElectronRejection"+postfix).clone(
         ApplyCut_ElectronPreID_2D = cms.bool(True),
         ApplyCut_PFElectronMVA =  cms.bool(False)
         )
             )
-    setattr(process,"hpsPFTauDiscriminationAgainstElectronCrackRem"+postfix,
-            getattr(process,"hpsPFTauDiscriminationAgainstElectron"+postfix).clone(
+    setattr(process,"hpsPFTauDiscriminationByLooseElectronRejectionCrackRem"+postfix,
+            getattr(process,"hpsPFTauDiscriminationByLooseElectronRejection"+postfix).clone(
         ApplyCut_EcalCrackCut = cms.bool(True),
         ApplyCut_PFElectronMVA =  cms.bool(False)
         )
             )
-    
+
     setattr(process,"shrinkingConePFTauDiscriminationAgainstElectron2D"+postfix+"ShrinkingCone",
             getattr(process,"shrinkingConePFTauDiscriminationAgainstElectron"+postfix+"ShrinkingCone").clone(
         ApplyCut_ElectronPreID_2D = cms.bool(True),
@@ -146,9 +146,9 @@ def additionalTaus(process,postfix="PF"):
             )
 	
     s = getattr(process,"patHPSPFTauDiscrimination"+postfix) 
-    s +=     getattr(process,"hpsPFTauDiscriminationAgainstElectron2D"+postfix)
+    s +=     getattr(process,"hpsPFTauDiscriminationByLooseElectronRejection2D"+postfix)
     s = getattr(process,"patHPSPFTauDiscrimination"+postfix) 
-    s +=     getattr(process,"hpsPFTauDiscriminationAgainstElectronCrackRem"+postfix)
+    s +=     getattr(process,"hpsPFTauDiscriminationByLooseElectronRejectionCrackRem"+postfix)
 
     s= getattr(process,"patShrinkingConePFTauDiscrimination"+postfix+"ShrinkingCone") 
     s +=     getattr(process,"shrinkingConePFTauDiscriminationAgainstElectron2D"+postfix+"ShrinkingCone")
@@ -160,10 +160,16 @@ def additionalTaus(process,postfix="PF"):
         byLooseIsolation = cms.InputTag("hpsPFTauDiscriminationByLooseIsolation"+postfix),
         byMediumIsolation = cms.InputTag("hpsPFTauDiscriminationByMediumIsolation"+postfix),
         byTightIsolation = cms.InputTag("hpsPFTauDiscriminationByTightIsolation"+postfix),
-        againstElectron = cms.InputTag("hpsPFTauDiscriminationAgainstElectron"+postfix),
-        againstElectron2D = cms.InputTag("hpsPFTauDiscriminationAgainstElectron2D"+postfix),
-        againstElectronCrackRem = cms.InputTag("hpsPFTauDiscriminationAgainstElectronCrackRem"+postfix),
-        againstMuon = cms.InputTag("hpsPFTauDiscriminationAgainstMuon"+postfix)
+        byLooseChargedIsolation = cms.InputTag("hpsPFTauDiscriminationByLooseChargedIsolation"+postfix),
+        byMediumChargedIsolation = cms.InputTag("hpsPFTauDiscriminationByMediumChargedIsolation"+postfix),
+        byTightChargedIsolation = cms.InputTag("hpsPFTauDiscriminationByTightChargedIsolation"+postfix),
+        againstElectron = cms.InputTag("hpsPFTauDiscriminationByLooseElectronRejection"+postfix),
+        againstElectronMedium = cms.InputTag("hpsPFTauDiscriminationByMediumElectronRejection"+postfix),
+        againstElectronTight = cms.InputTag("hpsPFTauDiscriminationByTightElectronRejection"+postfix),
+        againstElectron2D = cms.InputTag("hpsPFTauDiscriminationByLooseElectronRejection2D"+postfix),
+        againstElectronCrackRem = cms.InputTag("hpsPFTauDiscriminationByLooseElectronRejectionCrackRem"+postfix),        
+        againstMuon = cms.InputTag("hpsPFTauDiscriminationByLooseMuonRejection"+postfix),
+        againstMuonTight = cms.InputTag("hpsPFTauDiscriminationByTightMuonRejection"+postfix)
         )
     getattr(process,"patTaus"+postfix+"ShrinkingCone").tauIDSources = cms.PSet(
         leadingTrackFinding = cms.InputTag("shrinkingConePFTauDiscriminationByLeadingTrackFinding"+postfix+"ShrinkingCone"),
