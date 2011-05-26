@@ -32,6 +32,13 @@ bJetElectronProducer = cms.EDProducer('bJetElectronProducer',
     user_bTagDiscriminator = cms.double(3.),
 )
 
+electronMuonCleaner = cms.EDProducer('electronMuonCleaner',
+    src = cms.InputTag("basicElectrons"),
+    leptSrc = cms.InputTag("basicMuons"),
+    dRJetLepton = cms.double(0.1)
+)
+
+
 isoElectrons = cms.EDFilter("PATElectronSelector", filter = filterElectrons,
   src = cms.InputTag("cleanElectrons"),
   #cut = cms.string('hcalIsoDeposit.candEnergy < 999 &  ecalIsoDeposit.candEnergy < 999')

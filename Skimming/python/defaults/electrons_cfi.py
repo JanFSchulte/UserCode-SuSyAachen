@@ -54,6 +54,12 @@ bJetElectrons = bJetElectronProducer.clone(
     jetSrc = cms.InputTag("cleanLayer1Jets")
 )
 
+from SuSyAachen.Skimming.electronSelection_cff import electronMuonCleaner
+muonCleanElectrons = electronMuonCleaner.clone(
+    src = cms.InputTag("cleanLayer1Electrons")
+)
+
+
 
 from SuSyAachen.Skimming.countFilter_cfi import candViewCountFilter
 countSelector = candViewCountFilter.clone(

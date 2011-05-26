@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr
 //         Created:  Wed Aug 18 15:37:34 CEST 2010
-// $Id: jetLeptonCleaner.cc,v 1.1 2010/08/27 14:48:04 nmohr Exp $
+// $Id: leptCleanJetProducer.cc,v 1.1 2010/10/21 11:32:24 nmohr Exp $
 //
 //
 
@@ -38,7 +38,7 @@
 //
 // class declaration
 //
-template< typename T >
+template< typename T1, typename T2 >
 class jetLeptonCleaner : public edm::EDProducer {
    public:
       explicit jetLeptonCleaner(const edm::ParameterSet&);
@@ -51,7 +51,7 @@ class jetLeptonCleaner : public edm::EDProducer {
       virtual void beginJob() ;
       virtual void produce(edm::Event&, const edm::EventSetup&);
       virtual void endJob() ;
-      GreaterByPt<pat::Jet>       pTComparator_;
+      GreaterByPt<T1>       pTComparator_;
       
       // ----------member data ---------------------------
 };
@@ -68,10 +68,10 @@ class jetLeptonCleaner : public edm::EDProducer {
 //
 // constructors and destructor
 //
-template< typename T >
-jetLeptonCleaner<T>::jetLeptonCleaner(const edm::ParameterSet& iConfig)
+template< typename T1, typename T2 >
+jetLeptonCleaner<T1,T2>::jetLeptonCleaner(const edm::ParameterSet& iConfig)
 { 
-   produces< std::vector< pat::Jet > > ();
+   produces< std::vector< T1 > > ();
    
    leptonSrc      = iConfig.getParameter<edm::InputTag> ("leptSrc");
    jetSrc         = iConfig.getParameter<edm::InputTag> ("src");
@@ -79,8 +79,8 @@ jetLeptonCleaner<T>::jetLeptonCleaner(const edm::ParameterSet& iConfig)
 }
 
 
-template< typename T >
-jetLeptonCleaner<T>::~jetLeptonCleaner()
+template< typename T1, typename T2 >
+jetLeptonCleaner<T1,T2>::~jetLeptonCleaner()
 {
  
    // do anything here that needs to be done at desctruction time
@@ -94,28 +94,28 @@ jetLeptonCleaner<T>::~jetLeptonCleaner()
 //
 
 // ------------ method called to produce the data  ------------
-template< typename T >
+template< typename T1, typename T2 >
 void
-jetLeptonCleaner<T>::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
+jetLeptonCleaner<T1,T2>::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-   edm::Handle< std::vector< T > > leptons;
+   edm::Handle< std::vector< T2 > > leptons;
    iEvent.getByLabel(leptonSrc, leptons);
 
-   edm::Handle< std::vector<pat::Jet> > jets;
+   edm::Handle< std::vector< T1 > > jets;
    iEvent.getByLabel(jetSrc, jets);
 
-   std::auto_ptr<std::vector< pat::Jet > > theJets ( new std::vector< pat::Jet >() );
+   std::auto_ptr<std::vector< T1 > > theJets ( new std::vector< T1 >() );
    double dR_ = 999999999.;
    double dRLJ = 999999999.;
    
-   for (std::vector<pat::Jet>::const_iterator jet_i = jets->begin(); jet_i != jets->end(); ++jet_i){ 
+   for (typename std::vector< T1 >::const_iterator jet_i = jets->begin(); jet_i != jets->end(); ++jet_i){ 
      dR_ = 999999999.;
-     for (typename std::vector< T >::const_iterator l_i = leptons->begin(); l_i != leptons->end(); ++l_i){
+     for (typename std::vector< T2 >::const_iterator l_i = leptons->begin(); l_i != leptons->end(); ++l_i){
         dRLJ = reco::deltaR(jet_i->eta(),jet_i->phi(),l_i->eta(),l_i->phi());
         if ( dRLJ < dR_ ) dR_ = dRLJ;
      }
      if (dR_ >= dRCut){
-        pat::Jet goodJet = *jet_i;
+        T1 goodJet = *jet_i;
         theJets->push_back(goodJet);
      }
    }
@@ -125,21 +125,23 @@ jetLeptonCleaner<T>::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 }
 
 // ------------ method called once each job just before starting event loop  ------------
-template< typename T >
+template< typename T1, typename T2 >
 void 
-jetLeptonCleaner<T>::beginJob()
+jetLeptonCleaner<T1,T2>::beginJob()
 {
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
-template< typename T >
+template< typename T1, typename T2 >
 void 
-jetLeptonCleaner<T>::endJob() {
+jetLeptonCleaner<T1,T2>::endJob() {
 }
 
-typedef jetLeptonCleaner< pat::Muon > jetMuonCleaner;
-typedef jetLeptonCleaner< pat::Electron > jetElectronCleaner;
+typedef jetLeptonCleaner< pat::Jet, pat::Muon > jetMuonCleaner;
+typedef jetLeptonCleaner< pat::Jet, pat::Electron > jetElectronCleaner;
+typedef jetLeptonCleaner< pat::Electron, pat::Muon > electronMuonCleaner;
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(jetMuonCleaner);
 DEFINE_FWK_MODULE(jetElectronCleaner);
+DEFINE_FWK_MODULE(electronMuonCleaner);
