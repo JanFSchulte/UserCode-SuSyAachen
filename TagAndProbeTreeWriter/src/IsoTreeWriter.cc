@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: IsoTreeWriter.cc,v 1.10 2011/04/13 13:55:04 sprenger Exp $
+// $Id: IsoTreeWriter.cc,v 1.11 2011/04/20 13:44:44 sprenger Exp $
 //
 //
 
@@ -57,6 +57,8 @@
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/IsolationFunctor.h"
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/IsoTreeSecondLeptonExtensions.h"
 
+#include "DataFormats/Math/interface/deltaR.h"
+
 #include <iostream>
 
 //
@@ -82,17 +84,20 @@ private:
 	//        virtual double calcIso(const T &);
 	virtual double calcIso(const pat::Electron &);
 	virtual double calcIsoMinPt(const pat::Electron &);
+        int findNextHardId(const T &lepton, const reco::GenParticleCollection &genParticles);
 
 	// ----------member data ---------------------------
 	// Switch for debug output
 	bool mcInfo;
 	bool tauExtensionsActive_;
 	bool secondLeptonExtensionsActive_;
+        bool genParticleActive_;
 
 	edm::InputTag leptonSrc;
 	edm::InputTag jetTag_;
 	edm::InputTag metTag_;
 	edm::InputTag vertexTag_;
+        edm::InputTag genTag_;
 
 	TFile *theFile;
 
@@ -122,6 +127,7 @@ private:
 	int nJets;
 	int nVertices;
 	int leptonKind;
+  int hardId;
 
 	//Extensions
 	IsoTreeTauExtensions tauExtensions_;
@@ -181,6 +187,14 @@ IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig)
 	    iConfig.existsAs<double>("secondLeptonMinDeltaR") ){
 		secondLeptonExtensionsActive_ = true;
 		secondLeptonExtensions_.init(iConfig, *treeIso);
+	}
+	if( iConfig.existsAs<edm::InputTag>("genSrc")  ){
+	  genParticleActive_ = true;
+	  genTag_ =  iConfig.getParameter<edm::InputTag> ("genSrc");
+	  treeIso->Branch("hardId",&hardId,"hardId/I");	  
+	}else{
+	  genParticleActive_ = false;
+	  genTag_ = edm::InputTag("empty");
 	}
 }
 
@@ -252,6 +266,8 @@ template< typename T >
 void IsoTreeWriter<T>::fillIso(const edm::Handle< std::vector<T> >& leptons, const edm::Event& iEvent)
 {
 	nLept = 0;
+	edm::Handle<reco::GenParticleCollection> genParticles;
+        if(genParticleActive_) iEvent.getByLabel(genTag_, genParticles);
 	for (typename std::vector<T>::const_iterator lep_i = leptons->begin(); lep_i != leptons->end(); ++lep_i){
 		nLept = leptons->size();
 		pt = lep_i->pt();
@@ -267,6 +283,7 @@ void IsoTreeWriter<T>::fillIso(const edm::Handle< std::vector<T> >& leptons, con
 		pfIsoAbsPhotons = fctIsolationPhotons_(*lep_i);
 
 		if(secondLeptonExtensionsActive_) secondLeptonExtensions_.fill<T>(*treeIso, *lep_i, iEvent);
+		if(genParticleActive_) hardId = findNextHardId(*lep_i, *genParticles);
 		treeIso->Fill();
 	}
 }
@@ -307,6 +324,20 @@ void IsoTreeWriter<T >::analyze(const edm::Event& iEvent, const edm::EventSetup&
 	//run the TnP
 	fillIso(leptons, iEvent);
 
+}
+
+template< typename T >
+int IsoTreeWriter<T>::findNextHardId(const T &lepton, const reco::GenParticleCollection &genParticles)
+{
+  int result = 0;
+  double  minDeltaR = 1e10;
+  for(reco::GenParticleCollection::const_iterator it = genParticles.begin(); it != genParticles.end(); ++it){
+    if((*it).status() == 3 && reco::deltaR<const T, const reco::GenParticle>( lepton, *it) < minDeltaR){
+      minDeltaR = reco::deltaR<const T, const reco::GenParticle>( lepton, *it);
+      result = (*it).pdgId();
+    }
+  }
+  return result;
 }
 
 
