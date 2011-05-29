@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2011/02/10 15:44:34 $
- *  $Revision: 1.38 $ for CMSSW 3_6_X
+ *  $Date: 2011/04/13 13:55:04 $
+ *  $Revision: 1.39 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -96,7 +96,7 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
     hJetMult = new TH1F * [nHistos];
     hbJetMult = new TH1F * [nHistos];
     hVertexMult = new TH1F * [nHistos];
-
+    
     //histograms for lepton isolation cuts
     hElectronIso = new TH1F * [nHistos];
     hElectronTrackIso = new TH1F * [nHistos];
@@ -303,6 +303,9 @@ DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
   
     hTrigger = new TH1F * [nHistos];
     hWeight = new TH1F * [nHistos];
+    
+    hVertexZ = new TH1F * [nHistos];
+    hVertexRho = new TH1F * [nHistos];
 
     TFileDirectory General = theFile->mkdir( "General" );
     TFileDirectory Effcor = theFile->mkdir( "Efficiency corrected" );
@@ -590,6 +593,9 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
  
     hTrigger[process] = theFile->make<TH1F>( "Trigger paths", "Trigger paths", 160, 0, 160);
     hWeight[process] = theFile->make<TH1F>( "Weights", "Weights", 1000, 0, 1000);
+    hVertexZ[process] = theFile->make<TH1F>( "VertexZ", "z position of first vertex", 600, -30, 30);
+    hVertexRho[process] = theFile->make<TH1F>( "VertexRho", "rho position of first vertex", 500, 0., 5.);
+
 }
 
 //Destructor
@@ -1436,6 +1442,8 @@ void DiLeptonHistograms::analyze(const edm::Event &iEvent, const edm::EventSetup
     iEvent.getByLabel(primaryVertexSrc, Vertices);
     for (reco::VertexCollection::const_iterator it = Vertices->begin(); it != Vertices->end(); ++it) {
         pv = it->position();
+        hVertexZ[general]->Fill(it->z(),weight);
+        hVertexRho[general]->Fill(it->position().rho(),weight);
         break;
     }
     hVertexMult[general]->Fill(Vertices->size(),weight);
