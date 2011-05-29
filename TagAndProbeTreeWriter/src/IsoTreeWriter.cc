@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: IsoTreeWriter.cc,v 1.11 2011/04/20 13:44:44 sprenger Exp $
+// $Id: IsoTreeWriter.cc,v 1.12 2011/05/28 21:05:21 edelhoff Exp $
 //
 //
 
@@ -235,7 +235,7 @@ template< typename T >
 void IsoTreeWriter<T>::fillExtraVars(const pat::Electron& lepton)
 {
 	tauDiscr = -1.0;
-	mva = lepton.pfCandidateRef()->mva_e_pi();
+	mva = lepton.mva();
 	iso = calcIso(lepton);
 	isoMinPt = calcIsoMinPt(lepton);
 }
