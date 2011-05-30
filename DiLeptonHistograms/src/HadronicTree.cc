@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: HadronicTree.cc,v 1.1 2011/04/29 15:22:38 nmohr Exp $
+// $Id: HadronicTree.cc,v 1.2 2011/05/30 13:47:51 nmohr Exp $
 //
 //
 
@@ -58,6 +58,7 @@
 #include <DataFormats/JetReco/interface/GenJet.h>
 #include <DataFormats/ParticleFlowCandidate/interface/PFCandidate.h>
 #include <DataFormats/VertexReco/interface/Vertex.h>
+#include <SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h>
 
 #include <SuSyAachen/DiLeptonHistograms/interface/VertexWeightFunctor.h>
 
@@ -104,6 +105,7 @@ class HadronicTree : public edm::EDAnalyzer {
         int nJets;
         int genNJets;
         int nVertices;
+        int nPrimaryInts;
         
         float weight;
         VertexWeightFunctor fctVtxWeight_;
@@ -152,6 +154,7 @@ fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
     tree->Branch("genMet",&genMet,"genMet/F");
     tree->Branch("genNJets",&genNJets,"genNJets/I");
     tree->Branch("nVertices",&nVertices,"nVertices/I");
+    tree->Branch("nPrimaryInts",&nPrimaryInts,"nPrimaryInts/I");
     tree->Branch("weight",&weight,"weight/F");
     for ( std::vector<std::string>::iterator trig_i = triggers_.begin(); trig_i != triggers_.end(); ++trig_i ) {
         std::string trigPath = *trig_i;
@@ -181,8 +184,8 @@ HadronicTree::~HadronicTree()
 void HadronicTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
     // does not work ?
-    if (iEvent.isRealData())
-      mcInfo = false;
+    if( iEvent.isRealData() ) mcInfo = false;
+    else mcInfo = true;
 
     //Collection
     edm::Handle< reco::VertexCollection > vertices;
@@ -209,6 +212,7 @@ void HadronicTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     leadJetPhi = 0;
     nJets = jets->size();
     nVertices = vertices->size();
+    nPrimaryInts = -1;
     weight = fctVtxWeight_( nVertices );
     if (nJets > 0) {
         leadJetPt = jets->front().pt();
@@ -235,6 +239,19 @@ void HadronicTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     if (!mcInfo) {
         tree->Fill();
         return;
+    }
+    
+    edm::Handle<std::vector< PileupSummaryInfo > >  PupInfo;
+    iEvent.getByLabel(edm::InputTag("addPileupInfo"), PupInfo);
+
+    for(std::vector<PileupSummaryInfo>::const_iterator PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
+
+        int BX = PVI->getBunchCrossing();
+        if(BX == 0) { 
+            nPrimaryInts = PVI->getPU_NumInteractions();
+            continue;
+        }
+
     }
     
     edm::Handle< std::vector< reco::GenJet > > genJets;
