@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2011/04/13 13:55:04 $
- *  $Revision: 1.39 $ for CMSSW 3_6_X
+ *  $Date: 2011/05/29 17:12:54 $
+ *  $Revision: 1.40 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -15,7 +15,8 @@
 
 
 //Constructor
-DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig)
+DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig):
+fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
 {
     //now do what ever initialization is needed
     //Debug flag
@@ -1427,7 +1428,6 @@ void DiLeptonHistograms::TauMonitor(const pat::Tau* tau,const int n_Tau, double 
 //Event loop
 //Gets all collections and calls Analysis
 void DiLeptonHistograms::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetup) {
-    double weight = externalWeight;
     if (iEvent.isRealData()) mcInfo = false;
 
     //edm::LogPrint("Evt")  << "Run = " << iEvent.id().run() << ", Event = " << iEvent.id().event();
@@ -1440,6 +1440,7 @@ void DiLeptonHistograms::analyze(const edm::Event &iEvent, const edm::EventSetup
 
     edm::Handle<reco::VertexCollection> Vertices;
     iEvent.getByLabel(primaryVertexSrc, Vertices);
+    double weight = externalWeight*fctVtxWeight_(Vertices->size());
     for (reco::VertexCollection::const_iterator it = Vertices->begin(); it != Vertices->end(); ++it) {
         pv = it->position();
         hVertexZ[general]->Fill(it->z(),weight);

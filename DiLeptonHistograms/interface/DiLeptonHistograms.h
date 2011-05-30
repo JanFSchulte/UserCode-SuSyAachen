@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2011/02/10 15:44:34 $
- *  $Revision: 1.31 $
+ *  $Date: 2011/05/29 17:12:54 $
+ *  $Revision: 1.32 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -63,6 +63,7 @@
 
 #include "SuSyAachen/DiLeptonHistograms/interface/Combinations.h"
 #include "SuSyAachen/DiLeptonHistograms/interface/WeightFunctor.h"
+#include "SuSyAachen/DiLeptonHistograms/interface/VertexWeightFunctor.h"
 
 
 class DiLeptonHistograms : public edm::EDAnalyzer {
@@ -78,6 +79,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     void analyze(const edm::Event &iEvent, const edm::EventSetup &iSetup);
 
     private:
+
     //Histograms
     TH1F**       hLeptonMult;
     TH1F**       hLightLeptonMult;
@@ -402,6 +404,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
 
     //weight definition
     WeightFunctor fakeRates_;
+    VertexWeightFunctor fctVtxWeight_;
 
     inline void InitHisto(TFileDirectory *fs, const int process);
     inline void ReadEfficiency();

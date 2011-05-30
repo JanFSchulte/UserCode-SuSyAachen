@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: HadronicTree.cc,v 1.6 2011/02/08 14:30:31 sprenger Exp $
+// $Id: HadronicTree.cc,v 1.1 2011/04/29 15:22:38 nmohr Exp $
 //
 //
 
@@ -59,6 +59,7 @@
 #include <DataFormats/ParticleFlowCandidate/interface/PFCandidate.h>
 #include <DataFormats/VertexReco/interface/Vertex.h>
 
+#include <SuSyAachen/DiLeptonHistograms/interface/VertexWeightFunctor.h>
 
 #include <iostream>
 
@@ -103,6 +104,10 @@ class HadronicTree : public edm::EDAnalyzer {
         int nJets;
         int genNJets;
         int nVertices;
+        
+        float weight;
+        VertexWeightFunctor fctVtxWeight_;
+
         std::map< std::string, int*>  hlTrigDecision_;
         std::map< std::string, float*>  hlTrigPrescale_;
         std::map< std::string, float*> l1TrigPrescale_;
@@ -118,7 +123,8 @@ class HadronicTree : public edm::EDAnalyzer {
 //
 // constructors and destructor
 //
-HadronicTree::HadronicTree(const edm::ParameterSet& iConfig)
+HadronicTree::HadronicTree(const edm::ParameterSet& iConfig):
+fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
 {
     //now do what ever initialization is needed
     //Input collections
@@ -146,6 +152,7 @@ HadronicTree::HadronicTree(const edm::ParameterSet& iConfig)
     tree->Branch("genMet",&genMet,"genMet/F");
     tree->Branch("genNJets",&genNJets,"genNJets/I");
     tree->Branch("nVertices",&nVertices,"nVertices/I");
+    tree->Branch("weight",&weight,"weight/F");
     for ( std::vector<std::string>::iterator trig_i = triggers_.begin(); trig_i != triggers_.end(); ++trig_i ) {
         std::string trigPath = *trig_i;
         hlTrigDecision_[trigPath] = new int;
@@ -202,6 +209,7 @@ void HadronicTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     leadJetPhi = 0;
     nJets = jets->size();
     nVertices = vertices->size();
+    weight = fctVtxWeight_( nVertices );
     if (nJets > 0) {
         leadJetPt = jets->front().pt();
         leadJetPhi = jets->front().phi();

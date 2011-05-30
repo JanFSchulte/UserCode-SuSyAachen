@@ -3,6 +3,7 @@ import FWCore.ParameterSet.Config as cms
 from SuSyAachen.DiLeptonHistograms.fakeRates.electronCenter_cff import fakes as electronCenterFakeRates
 from SuSyAachen.DiLeptonHistograms.fakeRates.muonCenter_cff import fakes as muonCenterFakeRates
 from SuSyAachen.DiLeptonHistograms.fakeRates.tauCenter_cff import fakes as tauCenterFakeRates
+from SuSyAachen.DiLeptonHistograms.vertexWeights_cfi import vertexWeights as vertexWeightPars
 
 DiLeptonAnalysis = cms.EDAnalyzer('DiLeptonHistograms',
 
@@ -42,6 +43,7 @@ trackSource = cms.InputTag("generalTracks"),
 maxJetsForAlphaT = cms.uint32(10),
 fakeRates = cms.bool(False),
 fakeRatesMc = cms.bool(False),
+vertexWeights = vertexWeightPars,
 
 )
 

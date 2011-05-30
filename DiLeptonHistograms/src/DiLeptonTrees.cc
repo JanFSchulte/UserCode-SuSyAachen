@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.12 2011/04/13 13:55:04 sprenger Exp $
+// $Id: DiLeptonTrees.cc,v 1.13 2011/05/28 19:44:49 edelhoff Exp $
 //
 //
 
@@ -48,6 +48,7 @@
 #include <DataFormats/Provenance/interface/EventID.h>
 
 #include <SuSyAachen/DiLeptonHistograms/interface/WeightFunctor.h>
+#include <SuSyAachen/DiLeptonHistograms/interface/VertexWeightFunctor.h>
 
 //ROOT
 #include "TTree.h"
@@ -102,12 +103,14 @@ private:
   std::map<std::string, std::map< std::string, TLorentzVector*> > tLorentzVectorBranches_;
 
   WeightFunctor fakeRates_;
+  VertexWeightFunctor fctVtxWeight_;
 
   bool debug;
 };
 
 // constructors and destructor
-DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig)
+DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
+fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
 {
   debug = false;
 
@@ -272,7 +275,7 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   for(std::vector<pat::Jet>::const_iterator it = jets->begin(); it != jets->end() ; ++it){
         floatEventProperties["ht"] += (*it).pt();
   }
-  floatEventProperties["weight"] = 1.;
+  floatEventProperties["weight"] = fctVtxWeight_( vertices->size() );
 
   makeCombinations< pat::Electron >("EE", *electrons, iEvent, met, intEventProperties, floatEventProperties);
   makeCombinations< pat::Electron, pat::Muon >("EMu", *electrons, *muons, iEvent, met, intEventProperties, floatEventProperties);

@@ -1,4 +1,5 @@
 import FWCore.ParameterSet.Config as cms
+from SuSyAachen.DiLeptonHistograms.vertexWeights_cfi import vertexWeights as vertexWeightPars
 
 DiLeptonTrees = cms.EDAnalyzer("DiLeptonTrees",
    electrons = cms.InputTag("triggerMatchedPatElectronsPF"),
@@ -10,6 +11,7 @@ DiLeptonTrees = cms.EDAnalyzer("DiLeptonTrees",
    vertices = cms.InputTag("offlinePrimaryVertices"),
    susyVars = cms.VPSet(),
    pdfWeightTags = cms.VInputTag(),
+   vertexWeights = vertexWeightPars,
 
 # NOT USED RIGHT NOW
    fakeRates =  cms.PSet(

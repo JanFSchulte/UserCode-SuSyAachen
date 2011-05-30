@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: IsoTreeWriter.cc,v 1.12 2011/05/28 21:05:21 edelhoff Exp $
+// $Id: IsoTreeWriter.cc,v 1.13 2011/05/29 17:14:00 nmohr Exp $
 //
 //
 
@@ -56,6 +56,7 @@
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/IsoTreeTauExtensions.h"
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/IsolationFunctor.h"
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/IsoTreeSecondLeptonExtensions.h"
+#include <SuSyAachen/DiLeptonHistograms/interface/VertexWeightFunctor.h>
 
 #include "DataFormats/Math/interface/deltaR.h"
 
@@ -106,6 +107,7 @@ private:
         ChargedHadronIsolationFunctor fctIsolationChargedHadrons_;
         NeutralHadronIsolationFunctor fctIsolationNeutralHadrons_;
         PhotonIsolationFunctor fctIsolationPhotons_;
+        VertexWeightFunctor fctVtxWeight_;
 
 	//Trees
 	TTree*  treeIso;
@@ -128,6 +130,8 @@ private:
 	int nVertices;
 	int leptonKind;
   int hardId;
+	
+    float weight;
 
 	//Extensions
 	IsoTreeTauExtensions tauExtensions_;
@@ -146,7 +150,8 @@ private:
 // constructors and destructor
 //
 template< typename T  > 
-IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig)
+IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig):
+fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
 {
 	//now do what ever initialization is needed
 	tauExtensionsActive_ = false;
@@ -179,6 +184,8 @@ IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig)
 	treeIso->Branch("nLept",&nLept,"nLept/I");
 	treeIso->Branch("nVertices",&nVertices,"nVertices/I");
 	treeIso->Branch("leptonKind",&leptonKind,"leptonsKind/I");
+	
+    treeIso->Branch("weight",&weight,"weight/F");
 
 	if(tauExtensionsActive_) tauExtensions_.init(iConfig, *treeIso);
 	if( iConfig.existsAs<edm::InputTag>("secondLeptonElectronSrc") &&
@@ -319,6 +326,7 @@ void IsoTreeWriter<T >::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
 	// count number of vertices
 	nVertices = vertices->size();
+    weight = fctVtxWeight_( nVertices );
 
 	//Probes
 	//run the TnP

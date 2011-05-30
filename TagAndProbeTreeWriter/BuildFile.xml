@@ -1,5 +1,6 @@
 <use   name="CommonTools/UtilAlgos"/>
 <use   name="CommonTools/Utils"/>
+<use   name="PhysicsTools/Utilities"/>
 <use   name="DataFormats/TrackReco"/>
 <use   name="DataFormats/EgammaReco"/>
 <use   name="DataFormats/PatCandidates"/>

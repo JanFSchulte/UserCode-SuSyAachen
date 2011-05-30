@@ -1,4 +1,5 @@
 <use   name="PhysicsTools/UtilAlgos"/>
+<use   name="PhysicsTools/Utilities"/>
 <use   name="CommonTools/UtilAlgos"/>
 <use   name="CommonTools/Utils"/>
 <use   name="FWCore/ServiceRegistry"/>
