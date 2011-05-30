@@ -31,7 +31,8 @@ public:
   }
   const double operator()(const edm::Event &iEvent){
     //std::cout << LumiWeights_.weight( iEvent ) << std::endl;
-    return LumiWeights_.weight( iEvent );
+    if (iEvent.isRealData()) return 1.;
+    else return LumiWeights_.weight( iEvent );
   }
   const double operator()(const int nVertices){
     //std::cout << LumiWeights_.weight( nVertices ) << std::endl;

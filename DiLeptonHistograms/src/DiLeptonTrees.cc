@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.13 2011/05/28 19:44:49 edelhoff Exp $
+// $Id: DiLeptonTrees.cc,v 1.14 2011/05/30 13:47:51 nmohr Exp $
 //
 //
 
@@ -275,7 +275,7 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   for(std::vector<pat::Jet>::const_iterator it = jets->begin(); it != jets->end() ; ++it){
         floatEventProperties["ht"] += (*it).pt();
   }
-  floatEventProperties["weight"] = fctVtxWeight_( vertices->size() );
+  floatEventProperties["weight"] = fctVtxWeight_( iEvent );
 
   makeCombinations< pat::Electron >("EE", *electrons, iEvent, met, intEventProperties, floatEventProperties);
   makeCombinations< pat::Electron, pat::Muon >("EMu", *electrons, *muons, iEvent, met, intEventProperties, floatEventProperties);

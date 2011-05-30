@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: HadronicTree.cc,v 1.2 2011/05/30 13:47:51 nmohr Exp $
+// $Id: HadronicTree.cc,v 1.3 2011/05/30 17:58:22 nmohr Exp $
 //
 //
 
@@ -213,7 +213,7 @@ void HadronicTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     nJets = jets->size();
     nVertices = vertices->size();
     nPrimaryInts = -1;
-    weight = fctVtxWeight_( nVertices );
+    weight = fctVtxWeight_( iEvent );
     if (nJets > 0) {
         leadJetPt = jets->front().pt();
         leadJetPhi = jets->front().phi();

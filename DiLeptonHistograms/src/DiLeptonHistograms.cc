@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2011/05/29 17:12:54 $
- *  $Revision: 1.40 $ for CMSSW 3_6_X
+ *  $Date: 2011/05/30 13:47:51 $
+ *  $Revision: 1.41 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -1440,7 +1440,7 @@ void DiLeptonHistograms::analyze(const edm::Event &iEvent, const edm::EventSetup
 
     edm::Handle<reco::VertexCollection> Vertices;
     iEvent.getByLabel(primaryVertexSrc, Vertices);
-    double weight = externalWeight*fctVtxWeight_(Vertices->size());
+    double weight = externalWeight*fctVtxWeight_(iEvent);
     for (reco::VertexCollection::const_iterator it = Vertices->begin(); it != Vertices->end(); ++it) {
         pv = it->position();
         hVertexZ[general]->Fill(it->z(),weight);

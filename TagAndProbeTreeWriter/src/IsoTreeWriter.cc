@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: IsoTreeWriter.cc,v 1.13 2011/05/29 17:14:00 nmohr Exp $
+// $Id: IsoTreeWriter.cc,v 1.14 2011/05/30 13:47:51 nmohr Exp $
 //
 //
 
@@ -326,7 +326,7 @@ void IsoTreeWriter<T >::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
 	// count number of vertices
 	nVertices = vertices->size();
-    weight = fctVtxWeight_( nVertices );
+    weight = fctVtxWeight_( iEvent );
 
 	//Probes
 	//run the TnP
