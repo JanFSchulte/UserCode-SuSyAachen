@@ -12,7 +12,7 @@ class TreeProcessor:
         self.nThEntry = 0
         self.nEntries = None
         
-    def prepareSrc(self, tree, object):
+    def prepareSrc(self, tree, object, processors):
         self.nEntries = tree.GetEntries()
         
     
@@ -32,14 +32,24 @@ class SimpleSelector(TreeProcessor):
         TreeProcessor.__init__(self, config, name)
         
     def processEvent(self, event, object):
-        return event.ht > 300
+        from math import fabs
+        expression = self.config.get(self.section,"%sExpression"%object)
+        expression = expression.replace("&&","and")
+        expression = expression.replace("&","and")
+        expression = expression.replace("||","or")
+        expression = expression.replace("|","or")        
+        evalGlobal = {"abs":fabs}
+        for i in [i.GetName() for i in event.GetListOfBranches()]:
+            evalGlobal[i] = getattr(event,i)
+        return eval(expression, evalGlobal)
+    
     
 class SimpleWeighter(TreeProcessor):
     def __init__(self, config, name):
         TreeProcessor.__init__(self, config, name)
         self.weight = {}
         
-    def prepareSrc(self, src, object):
+    def prepareSrc(self, src, object, processors):
         #src.SetBranchStatus("weight", 0)
         pass
         
@@ -61,7 +71,7 @@ class FakeWeighter(TreeProcessor):
         self.ptMax = 74.9
         self.weight = {}
         
-    def prepareSrc(self, src, object):
+    def prepareSrc(self, src, object, processors):
         TreeProcessor.prepareSrc(self, src, object)
         #src.SetBranchStatus("weight", 0)
         pass
@@ -85,16 +95,53 @@ class FakeWeighter(TreeProcessor):
     
 class OverlapRemover(TreeProcessor):
     def __init__(self, config, name):
+        from os.path import exists as pathExists
+        from os import makedirs
         TreeProcessor.__init__(self, config, name)
         self.keepEvents = {}
+        self.rejected = {}
+        self.listPath = self.config.get(self.section,"listPath")
+        if not pathExists(self.listPath):
+            makedirs(self.listPath)
     
-    def prepareSrc(self, src, object):
+    def prepareSrc(self, src, object, allProcessors):
+        TreeProcessor.prepareSrc(self, src, object, allProcessors)
         for ev in src:
-            fingerPrint = (ev.runNr, ev.lumiSec, ev.eventNr) 
-            if not fingerPrint in self.keepEvents or self.keepEvents[fingerPrint][1]< ev.pt1+ev.pt2:
-                self.keepEvents[fingerPrint] = (object, ev.pt1+ev.pt2) 
+            processingResults = {}
+            processors = self.config.get(self.section,"%sProcessors"%object).split()
+            filter = " and ".join(processors)
+            if self.config.has_option(self.section,"%sFilter"%object):
+                filter = self.config.get(self.section,"%sFilter"%object)
+            for processorName in processors:
+                processingResults[processorName] = allProcessors[processorName].processEvent(ev, object)
+            if eval(filter, processingResults):
+                self._processEvent(ev, object)
+        self._writeEventList("%s/selected.eventList"%(self.listPath), self.keepEvents.keys())
+        for rejectedObject, rejectedList in self.rejected.iteritems():
+            self._writeEventList("%s/rejected.%s.eventList"%(self.listPath, rejectedObject), rejectedList)
+                            
+    def _processEvent(self, ev, object):
+        rejectedObject = None
+        fingerPrint = (ev.runNr, ev.lumiSec, ev.eventNr) 
+        if not fingerPrint in self.keepEvents:
+            self.keepEvents[fingerPrint] = (object, ev.pt1+ev.pt2)
+        elif self.keepEvents[fingerPrint][1] < ev.pt1+ev.pt2:
+            rejectedObject = self.keepEvents[fingerPrint][0]
+            self.keepEvents[fingerPrint] = (object, ev.pt1+ev.pt2)                
+        else:
+            rejectedObject = object
+        if rejectedObject:
+            if not rejectedObject in self.rejected:
+                self.rejected[rejectedObject] = []
+            self.rejected[rejectedObject].append(fingerPrint)     
+            
+    def _writeEventList(self, path, list):
+            file = open(path,"w")
+            file.write("\n".join([":".join(["%s"%j for j in i]) for i in list]))
+            file.close()
     
     def processEvent(self, event, object):
+        TreeProcessor.processEvent(self, event, object)
         fingerPrint = (event.runNr, event.lumiSec, event.eventNr)        
         #if fingerPrint in self.keepEvents and not object == self.keepEvents[fingerPrint][0]:
         #    print "skipping", fingerPrint, object, event.pt1+event.pt2,   self.keepEvents[fingerPrint]
@@ -139,9 +186,10 @@ class TreeProducer:
                 treeName = "Iso"
                 subDirName = section.split("isoTree:")[1]
             if not trees == None:
-                outDir = None 
+                outDir = None
+                srcTree = {} 
                 for object in trees:
-                    srcTree = TChain("%s%s"%(object, treeName))
+                    srcTree[object] = TChain("%s%s"%(object, treeName))
                     processors = self.config.get(section,"%sProcessors"%object).split()
                     filter = " and ".join(processors)
                     if self.config.has_option(section,"%sFilter"%object):
@@ -149,21 +197,26 @@ class TreeProducer:
                     for treePath in trees[object]:
                         #srcFile = TFile(filePath,"r")
                         #srcTree = srcFile.Get(treePath)
-                        srcTree.Add(treePath)
+                        srcTree[object].Add(treePath)
                         print "adding", treePath
-                    srcTree.SetBranchStatus("*", 1)
+                    srcTree[object].SetBranchStatus("*", 1)
                     for processorName in processors:
-                        self.treeProcessors[processorName].prepareSrc(srcTree, object)
+                        self.treeProcessors[processorName].prepareSrc(srcTree[object], object, self.treeProcessors)
+                for object in trees:
+                    processors = self.config.get(section,"%sProcessors"%object).split()
+                    filter = " and ".join(processors)
+                    if self.config.has_option(section,"%sFilter"%object):
+                        filter = self.config.get(section,"%sFilter"%object)
                     if not outDir:
                         outDir = outFile.mkdir(subDirName)
                     outFile.cd(subDirName)
-                    destTree = srcTree.CloneTree(0)
+                    destTree = srcTree[object].CloneTree(0)
                     for processorName in processors:
                         self.treeProcessors[processorName].prepareDest(destTree, object)
-                    for i in srcTree:
+                    for i in srcTree[object]:
                         processingResults = {}
                         for processorName in processors:
-                            processingResults[processorName] = self.treeProcessors[processorName].processEvent(srcTree, object)
+                            processingResults[processorName] = self.treeProcessors[processorName].processEvent(srcTree[object], object)
                         if eval(filter, processingResults):
                             destTree.Fill()
                     #srcFile.Close()
@@ -302,9 +355,33 @@ MuTauProcessors = htSelector overlap
 TauTauDataset = TauPlusX_.*
 TauTauSelection = HLTTauTauHT
 TauTauProcessors = htSelector overlap
-OtherSelection = 
+OtherSelection =
 
-[isoTree:NoCuts]
+[dileptonTree:NoCuts]
+treeProducerName = TaNCTrees
+objects = EE EMu MuMu ETau MuTau TauTau
+EEDataset = SingleElectron.* 
+EESelection = HLTE
+EEProcessors = overlap
+EMuDataset = SingleMu_.*
+EMuSelection = HLTIsoMu
+EMuProcessors = overlap 
+MuMuDataset = SingleMu_.*
+MuMuSelection = HLTMu
+MuMuProcessors = overlap
+ETauDataset = TauPlusX_.*
+ETauSelection = HLTETau
+ETauProcessors = overlap
+MuTauDataset = TauPlusX_.*
+MuTauSelection = HLTMuTau
+MuTauProcessors = overlap
+TauTauDataset = TauPlusX_.*
+TauTauSelection = HLTTauTauHT
+TauTauProcessors = overlap
+OtherSelection = 
+ 
+
+[isoTree NoCuts]
 treeProducerName = TnPTaNCTauTrees
 Dataset = TauPlusX
 Selection = 
@@ -324,6 +401,7 @@ selection = tauDiscr > 0.5
 
 [treeProcessor:overlap]
 type = OverlapRemover
+listPath = eventLists
     """
     
     def setUp(self):
