@@ -62,6 +62,30 @@ class SimpleWeighter(TreeProcessor):
         self.weight[object][0] = event.weight*(event.pt1+event.pt2)
         return True
 
+class NoFakeWeighter(TreeProcessor):
+    def __init__(self, config, name):
+        TreeProcessor.__init__(self, config, name)
+        self.bName = config.get(self.section, "branchName")
+        self.noFakeValue = eval(config.get(self.section, "weight"))
+        self.weight = {} 
+        
+        
+    #def prepareSrc(self, src, object, allProcessors):
+    #    TreeProcessor.prepareSrc(self, src, object, allProcessors)
+        #src.SetBranchStatus("weight", 0)
+    #    pass
+        
+    def prepareDest(self, dest, object):
+        from array import array
+        TreeProcessor.prepareDest(self, dest, object)
+        self.weight[object] = array("f",[self.noFakeValue])
+        dest.Branch(self.bName,self.weight[object],"%s/F"%self.bName)
+        
+    #def processEvent(self, event, object):
+    #    TreeProcessor.processEvent(self, event, object)
+    #    return True
+
+
 class FakeWeighter(TreeProcessor):
     def __init__(self, config, name):
         from plotFakeRate import parsePSet
@@ -71,8 +95,8 @@ class FakeWeighter(TreeProcessor):
         self.ptMax = 74.9
         self.weight = {}
         
-    def prepareSrc(self, src, object, processors):
-        TreeProcessor.prepareSrc(self, src, object)
+    def prepareSrc(self, src, object, allProcessors):
+        TreeProcessor.prepareSrc(self, src, object, allProcessors)
         #src.SetBranchStatus("weight", 0)
         pass
         
@@ -84,11 +108,16 @@ class FakeWeighter(TreeProcessor):
         
     def processEvent(self, event, object):
         TreeProcessor.processEvent(self, event, object)
+        frBins = {}
+        for (binName, varName) in zip(self.config.get(self.section,"binNames").split(),self.config.get(self.section,"varNames").split()):
+            frBins[binName] = getattr(event,varName)
+        for binName in frBins:
+            if "pt" in binName and frBins[binName] > self.ptMax:
+                frBins[binName] = self.ptMax
+        idName = self.config.get(self.section,"idName")
         self.weight[object][0] = -1
-        if event.tauDiscr < 0.5:
-            pt = event.pt
-            if pt > self.ptMax: pt =  self.ptMax
-            f = self.pSet["center"].fakeRate({"pt":pt, "eta":event.eta})
+        if getattr(event,idName) < 0.5:
+            f = self.pSet["center"].fakeRate(frBins)
             self.weight[object][0] = f/(1-f)
         return True
 
@@ -125,7 +154,7 @@ class OverlapRemover(TreeProcessor):
         fingerPrint = (ev.runNr, ev.lumiSec, ev.eventNr) 
         if not fingerPrint in self.keepEvents:
             self.keepEvents[fingerPrint] = (object, ev.pt1+ev.pt2)
-        elif self.keepEvents[fingerPrint][1] < ev.pt1+ev.pt2:
+        elif self.keepEvents[fingerPrint][1] < ev.pt1+ev.pt2 or ("Tau" in self.keepEvents[fingerPrint][0] and not "Tau" in object):
             rejectedObject = self.keepEvents[fingerPrint][0]
             self.keepEvents[fingerPrint] = (object, ev.pt1+ev.pt2)                
         else:
@@ -161,6 +190,7 @@ class TreeProducer:
         self.tasks = list(set([splitPath(i)[1].split(".")[1] for i in inputPaths]))
         self.flags = list(set([splitPath(i)[1].split(".")[0] for i in inputPaths]))
         self.inputPaths = inputPaths
+        self.counterSum = None
         self.outPath = config.get("general","outPath")
         if not pathExists(self.outPath):
             makedirs(self.outPath)
@@ -173,18 +203,26 @@ class TreeProducer:
                 self.treeProcessors[processorName] = getattr(modules[globals()["__name__"]],processorType)(self.config, processorName)
         
     def produce(self):
-        from ROOT import TFile, TChain
+        from ROOT import TFile, TChain, TH1
+        from os.path import exists as pathExists
+        from os.path import split as splitPath
+        outFilePath = "%s/%s.%s.%s.root"%(self.outPath, "".join(self.flags), "processed" , self.name)
+        if pathExists(outFilePath):
+            return
         outFile = TFile("%s/%s.%s.%s.root"%(self.outPath, "".join(self.flags), "processed" , self.name),"recreate")
-        for section in self.config.sections():
+        
+        for section in self.config.sections():            
             trees = None
             if section.startswith("dileptonTree:"):
+                treeProducerName =self.config.get(section,"treeProducerName")
                 trees = self._getDileptonTrees(section)
                 treeName = "DileptonTree"
-                subDirName = section.split("dileptonTree:")[1]
+                subDirName = "processed%s%s"%(section.split("dileptonTree:")[1],treeProducerName)
             if section.startswith("isoTree:"):
+                treeProducerName =self.config.get(section,"treeProducerName")
                 trees = self._getIsoTrees(section)
                 treeName = "Iso"
-                subDirName = section.split("isoTree:")[1]
+                subDirName = "processed%s%s"%(section.split("isoTree:")[1],treeProducerName)
             if not trees == None:
                 outDir = None
                 srcTree = {} 
@@ -197,6 +235,24 @@ class TreeProducer:
                     for treePath in trees[object]:
                         #srcFile = TFile(filePath,"r")
                         #srcTree = srcFile.Get(treePath)
+                        filePath = "%s.root"%treePath.split(".root")[0]
+                        inFile = TFile(filePath,"READ")
+                        if not self.counterSum:
+                            outFile.mkdir("processedCounters")
+                            outFile.cd("processedCounters")                            
+                            task = None                            
+                            for t in self.tasks:
+                                if ".%s."%t in splitPath(filePath)[1]:
+                                    assert task == None, "unable to disambiguate tasks '%s' matches both '%s' and '%s'"(filePath, task, t)
+                                    task = t                        
+                            self.counterSum = inFile.Get("%sCounters/analysis paths"%task).Clone()
+                        else:
+                            pass
+                            #need to cope with different lumis :( 
+                            #h = inFile.Get("%sCounters/analysis paths"%task)
+                            #print inFile, "%sCounters/analysis paths"%task, h
+                            #self.counterSum.Add( h,1. )
+                        inFile.Close()
                         srcTree[object].Add(treePath)
                         print "adding", treePath
                     srcTree[object].SetBranchStatus("*", 1)
@@ -207,6 +263,7 @@ class TreeProducer:
                     filter = " and ".join(processors)
                     if self.config.has_option(section,"%sFilter"%object):
                         filter = self.config.get(section,"%sFilter"%object)
+                    
                     if not outDir:
                         outDir = outFile.mkdir(subDirName)
                     outFile.cd(subDirName)
@@ -391,6 +448,16 @@ PtherSelection =
 [treeProcessor:htSelector]
 type = SimpleSelector
 
+[treeProcessor:lowPtSelector]
+type = SimpleSelector
+EEExpression = pt1 > 20 && pt2 > 20 && ht > 250 
+EMuExpression = pt1 > 20 && pt2 > 20 && ht > 250 
+MuMuExpression = pt1 > 20 && pt2 > 20 && ht > 250 
+ETauExpression = pt1 > 20 && pt2 > 15 && ht > 250 
+MuTauExpression = pt1 > 20 && pt2 > 15 && ht > 250 
+TauTauExpression = pt1 > 20 && pt2 > 15 && ht > 250 
+
+
 [treeProcessor:ptSumWeighter]
 type = SimpleWeighter
 
@@ -402,6 +469,13 @@ selection = tauDiscr > 0.5
 [treeProcessor:overlap]
 type = OverlapRemover
 listPath = eventLists
+EEProcessors = lowPtSelector
+EMuProcessors = lowPtSelector
+MuMuProcessors = lowPtSelector
+ETauProcessors = lowPtSelector
+MuTauProcessors = lowPtSelector
+TauTauProcessors = lowPtSelector
+
     """
     
     def setUp(self):
@@ -424,7 +498,7 @@ listPath = eventLists
         producers = getProducers(self.config, basePath)
         for p in producers:
             #print p.name, p.inputPaths
-            if p.name == "MergedData":                
+            if not p.name == "MergedData":                
                 p.produce()
 
         #main(["unittest","-C","treePostprocessor.unittest.General.ini"])
