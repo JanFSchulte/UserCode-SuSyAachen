@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: IsoTreeWriter.cc,v 1.14 2011/05/30 13:47:51 nmohr Exp $
+// $Id: IsoTreeWriter.cc,v 1.15 2011/05/30 18:51:26 nmohr Exp $
 //
 //
 
@@ -84,6 +84,7 @@ private:
 	virtual void fillExtraVars(const pat::Tau&);
 	//        virtual double calcIso(const T &);
 	virtual double calcIso(const pat::Electron &);
+	virtual double calcIso(const pat::Muon &);
 	virtual double calcIsoMinPt(const pat::Electron &);
         int findNextHardId(const T &lepton, const reco::GenParticleCollection &genParticles);
 
@@ -218,7 +219,7 @@ template < typename T >
 double IsoTreeWriter<T>::calcIso(const pat::Electron& lepton)
 {
 	double value = -1.0;
-	if (lepton.eta() <= 1.479)
+	if (lepton.isEB())
 		value = (lepton.dr03HcalTowerSumEt()+lepton.dr03EcalRecHitSumEt()+lepton.dr03TkSumPt())/lepton.pt();
 	else
 		value = (lepton.dr03HcalTowerSumEt() + std::max(0.0, lepton.dr03EcalRecHitSumEt() - 1.0) + lepton.dr03TkSumPt())/lepton.pt();
@@ -227,10 +228,17 @@ double IsoTreeWriter<T>::calcIso(const pat::Electron& lepton)
 }
 
 template < typename T >
+double IsoTreeWriter<T>::calcIso(const pat::Muon& lepton)
+{
+  double value = (lepton.isolationR03().hadEt + lepton.isolationR03().emEt + lepton.isolationR03().sumPt) / lepton.pt();
+  return value;
+}
+
+template < typename T >
 double IsoTreeWriter<T>::calcIsoMinPt(const pat::Electron& lepton)
 {
 	double value = -1.0;
-	if (lepton.eta() <= 1.479)
+	if (lepton.isEB())
 		value = (lepton.dr03HcalTowerSumEt()+lepton.dr03EcalRecHitSumEt()+lepton.dr03TkSumPt())/std::max(lepton.pt(), 20.0);
 	else
 		value = (lepton.dr03HcalTowerSumEt() + std::max(0.0, lepton.dr03EcalRecHitSumEt() - 1.0) + lepton.dr03TkSumPt())/std::max(lepton.pt(), 20.0);
@@ -252,7 +260,7 @@ void IsoTreeWriter<T>::fillExtraVars(const pat::Muon& lepton)
 {
 	tauDiscr = -1.0;
 	mva = -1.0;
-	iso = -1.0;
+	iso = calcIso(lepton);
 	isoMinPt = -1.0;
 }
 
