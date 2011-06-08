@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env VERSIONER_PYTHON_PREFER_32_BIT=yes python
 '''
 Created on 26.05.2011
 
@@ -91,6 +91,7 @@ class FakeWeighter(TreeProcessor):
         from plotFakeRate import parsePSet
         TreeProcessor.__init__(self, config, name)
         frPath = config.get(self.section, "fakePSet")
+        self.branchName = config.get(self.section, "branchName")
         self.pSet = parsePSet(frPath)
         self.ptMax = 74.9
         self.weight = {}
@@ -104,7 +105,7 @@ class FakeWeighter(TreeProcessor):
         from array import array
         TreeProcessor.prepareDest(self, dest, object)
         self.weight[object] = array("f",[-1.0])
-        dest.Branch("fakeWeight",self.weight[object],"fakeWeight/F")
+        dest.Branch(self.branchName, self.weight[object],"%s/F"%self.branchName)
         
     def processEvent(self, event, object):
         TreeProcessor.processEvent(self, event, object)
@@ -114,9 +115,11 @@ class FakeWeighter(TreeProcessor):
         for binName in frBins:
             if "pt" in binName and frBins[binName] > self.ptMax:
                 frBins[binName] = self.ptMax
-        idName = self.config.get(self.section,"idName")
+        idExpr = self.config.get(self.section,"idExpr")
+        evalGlobals = {"id1":event.id1,
+                       "id2":event.id2}
         self.weight[object][0] = -1
-        if getattr(event,idName) < 0.5:
+        if eval(idExpr,evalGlobals):
             f = self.pSet["center"].fakeRate(frBins)
             self.weight[object][0] = f/(1-f)
         return True
@@ -135,7 +138,11 @@ class OverlapRemover(TreeProcessor):
     
     def prepareSrc(self, src, object, allProcessors):
         TreeProcessor.prepareSrc(self, src, object, allProcessors)
+        endOfLine = 1000
         for ev in src:
+            if (endOfLine < 1):
+                continue
+            endOfLine -= 1
             processingResults = {}
             processors = self.config.get(self.section,"%sProcessors"%object).split()
             filter = " and ".join(processors)
@@ -207,8 +214,8 @@ class TreeProducer:
         from os.path import exists as pathExists
         from os.path import split as splitPath
         outFilePath = "%s/%s.%s.%s.root"%(self.outPath, "".join(self.flags), "processed" , self.name)
-        if pathExists(outFilePath):
-            return
+        #if pathExists(outFilePath):
+        #    return
         outFile = TFile("%s/%s.%s.%s.root"%(self.outPath, "".join(self.flags), "processed" , self.name),"recreate")
         
         for section in self.config.sections():            
@@ -270,7 +277,11 @@ class TreeProducer:
                     destTree = srcTree[object].CloneTree(0)
                     for processorName in processors:
                         self.treeProcessors[processorName].prepareDest(destTree, object)
+                    endOfLine = 1000
                     for i in srcTree[object]:
+                        if endOfLine < 1:
+                            continue
+                        endOfLine -= 1
                         processingResults = {}
                         for processorName in processors:
                             processingResults[processorName] = self.treeProcessors[processorName].processEvent(srcTree[object], object)
@@ -504,3 +515,4 @@ TauTauProcessors = lowPtSelector
         #main(["unittest","-C","treePostprocessor.unittest.General.ini"])
         
         
+

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env VERSIONER_PYTHON_PREFER_32_BIT=yes python
 '''
 Created on 22.12.2010
 
