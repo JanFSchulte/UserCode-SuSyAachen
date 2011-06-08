@@ -26,6 +26,7 @@ def getGraph(psets, var, others):
   eyl = psets["lower"].getY(var, others, relativeTo = y)
   eyh = psets["upper"].getY(var, others, relativeTo = y)
   result = TGraphAsymmErrors(len(x), array("f",x), array("f",y), array("f",exl), array("f",exh), array("f",eyl), array("f",eyh))
+  #result.SetName("FakeRate:%s %s:%s"%(psets["name"],var,others["name"]))
   return result
   
 def applyGraphOptions(cfg, graph, var, name, binName, i):
@@ -48,6 +49,8 @@ def main(argv=None):
   from optparse import OptionParser
   from helpers import BetterConfigParser
   from ROOT import TMultiGraph, TCanvas, TLegend
+  from Styles import tdrStyle
+  tdrStyle()
   if argv == None:
         argv = sys.argv[1:]
   parser = OptionParser()
@@ -90,7 +93,7 @@ def main(argv=None):
         if opts.graph:
           graph = getGraph(pSets, var, other["values"])
           name = os.path.split(pSetPath)[1].replace("_cff.py","")
-          applyGraphOptions(config, graph, var, name, other["name"], i)
+          applyGraphOptions(config, graph, var, name, other["title"], i)
           names.add(name)
           graphs[var].Add(graph)
           i+=1
@@ -105,6 +108,8 @@ def main(argv=None):
       legend.SetY1(float(config.get("legendPosition","default").split()[1]))
       legend.SetX2(float(config.get("legendPosition","default").split()[2]))
       legend.SetY2(float(config.get("legendPosition","default").split()[3]))
+      legend.Draw()
+      c.Update()
       for figFormat in config.get("general","figFormats").split():
         c.Print(os.path.join(config.get("general","figureDir"), "%s_%s.%s")%(var,"-".join(names),figFormat ),figFormat)
   

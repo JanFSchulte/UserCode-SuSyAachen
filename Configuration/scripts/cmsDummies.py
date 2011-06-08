@@ -51,7 +51,7 @@ class VPSet:
     return result
     
   def getOthers(self, chosenVar):
-    result = [{"values":{}, "name":""}]
+    result = [{"values":{}, "name":"", "title":""}]
     for otherVar in filter(lambda x: not x == chosenVar, self.binBoundaries.keys()):
       x, exl, exh = self.getX(otherVar)
       tmp = []
@@ -59,7 +59,9 @@ class VPSet:
         for i in range(len(x)):
           values = {otherVar: x[i]}
           values.update(previous["values"])
-          tmp.append({ "values": values,"name":"%s #epsilon [%s, %s) %s"%(otherVar, x[i]-exl[i], x[i]+exh[i], previous["name"])})
+          tmp.append({ "values": values,
+                      "name":"%s%sto%s %s"%(otherVar, x[i]-exl[i], x[i]+exh[i], previous["name"]),
+                      "title":"%s #epsilon [%s, %s) %s"%(otherVar, x[i]-exl[i], x[i]+exh[i], previous["title"])})
       result = tmp
     return result
     
