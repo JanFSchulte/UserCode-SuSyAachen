@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.14 2011/05/30 13:47:51 nmohr Exp $
+// $Id: DiLeptonTrees.cc,v 1.15 2011/05/30 18:51:26 nmohr Exp $
 //
 //
 
@@ -49,6 +49,7 @@
 
 #include <SuSyAachen/DiLeptonHistograms/interface/WeightFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/VertexWeightFunctor.h>
+#include <SuSyAachen/TagAndProbeTreeWriter/interface/IsolationFunctor.h>
 
 //ROOT
 #include "TTree.h"
@@ -85,6 +86,7 @@ private:
   float getId(const  pat::Electron &e);
   float getId(const  pat::Muon &mu);
   float getId(const  pat::Tau &tau);
+  float transverseMass(const TLorentzVector& p, const TLorentzVector& met);
 
   edm::InputTag eTag_;
   edm::InputTag muTag_;
@@ -95,6 +97,7 @@ private:
   edm::InputTag vertexTag_;
   std::vector<edm::ParameterSet> susyVars_;
   std::vector<edm::InputTag> pdfs_;
+  std::string tauId_;
 
   //data
   std::map<std::string, TTree*> trees_;  
@@ -104,6 +107,7 @@ private:
 
   WeightFunctor fakeRates_;
   VertexWeightFunctor fctVtxWeight_;
+  IsolationFunctor fctIsolation_;
 
   bool debug;
 };
@@ -125,6 +129,7 @@ fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
   susyVars_ = iConfig.getParameter< std::vector<edm::ParameterSet> >("susyVars");
   pdfs_ = iConfig.getParameter<std::vector<edm::InputTag> > ("pdfWeightTags");
 
+  tauId_ = iConfig.getParameter<std::string >("tauId");
   fakeRates_.SetSource(iConfig,"fakeRates");// TODO use these and add mcInfo flag to choose right rates...
 
   // init trees
@@ -144,6 +149,8 @@ fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
   initFloatBranch( "eta2" );
   initFloatBranch( "id1" );
   initFloatBranch( "id2" );
+  initFloatBranch( "mt1" );
+  initFloatBranch( "mt2" );
   initFloatBranch( "deltaPhi" );
   initFloatBranch( "deltaR" );
   initFloatBranch( "jzb" );
@@ -373,6 +380,8 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b, 
   *(floatBranches_[treeName]["eta2"]) = bVec.Eta();
   *(floatBranches_[treeName]["id1"]) = getId(a);
   *(floatBranches_[treeName]["id2"]) = getId(b);
+  *(floatBranches_[treeName]["mt1"]) = transverseMass(aVec, met);
+  *(floatBranches_[treeName]["mt2"]) = transverseMass(bVec, met);
   *(floatBranches_[treeName]["deltaPhi"]) = aVec.DeltaPhi( bVec );
   *(floatBranches_[treeName]["deltaR"]) = aVec.DeltaR( bVec );
   *(floatBranches_[treeName]["jzb"]) = (met+comb).Pt() - comb.Pt();
@@ -472,20 +481,35 @@ void DiLeptonTrees::fillPdfUncert(const edm::Handle< std::vector<double> >& weig
     *(floatBranches_[treeName][pdfIdentifier+up]) = float(wplus);
 }
 
-float DiLeptonTrees::getId(const  pat::Electron &e)
-{ 
-  return (e.chargedHadronIso() + e.photonIso() + e.neutralHadronIso()) / e.pt();
+float DiLeptonTrees::getId(const  pat::Electron &lepton)
+{
+  //  std::cout<<"electron " << (lepton.trackIso()+lepton.ecalIso()+lepton.hcalIso())/lepton.pt() << std::endl;
+  return (lepton.trackIso()+lepton.ecalIso()+lepton.hcalIso())/lepton.pt() ;
+    //  return (e.chargedHadronIso() + e.photonIso() + e.neutralHadronIso()) / e.pt();
 }
 
-float DiLeptonTrees::getId(const  pat::Muon &mu)
+float DiLeptonTrees::getId(const  pat::Muon &lepton)
 {
-  return (mu.chargedHadronIso() + mu.photonIso() + mu.neutralHadronIso()) / mu.pt();
+  //  std::cout<<"muon " << (lepton.trackIso()+lepton.ecalIso()+lepton.hcalIso())/lepton.pt() << std::endl;
+  return (lepton.trackIso()+lepton.ecalIso()+lepton.hcalIso())/lepton.pt();
+  //  return (mu.chargedHadronIso() + mu.photonIso() + mu.neutralHadronIso()) / mu.pt();
 }
 
 float DiLeptonTrees::getId(const  pat::Tau &tau)
 {
-  //need more inteligent things here...
-  return tau.tauID("byTaNCfrHalfPercent");
+  float result = fctIsolation_(tau);
+  if(tau.tauID(tauId_) < 0.5)
+    result *= -1.0;
+  return result;
+}
+
+float DiLeptonTrees::transverseMass(const TLorentzVector& p, const TLorentzVector& met)
+{
+  reco::Candidate::LorentzVector otherMet(met.Px(),met.Py(),met.Pz(),met.E());
+  reco::Candidate::LorentzVector leptonT(p.Px(),p.Py(),0.,p.E()*sin(p.Theta()));
+  reco::Candidate::LorentzVector sumT=leptonT+otherMet;
+
+  return std::sqrt(sumT.M2());
 }
 
 // ------------ Method called once each job just before starting event loop  ------------
