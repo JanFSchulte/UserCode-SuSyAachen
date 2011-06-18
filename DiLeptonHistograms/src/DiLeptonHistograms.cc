@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2011/05/30 13:47:51 $
- *  $Revision: 1.41 $ for CMSSW 3_6_X
+ *  $Date: 2011/05/30 18:51:26 $
+ *  $Revision: 1.42 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -247,6 +247,7 @@ fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
     hTauPhi = new TH1F * [nHistos];
     hTauLeadingnHits = new TH1F * [nHistos];
     hTauLeadingLostHits = new TH1F * [nHistos];
+    hTauLeadingPt = new TH1F * [nHistos];
     hTauEtaPhi = new TH2F * [nHistos];
 
     hTauDiscriminators = new TH1F * [nHistos];
@@ -537,6 +538,7 @@ void inline DiLeptonHistograms::InitHisto(TFileDirectory *theFile, const int pro
     hTauRelSumIsoPt[process] = Taus.make<TH1F>( "tau relative iso pt", "Sum of pfCandidates pt in isolation annulus / tau pt", 1000, 0.0, 1.0);
     hTauLeadingnHits[process] = Taus.make<TH1F>( "tau nhits on leading track ", "Number of hits on leading track", 31, -1.5, 30.5);
     hTauLeadingLostHits[process] = Taus.make<TH1F>( "tau lost hits on leading track", "Number of lost hits on leading track", 31, -1.5, 30.5);
+    hTauLeadingPt[process] = Taus.make<TH1F>( "tau lead ch hadr pt", "pt of leading ch. Hadron", 1000, 0., 500.);
     hTauDecayMode[process] = Taus.make<TH1F>( "tau decay mode", "tau decay mode (acc. to TaNC)", 21, -5.5, 15.5);
 
     hGenTauPt[process] = Taus.make<TH1F>( "generator tau pt", "matched gen tau pt", 1000, 0.0, 1000.0);
@@ -1390,7 +1392,12 @@ void DiLeptonHistograms::TauMonitor(const pat::Tau* tau,const int n_Tau, double 
     hTauLeadingnHits[process]->Fill(-1, weight);
     hTauLeadingLostHits[process]->Fill(-1,weight);
   }
-    if (debug) std::cout <<" < lead Track";
+  if(tau->leadPFCand().isAvailable()){
+    hTauLeadingPt[process]->Fill(tau->leadPFCand()->pt(),weight);
+  }else{
+    hTauLeadingPt[process]->Fill(-1, weight);
+  }
+  if (debug) std::cout <<" < lead Track";
   hTauEtaPhi[process]->Fill(tau->eta(),tau->phi(),weight);
  
   //Tau isolation

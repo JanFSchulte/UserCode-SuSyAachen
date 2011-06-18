@@ -15,7 +15,8 @@
 <use   name="RecoVertex/VertexTools"/>
 <use   name="TrackingTools/TransientTrack"/>
 <use   name="TrackingTools/Records"/>
-<flags   EDM_PLUGIN="1"/>
+<!--flags   EDM_PLUGIN="1"/-->
 <export>
+  <!--lib   name="SuSyAachenTagAndProbeTreeWriter"/-->
   <lib   name="1"/>
 </export>

@@ -23,6 +23,10 @@
   <use   name="DataFormats/HepMCCandidate"/>
   <use   name="DataFormats/PatCandidates"/>
 </library>
+<library   name="SuSyAachenTauSelectors" file="tauSelectors.cc">
+  <use   name="CommonTools/UtilAlgos"/>
+  <use   name="DataFormats/PatCandidates"/>
+</library>
 <library   name="SuSyAachenJetSelectors" file="jetSelectors.cc">
   <use   name="CommonTools/UtilAlgos"/>
   <use   name="DataFormats/PatCandidates"/>

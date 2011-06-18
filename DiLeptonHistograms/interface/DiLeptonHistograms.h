@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2011/05/29 17:12:54 $
- *  $Revision: 1.32 $
+ *  $Date: 2011/05/30 13:47:50 $
+ *  $Revision: 1.33 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *
@@ -270,6 +270,7 @@ class DiLeptonHistograms : public edm::EDAnalyzer {
     TH1F**       hTauPhi;
     TH1F**       hTauLeadingnHits; 
     TH1F**       hTauLeadingLostHits;
+    TH1F**       hTauLeadingPt;
     TH2F**       hTauEtaPhi;
 
     TH1F**       hTauDiscriminators;

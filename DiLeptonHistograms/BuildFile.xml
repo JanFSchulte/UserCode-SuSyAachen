@@ -4,7 +4,9 @@
 <use   name="CommonTools/Utils"/>
 <use   name="FWCore/ServiceRegistry"/>
 <use   name="DataFormats/PatCandidates"/>
+<use   name="SuSyAachen/TagAndProbeTreeWriter"/>
 <flags   EDM_PLUGIN="1"/>
 <export>
+  <!--lib   name="SuSyAachenDiLeptonHistograms"/-->
   <lib   name="1"/>
 </export>

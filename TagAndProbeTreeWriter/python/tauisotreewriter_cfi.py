@@ -6,6 +6,10 @@ src = cms.InputTag("TaNCTaus"),
 jets = cms.InputTag("triggerMatchedPatJetsPF"),
 met = cms.InputTag("patMETsPF"),
 vertices = cms.InputTag("offlinePrimaryVertices"),
+
+useTauExtensions = cms.bool(True),
+useSecondLeptonExtensions = cms.bool(True),
+useMcInfo = cms.bool(True),
 vertexWeights = vertexWeightPars,
 )
 

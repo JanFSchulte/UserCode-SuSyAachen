@@ -6,6 +6,9 @@ muonisotreewriter = cms.EDAnalyzer('MuonIsoTreeWriter',
     jets = cms.InputTag("triggerMatchedPatJetsPF"),
     met = cms.InputTag("patMETsPF"),
     vertices = cms.InputTag("offlinePrimaryVertices"),
+
+    useTauExtensions = cms.bool(False),
+    useMcInfo = cms.bool(True),
     vertexWeights = vertexWeightPars,
 )
 

@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: IsoTreeWriter.cc,v 1.15 2011/05/30 18:51:26 nmohr Exp $
+// $Id: IsoTreeWriter.cc,v 1.16 2011/06/07 12:41:15 sprenger Exp $
 //
 //
 
@@ -157,6 +157,12 @@ fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
 	//now do what ever initialization is needed
 	tauExtensionsActive_ = false;
 	secondLeptonExtensionsActive_ = false;
+	mcInfo = false;
+	if( iConfig.existsAs<bool>("useTauExtensions")	&& iConfig.getParameter<bool> ("useTauExtensions"))
+	  tauExtensionsActive_ = true;
+	if( iConfig.existsAs<bool>("useMcInfo")  && iConfig.getParameter<bool> ("useMcInfo"))
+	  mcInfo = true;
+	
 
 	//Input collections
 	leptonSrc          = iConfig.getParameter<edm::InputTag> ("src");
@@ -196,7 +202,7 @@ fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
 		secondLeptonExtensionsActive_ = true;
 		secondLeptonExtensions_.init(iConfig, *treeIso);
 	}
-	if( iConfig.existsAs<edm::InputTag>("genSrc")  ){
+	if( iConfig.existsAs<edm::InputTag>("genSrc")  && mcInfo){
 	  genParticleActive_ = true;
 	  genTag_ =  iConfig.getParameter<edm::InputTag> ("genSrc");
 	  treeIso->Branch("hardId",&hardId,"hardId/I");	  
@@ -267,8 +273,8 @@ void IsoTreeWriter<T>::fillExtraVars(const pat::Muon& lepton)
 template< typename T > 
 void IsoTreeWriter<T>::fillExtraVars(const pat::Tau& lepton)
 {
-	tauDiscr = lepton.tauID("byTaNCfrOnePercent");
-	mva = lepton.tauID("byTaNC");
+  tauDiscr = -1;//lepton.tauID("byTaNCfrOnePercent");
+  mva = -1;//lepton.tauID("byTaNC");
 	iso = -1.0;
 	isoMinPt = -1.0;
 	if(tauExtensionsActive_) tauExtensions_.fill(*treeIso, lepton);
@@ -309,8 +315,8 @@ template< typename T  >
 void IsoTreeWriter<T >::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 	// does not work ?
-	if (iEvent.isRealData())
-		mcInfo = false;
+  //	if (iEvent.isRealData())
+  //		mcInfo = false;
 
 	//Collection
 	edm::Handle< std::vector<T> > leptons;

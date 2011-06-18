@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr
 //         Created:  Wed Aug 18 15:37:34 CEST 2010
-// $Id: leptCleanJetProducer.cc,v 1.1 2010/10/21 11:32:24 nmohr Exp $
+// $Id: leptCleanJetProducer.cc,v 1.2 2011/05/26 12:04:06 nmohr Exp $
 //
 //
 
@@ -32,6 +32,7 @@
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
+#include "DataFormats/PatCandidates/interface/Tau.h"
 
 #include "CommonTools/Utils/interface/PtComparator.h"
 
@@ -140,8 +141,12 @@ jetLeptonCleaner<T1,T2>::endJob() {
 typedef jetLeptonCleaner< pat::Jet, pat::Muon > jetMuonCleaner;
 typedef jetLeptonCleaner< pat::Jet, pat::Electron > jetElectronCleaner;
 typedef jetLeptonCleaner< pat::Electron, pat::Muon > electronMuonCleaner;
+typedef jetLeptonCleaner< pat::Tau, pat::Electron > tauElectronCleaner;
+typedef jetLeptonCleaner< pat::Tau, pat::Muon > tauMuonCleaner;
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(jetMuonCleaner);
 DEFINE_FWK_MODULE(jetElectronCleaner);
 DEFINE_FWK_MODULE(electronMuonCleaner);
+DEFINE_FWK_MODULE(tauMuonCleaner);
+DEFINE_FWK_MODULE(tauElectronCleaner);

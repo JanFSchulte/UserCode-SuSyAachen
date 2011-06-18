@@ -10,5 +10,6 @@
 <use   name="JetMETCorrections/Objects"/>
 <flags   EDM_PLUGIN="1"/>
 <export>
+  <!--lib   name="SuSyAachenSkimming"/-->
   <lib   name="1"/>
 </export>

@@ -23,3 +23,20 @@ tauCountSelector = candViewCountFilter.clone(
            src = cms.InputTag("cleanLayer1Taus"),
            minNumber = 1
 )
+
+from SuSyAachen.Skimming.tauSelection_cfi import scIsolatedTaus
+tauScIsolationSelector = scIsolatedTaus.clone(
+    filter = cms.bool(True),
+     src = cms.InputTag("selectedPatTausPF"),
+    otherTauSource = cms.InputTag("selectedPatTausPFShrinkingCone"),
+    otherTauId = cms.string("byIsolation"),
+    dRMin = cms.double(0.15)
+)
+
+
+tauMuonCleaner = cms.EDProducer('tauMuonCleaner',
+                                     filter = cms.bool(True),
+                                     src = cms.InputTag("selectedPatTausPF"),
+                                     leptSrc = cms.InputTag("basicMuons"),
+                                     dRJetLepton = cms.double(0.15)
+                                     )

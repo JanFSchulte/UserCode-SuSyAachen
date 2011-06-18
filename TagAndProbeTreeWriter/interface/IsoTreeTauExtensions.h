@@ -62,15 +62,15 @@ void IsoTreeTauExtensions::fill(TTree& tree, const pat::Tau& tau)
 {
 	if(debug_) std::cout << "analyze ";
     decayMode = tau.decayMode();
-    reco::Particle::LorentzVector pSignal(0.,0.,0.,0.);
+    /*reco::Particle::LorentzVector pSignal(0.,0.,0.,0.);
     reco::PFCandidateRefVector signalPFCands = tau.signalPFCands();
     for(reco::PFCandidateRefVector::const_iterator it = signalPFCands.begin();
     		it != signalPFCands.end(); ++it){
     	pSignal += (*it)->p4();
-    }
-    invMass = pSignal.M();
+	}
+	invMass = pSignal.M();*/
     mvaElectron = -2.;
-    if(tau.leadPFChargedHadrCand().isNonnull()) mvaElectron = tau.leadPFChargedHadrCand()->mva_e_pi();
+    //    if(tau.leadPFChargedHadrCand().isNonnull()) mvaElectron = tau.leadPFChargedHadrCand()->mva_e_pi();
     electronPreIDOutput = tau.electronPreIDOutput();
     isolationPFGammaCandsEtSum=tau.isolationPFGammaCandsEtSum();
     isolationPFChargedHadrCandsPtSum=tau.isolationPFChargedHadrCandsPtSum();
