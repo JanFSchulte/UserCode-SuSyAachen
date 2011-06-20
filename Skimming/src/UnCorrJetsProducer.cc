@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr
 //         Created:  Wed Aug 18 15:37:34 CEST 2010
-// $Id: UnCorrJetsProducer.cc,v 1.2 2010/08/18 20:55:13 nmohr Exp $
+// $Id: UnCorrJetsProducer.cc,v 1.1 2010/08/23 12:37:59 nmohr Exp $
 //
 //
 
@@ -102,7 +102,7 @@ UnCorrJetsProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    std::auto_ptr<std::vector<pat::Jet> > theJets ( new std::vector<pat::Jet>() );
    for (std::vector<pat::Jet>::const_iterator jet_i = jets->begin(); jet_i != jets->end(); ++jet_i){
-        pat::Jet rescaledJet = jet_i->correctedJet("RAW");
+        pat::Jet rescaledJet = jet_i->correctedJet("Uncorrected");
         theJets->push_back(rescaledJet);
     }
    std::sort(theJets->begin(), theJets->end(), PtGreater());
