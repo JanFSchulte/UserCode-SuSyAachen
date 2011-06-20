@@ -54,3 +54,7 @@ resCorrectedJetProducer = cms.EDProducer('ResCorrJetsProducer',
 unCorrectedJetProducer = cms.EDProducer('UnCorrJetsProducer',
   src = cms.InputTag("basicJets"),
 )
+
+fastJetUnCorrectedJetProducer = cms.EDProducer('FastJetUnCorrJetsProducer',
+  src = cms.InputTag("basicJets"),
+)
