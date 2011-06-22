@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.15 2011/05/30 18:51:26 nmohr Exp $
+// $Id: DiLeptonTrees.cc,v 1.16 2011/06/14 09:01:54 edelhoff Exp $
 //
 //
 
@@ -481,17 +481,22 @@ void DiLeptonTrees::fillPdfUncert(const edm::Handle< std::vector<double> >& weig
     *(floatBranches_[treeName][pdfIdentifier+up]) = float(wplus);
 }
 
-float DiLeptonTrees::getId(const  pat::Electron &lepton)
+float DiLeptonTrees::getId(const  pat::Electron &e)
 {
+  if (e.isEB())
+    return (e.dr03HcalTowerSumEt() + e.dr03EcalRecHitSumEt() + e.dr03TkSumPt())/e.pt();
+  else
+    return (e.dr03HcalTowerSumEt() + std::max(0.0, e.dr03EcalRecHitSumEt() - 1.0) + e.dr03TkSumPt())/e.pt();
+
   //  std::cout<<"electron " << (lepton.trackIso()+lepton.ecalIso()+lepton.hcalIso())/lepton.pt() << std::endl;
-  return (lepton.trackIso()+lepton.ecalIso()+lepton.hcalIso())/lepton.pt() ;
+  // return (lepton.trackIso()+lepton.ecalIso()+lepton.hcalIso())/lepton.pt() ;
     //  return (e.chargedHadronIso() + e.photonIso() + e.neutralHadronIso()) / e.pt();
 }
 
-float DiLeptonTrees::getId(const  pat::Muon &lepton)
+float DiLeptonTrees::getId(const  pat::Muon &mu)
 {
   //  std::cout<<"muon " << (lepton.trackIso()+lepton.ecalIso()+lepton.hcalIso())/lepton.pt() << std::endl;
-  return (lepton.trackIso()+lepton.ecalIso()+lepton.hcalIso())/lepton.pt();
+  return (mu.isolationR03().hadEt + mu.isolationR03().emEt + mu.isolationR03().sumPt) / mu.pt();
   //  return (mu.chargedHadronIso() + mu.photonIso() + mu.neutralHadronIso()) / mu.pt();
 }
 
