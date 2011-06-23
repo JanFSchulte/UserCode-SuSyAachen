@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: IsoTreeWriter.cc,v 1.16 2011/06/07 12:41:15 sprenger Exp $
+// $Id: IsoTreeWriter.cc,v 1.17 2011/06/18 22:53:22 edelhoff Exp $
 //
 //
 
@@ -52,6 +52,8 @@
 
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
+#include "DataFormats/Math/interface/LorentzVector.h"
+
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/LeptonKindFunctor.h"
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/IsoTreeTauExtensions.h"
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/IsolationFunctor.h"
@@ -87,6 +89,8 @@ private:
 	virtual double calcIso(const pat::Muon &);
 	virtual double calcIsoMinPt(const pat::Electron &);
         int findNextHardId(const T &lepton, const reco::GenParticleCollection &genParticles);
+
+        float transverseMass(const math::XYZTLorentzVector& p, const math::XYZTLorentzVector& met);
 
 	// ----------member data ---------------------------
 	// Switch for debug output
@@ -126,6 +130,7 @@ private:
 	float tauDiscr;
 	float ht;
 	float met;
+        float mT;
 	int nLept;
 	int nJets;
 	int nVertices;
@@ -191,6 +196,7 @@ fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
 	treeIso->Branch("nLept",&nLept,"nLept/I");
 	treeIso->Branch("nVertices",&nVertices,"nVertices/I");
 	treeIso->Branch("leptonKind",&leptonKind,"leptonsKind/I");
+	treeIso->Branch("mT",&mT,"mT/F");
 	
     treeIso->Branch("weight",&weight,"weight/F");
 
@@ -280,12 +286,24 @@ void IsoTreeWriter<T>::fillExtraVars(const pat::Tau& lepton)
 	if(tauExtensionsActive_) tauExtensions_.fill(*treeIso, lepton);
 }
 
+template< typename T > 
+float IsoTreeWriter<T>::transverseMass(const math::XYZTLorentzVector& p, const math::XYZTLorentzVector& met)
+{
+  reco::Candidate::LorentzVector otherMet(met.Px(),met.Py(),met.Pz(),met.E());
+  reco::Candidate::LorentzVector leptonT(p.Px(),p.Py(),0.,p.E()*sin(p.Theta()));
+  reco::Candidate::LorentzVector sumT=leptonT+otherMet;
+
+  return std::sqrt(sumT.M2());
+}
 
 //
 // member functions
 template< typename T > 
 void IsoTreeWriter<T>::fillIso(const edm::Handle< std::vector<T> >& leptons, const edm::Event& iEvent)
 {
+	edm::Handle< std::vector< pat::MET > > mets;
+	iEvent.getByLabel(metTag_, mets);
+
 	nLept = 0;
 	edm::Handle<reco::GenParticleCollection> genParticles;
         if(genParticleActive_) iEvent.getByLabel(genTag_, genParticles);
@@ -293,6 +311,7 @@ void IsoTreeWriter<T>::fillIso(const edm::Handle< std::vector<T> >& leptons, con
 		nLept = leptons->size();
 		pt = lep_i->pt();
 		eta = lep_i->eta();
+		mT = transverseMass(lep_i->p4(), mets->front().p4());
 		leptonKind = fctLeptonKind_(*lep_i);
 		fillExtraVars(*lep_i);
 
