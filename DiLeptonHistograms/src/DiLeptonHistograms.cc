@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2011/05/30 18:51:26 $
- *  $Revision: 1.42 $ for CMSSW 3_6_X
+ *  $Date: 2011/06/18 22:53:21 $
+ *  $Revision: 1.43 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  
@@ -37,7 +37,7 @@ fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
     maxJetsForAlphaT = iConfig.getParameter<unsigned int>   ("maxJetsForAlphaT");
 
     // how many tauDiscriminators to take
-    maxTauDiscriminators_ = 20; //TODO read from config
+    maxTauDiscriminators_ = 30; //TODO read from config
     //Input collections
     mcSrc             = iConfig.getParameter<edm::InputTag> ("mcSource");
     beamSpotSrc        = iConfig.getParameter<edm::InputTag> ("beamSpotSource");

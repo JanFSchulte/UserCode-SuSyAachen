@@ -33,19 +33,19 @@ def reduceEventsize(process):
 def tauReduction(process, tauCollection):    
     setattr(tauCollection, "isoDeposits", cms.PSet() )
     setattr(tauCollection, "embedLeadTrack", True )
-    setattr(tauCollection, "embedLeadPFCand", False )
-    setattr(tauCollection, "embedSignalPFChargedHadrCands", False)
+    setattr(tauCollection, "embedLeadPFCand", True )
+    setattr(tauCollection, "embedSignalPFChargedHadrCands", True)
     setattr(tauCollection, "embedIsolationPFGammaCands", False)
-    setattr(tauCollection, "embedSignalPFGammaCands", False)
+    setattr(tauCollection, "embedSignalPFGammaCands", True)
     setattr(tauCollection, "embedIsolationPFCands", False)
-    setattr(tauCollection, "embedSignalPFCands", False)
+    setattr(tauCollection, "embedSignalPFCands", True)
     setattr(tauCollection, "embedSignalTracks", True)
     setattr(tauCollection, "embedIsolationPFNeutralHadrCands", False)
     setattr(tauCollection, "embedIsolationPFChargedHadrCands", False)
     setattr(tauCollection, "embedIsolationTracks", False)
-    setattr(tauCollection, "embedSignalPFNeutralHadrCands", False)
-    setattr(tauCollection, "embedLeadPFChargedHadrCand", False)
-    setattr(tauCollection, "embedLeadPFNeutralCand", False)
+    setattr(tauCollection, "embedSignalPFNeutralHadrCands", True)
+    setattr(tauCollection, "embedLeadPFChargedHadrCand", True)
+    setattr(tauCollection, "embedLeadPFNeutralCand", True)
     
 def additionalTaus(process,postfix="PF"):
     from PhysicsTools.PatAlgos.tools.helpers import cloneProcessingSnippet, massSearchReplaceAnyInputTag
@@ -157,9 +157,19 @@ def additionalTaus(process,postfix="PF"):
 
     getattr(process,"patTaus"+postfix).tauIDSources = cms.PSet(
         leadingTrackFinding = cms.InputTag("hpsPFTauDiscriminationByDecayModeFinding"+postfix),
+        byVLooseIsolationCombinedIsolationDBSumPtCorr = cms.InputTag("hpsPFTauDiscriminationByVLooseCombinedIsolationDBSumPtCorr"+postfix),
+        byLooseIsolationCombinedIsolationDBSumPtCorr = cms.InputTag("hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr"+postfix),
+        byMediumIsolationCombinedIsolationDBSumPtCorr = cms.InputTag("hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr"+postfix),
+        byTightIsolationCombinedIsolationDBSumPtCorr = cms.InputTag("hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr"+postfix),
+        byVLooseIsolationDBSumPtCorr = cms.InputTag("hpsPFTauDiscriminationByVLooseIsolationDBSumPtCorr"+postfix),
+        byLooseIsolationDBSumPtCorr = cms.InputTag("hpsPFTauDiscriminationByLooseIsolationDBSumPtCorr"+postfix),
+        byMediumIsolationDBSumPtCorr = cms.InputTag("hpsPFTauDiscriminationByMediumIsolationDBSumPtCorr"+postfix),
+        byTightIsolationDBSumPtCorr = cms.InputTag("hpsPFTauDiscriminationByTightIsolationDBSumPtCorr"+postfix),
+        byVLooseIsolation = cms.InputTag("hpsPFTauDiscriminationByVLooseIsolation"+postfix),
         byLooseIsolation = cms.InputTag("hpsPFTauDiscriminationByLooseIsolation"+postfix),
         byMediumIsolation = cms.InputTag("hpsPFTauDiscriminationByMediumIsolation"+postfix),
         byTightIsolation = cms.InputTag("hpsPFTauDiscriminationByTightIsolation"+postfix),
+        byVLooseChargedIsolation = cms.InputTag("hpsPFTauDiscriminationByVLooseChargedIsolation"+postfix),
         byLooseChargedIsolation = cms.InputTag("hpsPFTauDiscriminationByLooseChargedIsolation"+postfix),
         byMediumChargedIsolation = cms.InputTag("hpsPFTauDiscriminationByMediumChargedIsolation"+postfix),
         byTightChargedIsolation = cms.InputTag("hpsPFTauDiscriminationByTightChargedIsolation"+postfix),
