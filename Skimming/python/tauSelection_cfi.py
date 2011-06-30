@@ -6,3 +6,9 @@ scIsolatedTaus = cms.EDFilter("PATTauToTauMatchSelector",
                                   dRMin = cms.double(0.15)
                                 
                                 )
+
+vicinityTaus = cms.EDFilter("PATTauVicinitySelector",
+                              src = cms.InputTag("selectedPatTausPF"),
+                              pfCandSource = cms.InputTag("particleFlow","","RECO"),
+                              dRMax = cms.double(0.5)
+                              )

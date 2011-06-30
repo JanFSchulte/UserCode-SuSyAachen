@@ -24,7 +24,7 @@ tauCountSelector = candViewCountFilter.clone(
            minNumber = 1
 )
 
-from SuSyAachen.Skimming.tauSelection_cfi import scIsolatedTaus
+from SuSyAachen.Skimming.tauSelection_cfi import scIsolatedTaus, vicinityTaus
 tauScIsolationSelector = scIsolatedTaus.clone(
     filter = cms.bool(True),
      src = cms.InputTag("selectedPatTausPF"),
@@ -33,10 +33,21 @@ tauScIsolationSelector = scIsolatedTaus.clone(
     dRMin = cms.double(0.15)
 )
 
+vicinitySelector = vicinityTaus.clone(
+        filter = cms.bool(True),
+        src = cms.InputTag("selectedPatTausPF"),
+)
 
 tauMuonCleaner = cms.EDProducer('tauMuonCleaner',
-                                     filter = cms.bool(True),
-                                     src = cms.InputTag("selectedPatTausPF"),
-                                     leptSrc = cms.InputTag("basicMuons"),
-                                     dRJetLepton = cms.double(0.15)
-                                     )
+                                filter = cms.bool(True),
+                                src = cms.InputTag("selectedPatTausPF"),
+                                leptSrc = cms.InputTag("basicMuons"),
+                                dRJetLepton = cms.double(0.15)
+                                )
+
+tauElectronCleaner = cms.EDProducer('tauElectronCleaner',
+                                    filter = cms.bool(True),
+                                    src = cms.InputTag("selectedPatTausPF"),
+                                    leptSrc = cms.InputTag("basicElectrons"),
+                                    dRJetLepton = cms.double(0.15)
+                                    )
