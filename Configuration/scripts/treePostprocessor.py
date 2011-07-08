@@ -14,6 +14,7 @@ class TreeProcessor:
         
     def prepareSrc(self, tree, object, processors):
         self.nEntries = tree.GetEntries()
+        #print "%s: %d" % (self.section, self.nEntries)
         
     
     def prepareDest(self, tree, object):
@@ -22,7 +23,8 @@ class TreeProcessor:
     def processEvent(self, event, object):
         import sys
         self.nThEntry +=1
-        if self.nThEntry%(self.nEntries*0.001) < 1: 
+        if self.nThEntry%(self.nEntries*0.001) < 1:
+            #print "%d / %d" % (self.nThEntry, self.nEntries)
             sys.stdout.write("\r%.1f%%" %(self.nThEntry*1./(self.nEntries*0.01)))    
             sys.stdout.flush()  
         return True
@@ -33,7 +35,7 @@ class SimpleSelector(TreeProcessor):
         
     def processEvent(self, event, object):
         from math import fabs
-        expression = self.config.get(self.section,"%sExpression"%object)
+        expression = self.getExpression(object)
         expression = expression.replace("&&","and")
         expression = expression.replace("&","and")
         expression = expression.replace("||","or")
@@ -42,7 +44,10 @@ class SimpleSelector(TreeProcessor):
         for i in [i.GetName() for i in event.GetListOfBranches()]:
             evalGlobal[i] = getattr(event,i)
         return eval(expression, evalGlobal)
-    
+
+    def getExpression(self, object):
+        return self.config.get(self.section,"%sExpression"%object)
+        
     
 class SimpleWeighter(TreeProcessor):
     def __init__(self, config, name):
@@ -120,7 +125,9 @@ class FakeWeighter(TreeProcessor):
                        "id2":event.id2}
         self.weight[object][0] = -1
         if eval(idExpr,evalGlobals):
-            f = self.pSet["center"].fakeRate(frBins)
+            frType = "center"
+            frType = self.config.get(self.section,"frType")
+            f = self.pSet[frType].fakeRate(frBins)
             self.weight[object][0] = f/(1-f)
         return True
 
@@ -141,7 +148,8 @@ class OverlapRemover(TreeProcessor):
         endOfLine = 1000
         for ev in src:
             if (endOfLine < 1):
-                continue
+                pass
+                #continue
             endOfLine -= 1
             processingResults = {}
             processors = self.config.get(self.section,"%sProcessors"%object).split()
@@ -181,7 +189,14 @@ class OverlapRemover(TreeProcessor):
         fingerPrint = (event.runNr, event.lumiSec, event.eventNr)        
         #if fingerPrint in self.keepEvents and not object == self.keepEvents[fingerPrint][0]:
         #    print "skipping", fingerPrint, object, event.pt1+event.pt2,   self.keepEvents[fingerPrint]
-        return fingerPrint in self.keepEvents and object == self.keepEvents[fingerPrint][0] 
+        value = fingerPrint in self.keepEvents and object == self.keepEvents[fingerPrint][0]
+        value2 = True
+        if (value):
+            # checks if correct sumPt is matched
+            # necessary for same-flavour events
+            value2 = event.pt1+event.pt2 == self.keepEvents[fingerPrint][1]
+        
+        return (value and value2)
 
 class TreeProducer:
     def __init__(self, config, inputPaths, name = None):
@@ -224,12 +239,12 @@ class TreeProducer:
                 treeProducerName =self.config.get(section,"treeProducerName")
                 trees = self._getDileptonTrees(section)
                 treeName = "DileptonTree"
-                subDirName = "processed%s%s"%(section.split("dileptonTree:")[1],treeProducerName)
+                subDirName = "%s%s"%(section.split("dileptonTree:")[1],treeProducerName)
             if section.startswith("isoTree:"):
                 treeProducerName =self.config.get(section,"treeProducerName")
                 trees = self._getIsoTrees(section)
                 treeName = "Iso"
-                subDirName = "processed%s%s"%(section.split("isoTree:")[1],treeProducerName)
+                subDirName = "%s%s"%(section.split("isoTree:")[1],treeProducerName)
             if not trees == None:
                 outDir = None
                 srcTree = {} 
@@ -245,8 +260,8 @@ class TreeProducer:
                         filePath = "%s.root"%treePath.split(".root")[0]
                         inFile = TFile(filePath,"READ")
                         if not self.counterSum:
-                            outFile.mkdir("processedCounters")
-                            outFile.cd("processedCounters")                            
+                            outFile.mkdir("%sCounters" % section.split("dileptonTree:")[1])
+                            outFile.cd("%sCounters" % section.split("dileptonTree:")[1])
                             task = None                            
                             for t in self.tasks:
                                 if ".%s."%t in splitPath(filePath)[1]:
@@ -264,6 +279,12 @@ class TreeProducer:
                         print "adding", treePath
                     srcTree[object].SetBranchStatus("*", 1)
                     for processorName in processors:
+                        if (self.treeProcessors[processorName].__class__.__name__ == SimpleSelector.__name__ and not self.config.has_option(section,"%sFilter"%object)):
+                            print "Requirements met, applying simple selection boosting =)"
+                            expression = self.treeProcessors[processorName].getExpression(object)
+                            print "Cutting tree down to: '%s'" % (expression)
+                            srcTree[object] = srcTree[object].CopyTree(expression)
+
                         self.treeProcessors[processorName].prepareSrc(srcTree[object], object, self.treeProcessors)
                 for object in trees:
                     processors = self.config.get(section,"%sProcessors"%object).split()
@@ -275,12 +296,15 @@ class TreeProducer:
                         outDir = outFile.mkdir(subDirName)
                     outFile.cd(subDirName)
                     destTree = srcTree[object].CloneTree(0)
+                    #print processors
                     for processorName in processors:
                         self.treeProcessors[processorName].prepareDest(destTree, object)
+                        print "%s: %d" % (str(processorName), self.treeProcessors[processorName].nEntries)
                     endOfLine = 1000
                     for i in srcTree[object]:
                         if endOfLine < 1:
-                            continue
+                            pass
+                            #continue
                         endOfLine -= 1
                         processingResults = {}
                         for processorName in processors:
