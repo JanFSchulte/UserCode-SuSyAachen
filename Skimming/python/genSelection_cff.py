@@ -177,7 +177,7 @@ pdfWeights = cms.EDProducer("PdfWeightProducer",
     PdfSetNames = cms.untracked.vstring(
         "cteq66.LHgrid",
         #"MRST2006nnlo.LHgrid",
-        #"MRST2007lomod.LHgrid"
+        #"NNPDF10_100.LHgrid"
     )
 )
 

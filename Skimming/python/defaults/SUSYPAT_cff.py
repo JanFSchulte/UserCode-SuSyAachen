@@ -9,7 +9,7 @@ def SUSYPAT(process):
 
     mcInfo = True
     hltName = 'HLT'
-    jetCorrections = ['L2Relative', 'L3Absolute']
+    jetCorrections = ['L1FastJet','L2Relative', 'L3Absolute']
     mcVersion = ''
     jetTypes = ['AK5PF']
     doValidation = False
@@ -33,12 +33,7 @@ def SUSYPAT(process):
                         'keep *_patMETsTypeIPF_*_' ]
 
     
-    electronHLTMatches = ['HLT_Ele15_LW_L1R','HLT_Ele15_SW_L1R','HLT_Ele15_SW_CaloEleId_L1R','HLT_Ele15_SW_EleId_L1R','HLT_Ele17_SW_TightEleId_L1R','HLT_Ele17_SW_TighterEleId_L1R_v1','HLT_Ele22_SW_TighterCaloIdIsol_L1R_v1','HLT_Ele22_SW_TighterCaloIdIsol_L1R_v2','HLT_Ele22_SW_TighterEleId_L1R_v1','HLT_Ele22_SW_TighterEleId_L1R_v2','HLT_Ele22_SW_TighterEleId_L1R_v3']
-    muonHLTMatches = ['HLT_Mu15_v1', 'HLT_Mu_9', 'HLT_Mu_11']
-    photonHLTMatches = ['HLT_Photon30']
-    tauHLTMatches = ['HLT_Jet15U', 'HLT_Jet30U', 'HLT_Jet50U']
-    jetHLTMatches = ['HLT_Jet15U', 'HLT_Jet30U', 'HLT_Jet50U']
-    addDefaultSUSYPAT(process,mcInfo,hltName,jetCorrections,mcVersion,jetTypes,doValidation,doExtensiveMatching,doSusyTopProjection,electronHLTMatches,muonHLTMatches,tauHLTMatches,jetHLTMatches,photonHLTMatches)
+    addDefaultSUSYPAT(process,mcInfo,hltName,jetCorrections,mcVersion,jetTypes,doValidation,doExtensiveMatching,doSusyTopProjection)
     #addDefaultSUSYPAT(process,True,'HLT','Summer09_7TeV_ReReco332') #no up-to-date JetMET corrections for FastSim these were recomendate somewhere...
     #SUSY_pattuple_outputCommands = getSUSY_pattuple_outputCommands( process ) 
 

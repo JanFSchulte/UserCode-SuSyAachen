@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr
 //         Created:  Wed Aug 18 15:37:34 CEST 2010
-// $Id: SusyXSecProducer.cc,v 1.1 2010/08/23 12:37:59 nmohr Exp $
+// $Id: SusyXSecProducer.cc,v 1.1 2011/01/07 15:47:27 nmohr Exp $
 //
 //
 
@@ -273,7 +273,7 @@ SusyXSecProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     for( std::vector<edm::ParameterSet>::iterator susyVar_i = susyVars_.begin(); susyVar_i != susyVars_.end(); ++susyVar_i ) {
         std::string var = susyVar_i->getParameter<std::string>( "var" );
         edm::Handle< double > var_;
-        iEvent.getByLabel(var, var_);
+        iEvent.getByLabel("seqSUSYPARS",var, var_);
         map_[var] = (*var_);
     } 
     CMSSMStruct point;
