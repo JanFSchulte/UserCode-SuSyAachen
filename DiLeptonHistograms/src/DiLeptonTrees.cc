@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.16 2011/06/14 09:01:54 edelhoff Exp $
+// $Id: DiLeptonTrees.cc,v 1.17 2011/06/22 12:31:35 sprenger Exp $
 //
 //
 
@@ -87,6 +87,7 @@ private:
   float getId(const  pat::Muon &mu);
   float getId(const  pat::Tau &tau);
   float transverseMass(const TLorentzVector& p, const TLorentzVector& met);
+  std::string convertInputTag(const edm::InputTag tag);
 
   edm::InputTag eTag_;
   edm::InputTag muTag_;
@@ -167,13 +168,13 @@ fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
   initIntBranch( "matched" );
   initIntBranch( "motherPdgId" );
   for ( std::vector<edm::ParameterSet>::iterator susyVar_i = susyVars_.begin(); susyVar_i != susyVars_.end(); ++susyVar_i ) {
-        std::string var = susyVar_i->getParameter<std::string>( "var" );
-        std::string type = susyVar_i->getParameter<std::string>( "type" );
-        if(debug) std::cout << var << " of type " << type << std::endl;
-        if (type=="int") initIntBranch( var );
-        else if (type=="float") initFloatBranch( var );
-        else throw cms::Exception("Unrecognized type") << 
-            "Unknown type " << type << " for variable" << var << " found\n";
+    edm::InputTag var = susyVar_i->getParameter<edm::InputTag>( "var" );
+    std::string type = susyVar_i->getParameter<std::string>( "type" );
+    if(debug) std::cout << var << " of type " << type << std::endl;
+    if (type=="int") initIntBranch( convertInputTag(var) );
+    else if (type=="float") initFloatBranch( convertInputTag(var) );
+    else throw cms::Exception("Unrecognized type") << 
+      "Unknown type " << type << " for variable" << var << " found\n";
   }
   for ( std::vector<edm::InputTag>::iterator pdf_i = pdfs_.begin(); pdf_i != pdfs_.end(); ++pdf_i ) {
      std::string pdfIdentifier = (*pdf_i).instance();
@@ -305,15 +306,15 @@ DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector
     assert(floatBranches_[treeName].find((*it).first) != floatBranches_[treeName].end());
     *(floatBranches_[treeName][(*it).first]) = (*it).second;
   }
-
   for ( std::vector<edm::ParameterSet>::iterator susyVar_i = susyVars_.begin(); susyVar_i != susyVars_.end(); ++susyVar_i ) {
-        std::string var = susyVar_i->getParameter<std::string>( "var" );
+        edm::InputTag var = susyVar_i->getParameter<edm::InputTag>( "var" );
         std::string type = susyVar_i->getParameter<std::string>( "type" );
         edm::Handle< double > var_;
         ev.getByLabel(var, var_);
-        if (type=="float") *(floatBranches_[treeName][var]) = float(*var_);
-        else if (type=="int") *(intBranches_[treeName][var]) = int(*var_);
+        if (type=="float") *(floatBranches_[treeName][convertInputTag(var)]) = float(*var_);
+        else if (type=="int") *(intBranches_[treeName][convertInputTag(var)]) = int(*var_);
   }
+  std::cout << std::endl;
   for ( std::vector<edm::InputTag>::iterator pdf_i = pdfs_.begin(); pdf_i != pdfs_.end(); ++pdf_i ) {
      const std::string pdfIdentifier = (*pdf_i).instance();
      edm::Handle<std::vector<double> > weightHandle;
@@ -341,12 +342,12 @@ DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector
     *(floatBranches_[treeName][(*it).first]) = (*it).second;
   }
   for ( std::vector<edm::ParameterSet>::iterator susyVar_i = susyVars_.begin(); susyVar_i != susyVars_.end(); ++susyVar_i ) {
-        std::string var = susyVar_i->getParameter<std::string>( "var" );
+        edm::InputTag var = susyVar_i->getParameter<edm::InputTag>( "var" );
         std::string type = susyVar_i->getParameter<std::string>( "type" );
         edm::Handle< double > var_;
         ev.getByLabel(var, var_);
-        if (type=="int") *(intBranches_[treeName][var]) = int(*var_);
-        else if (type=="float") *(floatBranches_[treeName][var]) = float(*var_);
+        if (type=="int") *(intBranches_[treeName][convertInputTag(var)]) = int(*var_);
+        else if (type=="float") *(floatBranches_[treeName][convertInputTag(var)]) = float(*var_);
   }
   for ( std::vector<edm::InputTag>::iterator pdf_i = pdfs_.begin(); pdf_i != pdfs_.end(); ++pdf_i ) {
      std::string pdfIdentifier = (*pdf_i).instance();
@@ -515,6 +516,15 @@ float DiLeptonTrees::transverseMass(const TLorentzVector& p, const TLorentzVecto
   reco::Candidate::LorentzVector sumT=leptonT+otherMet;
 
   return std::sqrt(sumT.M2());
+}
+
+std::string DiLeptonTrees::convertInputTag(const edm::InputTag tag)
+{
+  std::string result = tag.label();
+  if(tag.instance().length() > 0)
+    result = tag.instance();
+  //  std::cerr << "'"<<tag.label() << "', '"<< tag.instance()<<"' = '"<< result<<"'"<<std::endl;
+  return result;
 }
 
 // ------------ Method called once each job just before starting event loop  ------------

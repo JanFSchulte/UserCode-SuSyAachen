@@ -40,17 +40,17 @@ DiLeptonTrees = cms.EDAnalyzer("DiLeptonTrees",
 
 DiLeptonTreesmSugra = DiLeptonTrees.clone(
    susyVars = cms.VPSet(
-       cms.PSet(var = cms.string("susyScanA0"), type = cms.string("float")),
-       cms.PSet(var = cms.string("susyScanM0"), type = cms.string("float")),
-       cms.PSet(var = cms.string("susyScanM12"), type = cms.string("float")),
-       cms.PSet(var = cms.string("susyScantanbeta"), type = cms.string("float")),
-       cms.PSet(var = cms.string("susyScanCrossSection"), type = cms.string("float")),
-       cms.PSet(var = cms.string("susyScanNLOCrossSection"), type = cms.string("float")),
-       cms.PSet(var = cms.string("susyScanNLOCrossSectionScale2"), type = cms.string("float")),
-       cms.PSet(var = cms.string("susyScanNLOCrossSectionScale05"), type = cms.string("float")),
-       cms.PSet(var = cms.string("susyScankFactor"), type = cms.string("float")),
-       cms.PSet(var = cms.string("susyScanRun"), type = cms.string("float")),
-       cms.PSet(var = cms.string("susyScanMu"), type = cms.string("int"))
+       cms.PSet(var = cms.InputTag("seqSUSYPARS","susyScanA0"), type = cms.string("float")),
+       cms.PSet(var = cms.InputTag("seqSUSYPARS","susyScanM0"), type = cms.string("float")),
+       cms.PSet(var = cms.InputTag("seqSUSYPARS","susyScanM12"), type = cms.string("float")),
+       cms.PSet(var = cms.InputTag("seqSUSYPARS","susyScantanbeta"), type = cms.string("float")),
+       cms.PSet(var = cms.InputTag("seqSUSYPARS","susyScanCrossSection"), type = cms.string("float")),
+       cms.PSet(var = cms.InputTag("susyScanNLOCrossSection"), type = cms.string("float")),
+       cms.PSet(var = cms.InputTag("susyScanNLOCrossSectionScale2"), type = cms.string("float")),
+       cms.PSet(var = cms.InputTag("susyScanNLOCrossSectionScale05"), type = cms.string("float")),
+       cms.PSet(var = cms.InputTag("susyScankFactor"), type = cms.string("float")),
+#       cms.PSet(var = cms.InputTag("susyScanRun"), type = cms.string("float")),
+       cms.PSet(var = cms.InputTag("seqSUSYPARS","susyScanMu"), type = cms.string("int"))
        ),
    pdfWeightTags = cms.VInputTag(
         "susyScanPdfWeights:cteq66"
