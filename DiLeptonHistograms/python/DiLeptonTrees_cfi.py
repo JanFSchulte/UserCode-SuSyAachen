@@ -53,6 +53,8 @@ DiLeptonTreesmSugra = DiLeptonTrees.clone(
        cms.PSet(var = cms.InputTag("seqSUSYPARS","susyScanMu"), type = cms.string("int"))
        ),
    pdfWeightTags = cms.VInputTag(
-        "susyScanPdfWeights:cteq66"
+        "susyScanPdfWeights:cteq66",
+        "susyScanPdfWeights:MRST2006nnlo",
+        "susyScanPdfWeights:NNPDF10"
        )
 )
