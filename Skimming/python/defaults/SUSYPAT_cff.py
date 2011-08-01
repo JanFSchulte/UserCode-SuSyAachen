@@ -8,7 +8,7 @@ def SUSYPAT(process):
     
     mcInfo = True
     hltName = 'HLT'
-    jetCorrections = ['L1FastJet']
+    jetCorrections = ['L1FastJet', "L2Relative", "L3Absolute"]
     mcVersion = ''
     jetTypes = ['AK5PF']
     doValidation = False
