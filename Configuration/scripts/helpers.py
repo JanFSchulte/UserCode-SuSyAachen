@@ -7,7 +7,6 @@ Created on 18.08.2009
 import ConfigParser
 import re
 class BetterConfigParser(ConfigParser.ConfigParser):
-
     def __init__(self, defaults=None):#in python 2.6, dict_type=dict):
         self.__runtimeRepMap = {}
         self._activeSection = None
@@ -186,6 +185,164 @@ def orderByExpressions(input, expressions, sortFkt = sorted):
         if not element in result:
             result.append(element)
     return result
+
+
+class TableEntry(object):
+    template = "$%(value).1f \pm %(error).1f$"
+    dataTemplate = "$%(value)i$"
+    tooSmallValue = 0.1
+    tooSmallTemplate = "$< 0.1$"
+    def __init__(self, src= None, useEffective = True, isData = False):
+        self.isData = isData
+        self.sysErrors = {}
+        if src == None:
+            self.entries = []
+            self.scales = []
+        elif "GetEntries" in dir(src) and "GetEffectiveEntries" in dir(src) and "Integral" in dir(src):
+            entries = src.GetEntries()
+            if useEffective: entries = src.GetEffectiveEntries()
+            self.entries = [entries]
+            self.scales = [src.Integral()/self.entries[0] if self.entries[0] != 0 else 0.0]
+        elif len(src) == 2:
+            self.entries = [src[0]]
+            self.scales = [src[1] if src[0] != 0 else 0.0]
+            
+    @property
+    def value(self):
+        result = 0.
+        result += sum([ e*s for e,s in zip(self.entries, self.scales)])
+        return result
+    
+    @property
+    def error(self):
+        from math import sqrt
+        result = 0.
+        result += sqrt(sum([ e*s*s for e,s in zip(self.entries, self.scales)])) 
+        #this supposes that the error is sqrt(entries)*scale
+        return result
+    
+    @property
+    def maxRelSysErrors(self):
+        from math import fabs
+        result= {}
+        for sysErrorName, sysErr in self.sysErrors.items():
+            result[sysErrorName] = max([fabs(self.value - sysErr[i].value)* 1./self.value if self.value != 0 else 0.0  for i in range(2) ])
+        return result
+    
+    def __iadd__(self, y):
+        self = y + self 
+        return self
+    
+    def __radd__(self, y):
+        if y == 0:
+            return self
+        else:
+            return self + y
+        
+    def __add__(self, y):
+        assert self.isData == y.isData, "trying to combine data with mc!"
+        result = TableEntry(isData=self.isData)        
+        result.entries.extend( self.entries + y.entries)
+        result.scales.extend( self.scales + y.scales)
+        for name in self.sysErrors:
+            result.sysErrors[name] = [self.sysErrors[name][i] + y.sysErrors[name][i] if len(y.entries) > 0 else self.sysErrors[name][i] for i in range(2)]                                                                        
+        return result
+    
+    def withRelSysError(self, relSysErrors):
+        sysErrors = {}
+        if relSysErrors == None:
+            sysErrors = None
+        else:
+            for errName, errValue in relSysErrors.items():
+                sysErrors[errName] = self.value * errValue
+        return self.withSysError(sysErrors)
+    
+    def withSysError(self, sysErrors=None):
+        result = str(self)
+        if not sysErrors == None:
+            result = "$".join(result.split("$")[1:-1])
+            result += "_{stat.} "
+            for name, err in sysErrors.items():
+                result += "\\pm %.1f_{%s}"%(err, name)
+            result = "$%s$"%result
+        return result
+    
+    def __str__(self):
+        repMap = {
+                  "value": self.value,
+                  "error": self.error
+                  }
+        if self.isData:
+            assert self.value%1 < 1e-6, "Data TableValue with non integer value: '%s'"%self.value
+            result = self.dataTemplate%repMap
+        else:
+            result = self.template%repMap 
+            if repMap["value"] < self.tooSmallValue: 
+                result = self.tooSmallTemplate%repMap
+        return result
+    
+    def fraction(self, denom, factor = 100., diffToOne=False):
+        from math import sqrt
+        repMap = {}
+        
+        if denom.value == 0.0: result = "N/A"
+        else:
+            repMap["value"] = self.value * 1./denom.value * factor
+            repMap["error"] = sqrt((1./denom.value*self.error)**2 + (self.value*(1./denom.value**2) *denom.error)**2) *factor
+            if diffToOne: repMap["value"] = factor-repMap["value"]            
+            result = self.template%repMap
+        return result
+    
+    def setSysError(self, name, up, down):
+        self.sysErrors[name] = [up,down]
+
+
+def parsePSet(path): 
+  try:
+      import external.confScripts.cmsDummies
+  except ImportError:
+      import cmsDummies
+  result = {}
+  file = open(path, "r")
+  rawPSets = file.read()
+  file.close()
+  execGlobals = {"cms":cmsDummies}
+  exec(rawPSets, execGlobals )
+  for psetName in filter(lambda x: x not in ["cms", "__builtins__"], execGlobals.keys()):
+    if "Center" in psetName:
+      result["name"] = psetName.split("Center")[0]
+      result["center"] = execGlobals[psetName]
+    if "Lower" in psetName:
+      result["lower"] = execGlobals[psetName]
+    if "Upper" in psetName:
+      result["upper"] = execGlobals[psetName]
+  return result
+
+def compileLaTex(data, path):
+    from subprocess import Popen, PIPE
+    doctemplate = r"""
+\documentclass[a4paper,11pt]{article}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{epsfig}
+\pagestyle{empty}
+\textwidth 15cm
+\setlength{\parindent}{0mm}
+\begin{document}
+%s
+\end{document}
+"""
+    tabFile = open("/tmp/temp.tex","w")
+    tabFile.write(doctemplate%data)
+    tabFile.close()
+    p = Popen("latex -output-directory /tmp /tmp/temp.tex".split())#, stdout=PIPE,stderr=PIPE)
+    p.communicate()
+    p = Popen("dvipng -T tight -x 1200 -z 9 /tmp/temp.dvi".split(),stdout=PIPE,stderr=PIPE)
+    p.communicate()
+    p = Popen(("mv temp1.png %s.png"%path).split(),stdout=PIPE,stderr=PIPE)
+    p.communicate()
+
+
         
 import unittest
 class Test(unittest.TestCase):
@@ -269,6 +426,5 @@ name = someString
         self.assertTrue(sec.a == "2")
         self.assertTrue(sec.b == "hallo")
         self.assertTrue(sec.c == "mit sauce")
-    
     
     
