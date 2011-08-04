@@ -58,3 +58,28 @@ DiLeptonTreesmSugra = DiLeptonTrees.clone(
         "susyScanPdfWeights:NNPDF10"
        )
 )
+
+
+DiLeptonTreesSimplified = DiLeptonTrees.clone(
+#    vertexWeights = vertexWeightPars.clone(doWeight = False)
+    susyVars = cms.VPSet(
+    cms.PSet(var = cms.InputTag("seqSimplifiedPars","susyScanMLSP"), type = cms.string("float")),
+    cms.PSet(var = cms.InputTag("seqSimplifiedPars","susyScanMGL"), type = cms.string("float")),
+#    cms.PSet(var = cms.InputTag("seqSimplifiedPars","susyScanLower"), type = cms.string("float")),
+#    cms.PSet(var = cms.InputTag("seqSimplifiedPars","susyScanHigher"), type = cms.string("float")),
+    cms.PSet(var = cms.InputTag("seqSimplifiedPars","susyScanXChi"), type = cms.string("float")),
+#    cms.PSet(var = cms.InputTag("seqSUSYPARS","susyScanCrossSection"), type = cms.string("float")),
+#    cms.PSet(var = cms.InputTag("susyScanNLOCrossSection"), type = cms.string("float")),
+#                  cms.PSet(var = cms.InputTag("susyScanNLOCrossSectionScale2"), type = cms.string("float")),
+#    cms.PSet(var = cms.InputTag("susyScanNLOCrossSectionScale05"), type = cms.string("float")),
+#    cms.PSet(var = cms.InputTag("susyScankFactor"), type = cms.string("float")),
+    #       cms.PSet(var = cms.InputTag("susyScanRun"), type = cms.string("float")),
+#    cms.PSet(var = cms.InputTag("seqSUSYPARS","susyScanMu"), type = cms.string("int"))
+    ),
+    pdfWeightTags = cms.VInputTag(
+    "susyScanPdfWeights:cteq66",
+    "susyScanPdfWeights:MRST2006nnlo",
+    "susyScanPdfWeights:NNPDF10"
+    )
+    )
+DiLeptonTreesSimplified.vertexWeights.doWeight=False
