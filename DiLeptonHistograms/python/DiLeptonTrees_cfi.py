@@ -1,5 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 from SuSyAachen.DiLeptonHistograms.vertexWeights_cfi import vertexWeights as vertexWeightPars
+from SuSyAachen.DiLeptonHistograms.efficiencies.electronEffPSet_cff import electronCenterEfficiencies as electronEfficiency
+from SuSyAachen.DiLeptonHistograms.efficiencies.muonEffPSet_cff import muonCenterEfficiencies as muonEfficiency
 
 DiLeptonTrees = cms.EDAnalyzer("DiLeptonTrees",
    electrons = cms.InputTag("triggerMatchedPatElectronsPF"),
@@ -16,8 +18,13 @@ DiLeptonTrees = cms.EDAnalyzer("DiLeptonTrees",
 
 # NOT USED RIGHT NOW
    fakeRates =  cms.PSet(
-        elsectrons = cms.VPSet(),
+        electrons = cms.VPSet(),
         muons =  cms.VPSet(),
+        taus = cms.VPSet()
+   ),
+   efficiencies =  cms.PSet(
+        electrons = electronEfficiency,
+        muons =  muonEfficiency,
         taus = cms.VPSet()
    )
 #        cms.VPSet(
@@ -55,7 +62,7 @@ DiLeptonTreesmSugra = DiLeptonTrees.clone(
    pdfWeightTags = cms.VInputTag(
         "susyScanPdfWeights:cteq66",
         "susyScanPdfWeights:MRST2006nnlo",
-        "susyScanPdfWeights:NNPDF10"
+#        "susyScanPdfWeights:NNPDF10"
        )
 )
 
@@ -79,7 +86,7 @@ DiLeptonTreesSimplified = DiLeptonTrees.clone(
     pdfWeightTags = cms.VInputTag(
     "susyScanPdfWeights:cteq66",
     "susyScanPdfWeights:MRST2006nnlo",
-    "susyScanPdfWeights:NNPDF10"
+    #"susyScanPdfWeights:NNPDF10"
     )
     )
 DiLeptonTreesSimplified.vertexWeights.doWeight=False

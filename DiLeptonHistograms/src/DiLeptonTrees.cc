@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.17 2011/06/22 12:31:35 sprenger Exp $
+// $Id: DiLeptonTrees.cc,v 1.18 2011/08/01 15:39:55 edelhoff Exp $
 //
 //
 
@@ -107,6 +107,7 @@ private:
   std::map<std::string, std::map< std::string, TLorentzVector*> > tLorentzVectorBranches_;
 
   WeightFunctor fakeRates_;
+  WeightFunctor efficiencies_;
   VertexWeightFunctor fctVtxWeight_;
   IsolationFunctor fctIsolation_;
 
@@ -132,6 +133,7 @@ fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
 
   tauId_ = iConfig.getParameter<std::string >("tauId");
   fakeRates_.SetSource(iConfig,"fakeRates");// TODO use these and add mcInfo flag to choose right rates...
+  efficiencies_.SetSource(iConfig,"efficiencies");// TODO use these and add mcInfo flag to choose right rates...
 
   // init trees
   edm::Service<TFileService> file;
@@ -152,6 +154,10 @@ fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
   initFloatBranch( "id2" );
   initFloatBranch( "mt1" );
   initFloatBranch( "mt2" );
+  initFloatBranch( "eff1" );
+  initFloatBranch( "eff2" );
+  initFloatBranch( "fakeWeight1" );
+  initFloatBranch( "fakeWeight2" );
   initFloatBranch( "deltaPhi" );
   initFloatBranch( "deltaR" );
   initFloatBranch( "jzb" );
@@ -314,7 +320,7 @@ DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector
         if (type=="float") *(floatBranches_[treeName][convertInputTag(var)]) = float(*var_);
         else if (type=="int") *(intBranches_[treeName][convertInputTag(var)]) = int(*var_);
   }
-  std::cout << std::endl;
+  //std::cout << std::endl;
   for ( std::vector<edm::InputTag>::iterator pdf_i = pdfs_.begin(); pdf_i != pdfs_.end(); ++pdf_i ) {
      const std::string pdfIdentifier = (*pdf_i).instance();
      edm::Handle<std::vector<double> > weightHandle;
@@ -383,6 +389,10 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b, 
   *(floatBranches_[treeName]["id2"]) = getId(b);
   *(floatBranches_[treeName]["mt1"]) = transverseMass(aVec, met);
   *(floatBranches_[treeName]["mt2"]) = transverseMass(bVec, met);
+  *(floatBranches_[treeName]["eff1"]) = efficiencies_(a);
+  *(floatBranches_[treeName]["eff2"]) = efficiencies_(b);
+  *(floatBranches_[treeName]["fakeWeight1"]) = fakeRates_(a);
+  *(floatBranches_[treeName]["fakeWeight2"]) = fakeRates_(b);
   *(floatBranches_[treeName]["deltaPhi"]) = aVec.DeltaPhi( bVec );
   *(floatBranches_[treeName]["deltaR"]) = aVec.DeltaR( bVec );
   *(floatBranches_[treeName]["jzb"]) = (met+comb).Pt() - comb.Pt();
