@@ -27,8 +27,9 @@ def generateFakeRate(cfgFiles):
 
     fileName = parser.get('default', 'file')
     outputFileName = parser.get('default', 'outputFile')
-    treePath = parser.get('default', 'tree')
-    tree = getTreeFromFile(fileName, treePath)
+    treePathLoose = parser.get('default', 'tree') if not parser.has_option('default', 'treeLoose') else parser.get('default', 'treeLoose')
+    treePathTight = parser.get('default', 'tree') if not parser.has_option('default', 'treeTight') else parser.get('default', 'treeTight')
+    tree = getTreeFromFile(fileName, treePathLoose, treePathTight)
     rootContainer.extend([tree])
     
     log.logInfo("Generating bins")
@@ -122,13 +123,13 @@ def writePSet(path, parser, trees, bins, name):
             except:
                 print log.logError("could not convert weight '%s' for '%s'"%(parser.get("weights", inputFileName, default = "1.0"),inputFileName ))
                 weights.append(1.0)
-            if not selectionLooseBin in cache[inputFileName]:
-                cache[inputFileName][selectionLooseBin] = tree["tree"].GetEntries(selectionLooseBin)
-            loose.append( int(cache[inputFileName][selectionLooseBin]) )
+            if not ('treeLoose',selectionLooseBin) in cache[inputFileName]:
+                cache[inputFileName][('treeLoose',selectionTightBin)] = tree["treeLoose"].GetEntries(selectionLooseBin)
+            loose.append( int(cache[inputFileName][('treeLoose',selectionLooseBin)]) )
             
-            if not selectionTightBin in cache[inputFileName]:
-                cache[inputFileName][selectionTightBin] = tree["tree"].GetEntries(selectionTightBin)
-            tight.append( int(cache[inputFileName][selectionTightBin]))
+            if not ('treeTight',selectionTightBin) in cache[inputFileName]:
+                cache[inputFileName][('treeTight',selectionTightBin)] = tree["treeTight"].GetEntries(selectionTightBin)
+            tight.append( int(cache[inputFileName][('treeTight',selectionTightBin)]))
             
         if sum(tight) < 100: log.logWarning("small statistics n= %s for: '%s'"%(tight, selectionTightBin))
         
@@ -200,19 +201,26 @@ def appendSelection(selection1, selection2):
 
     return retValue
 
-def getTreeFromFile(fileNames, treePath):
-    log.logDebug("Getting tree '%s'\n  from file %s" % (treePath, fileNames.split()))
+def getTreeFromFile(fileNames, treePathLoose, treePathTight):
+    log.logDebug("Getting tree '%s'\n  from file %s" % (treePathLoose, fileNames.split()))
+    log.logDebug("Getting tree '%s'\n  from file %s" % (treePathTight, fileNames.split()))
     result = []
     for fileName in fileNames.split():
-		tree = ROOT.TChain(treePath)
-		tree.Add(fileName)
-		if (tree == None):
-			log.logError("Could not get tree '%s'\n  from file %s" % (treePath, fileName))
+        treeLoose = ROOT.TChain(treePathLoose)
+        treeTight = ROOT.TChain(treePathTight)
+        treeLoose.Add(fileName)
+        treeTight.Add(fileName)
+        if (treeLoose == None):
+            log.logError("Could not get tree '%s'\n  from file %s" % (treePathLoose, fileName))
+            return None
+        else:
+            treeLoose.SetDirectory(0)
+        if (treeTight == None):
+			log.logError("Could not get tree '%s'\n  from file %s" % (treePathTight, fileName))
 			return None
-		else:
-			tree.SetDirectory(0)
-
-		result.append({"tree": tree, "path":fileName})
+        else:
+            treeTight.SetDirectory(0)
+        result.append({"treeLoose": treeLoose, "treeTight": treeTight, "path":fileName})
     return result
 
 
