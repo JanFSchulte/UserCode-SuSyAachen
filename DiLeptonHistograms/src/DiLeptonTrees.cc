@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.18 2011/08/01 15:39:55 edelhoff Exp $
+// $Id: DiLeptonTrees.cc,v 1.19 2011/09/22 15:05:37 nmohr Exp $
 //
 //
 
@@ -80,6 +80,7 @@ private:
   template <class aT, class bT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT >&b, const edm::Event &ev, const TLorentzVector &met, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties);
   template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const edm::Event &ev, const TLorentzVector &met, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties);
   template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const TLorentzVector &met);
+  int getLeptonPdgId( const reco::GenParticle &p);
   int getMotherPdgId( const reco::GenParticle &p);
   std::pair<double, double> calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, const TLorentzVector& met);
   void fillPdfUncert(const edm::Handle< std::vector<double> >& weightHandle, const std::string& pdfIdentifier, const std::string& treeName);
@@ -146,6 +147,7 @@ fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
   initFloatBranch( "weight" );
   initFloatBranch( "chargeProduct" );
   initTLorentzVectorBranch( "p4" );
+  initTLorentzVectorBranch( "p4Gen" );
   initFloatBranch( "pt1" );
   initFloatBranch( "pt2" );
   initFloatBranch( "eta1" );
@@ -171,6 +173,8 @@ fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
   initIntBranch( "runNr" );
   initIntBranch( "lumiSec" );
   initIntBranch( "eventNr" );
+  initIntBranch( "pdgId1" );
+  initIntBranch( "pdgId2" );
   initIntBranch( "matched" );
   initIntBranch( "motherPdgId" );
   for ( std::vector<edm::ParameterSet>::iterator susyVar_i = susyVars_.begin(); susyVar_i != susyVars_.end(); ++susyVar_i ) {
@@ -400,22 +404,33 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b, 
   *(floatBranches_[treeName]["pZetaVis"]) = pZeta.second;
 
   int matched = 0;
+  int pdgId1 = 0;
+  int pdgId2 = 0;
   int aMother = -99999;
   int bMother = -99999;
 
+  TLorentzVector genVec( 0., 0., 0., 0. );
   if(a.genLepton() != NULL){
     matched |= 1;
+    pdgId1 = getLeptonPdgId(*(a.genLepton()));
     aMother = getMotherPdgId(*(a.genLepton()));
   }
   if(b.genLepton() != NULL){
     matched |= 2;
+    pdgId2 = getLeptonPdgId(*(b.genLepton()));
     bMother = getMotherPdgId(*(b.genLepton()));
+  }
+  if(a.genLepton() != NULL && b.genLepton() != NULL){
+      genVec.SetPxPyPzE(a.genLepton()->px()+b.genLepton()->px(),a.genLepton()->py()+b.genLepton()->py(),a.genLepton()->pz()+b.genLepton()->pz(),a.genLepton()->energy()+b.genLepton()->energy());
   }
   if( matched == 3 && aMother == bMother ) {
     matched |= 4;
   }
+  *(intBranches_[treeName]["pdgId1"]) = pdgId1;
+  *(intBranches_[treeName]["pdgId2"]) = pdgId2;
   *(intBranches_[treeName]["matched"]) = matched;
   *(intBranches_[treeName]["motherPdgId"]) = aMother;
+  *(tLorentzVectorBranches_[treeName]["p4Gen"]) = genVec;
   if(debug) std::cout << ", matched = "<<matched<<", motherId = "<<aMother;
   if(debug) std::cout<<", M = "<< comb.M() <<", chargeProduct = "<< a.charge()*b.charge() <<std::endl;
   
@@ -432,6 +447,21 @@ DiLeptonTrees::getMotherPdgId( const reco::GenParticle &p)
     else if(p.mother()->mother() != NULL)
       result = p.mother()->mother()->pdgId();
   }
+  return result;
+}
+
+int 
+DiLeptonTrees::getLeptonPdgId( const reco::GenParticle &p)
+{
+  int result = -9999;
+  if(p.status() == 3)
+     result = p.pdgId();
+   else if(p.mother() != NULL){
+      if(abs(p.mother()->pdgId()) == 11 || abs(p.mother()->pdgId()) == 13 || abs(p.mother()->pdgId()) == 15)
+        result = p.mother()->pdgId();
+      else
+        result = p.pdgId();
+   }
   return result;
 }
 
