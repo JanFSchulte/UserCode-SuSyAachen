@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.19 2011/09/22 15:05:37 nmohr Exp $
+// $Id: DiLeptonTrees.cc,v 1.20 2011/10/25 13:58:03 nmohr Exp $
 //
 //
 
@@ -94,6 +94,7 @@ private:
   edm::InputTag muTag_;
   edm::InputTag tauTag_;
   edm::InputTag jetTag_;
+  edm::InputTag jet2Tag_;
   edm::InputTag bJetTag_;
   edm::InputTag metTag_;
   edm::InputTag vertexTag_;
@@ -113,6 +114,7 @@ private:
   IsolationFunctor fctIsolation_;
 
   bool debug;
+  bool useJets2_;
 };
 
 // constructors and destructor
@@ -120,12 +122,14 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
 fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
 {
   debug = false;
-
+  useJets2_ = iConfig.existsAs<edm::InputTag>("jets2");
+  
   // read config
   eTag_ = iConfig.getParameter<edm::InputTag>("electrons");
   muTag_ = iConfig.getParameter<edm::InputTag>("muons");
   tauTag_ = iConfig.getParameter<edm::InputTag>("taus");
   jetTag_ = iConfig.getParameter<edm::InputTag>("jets");
+  if(useJets2_) jet2Tag_ = iConfig.getParameter<edm::InputTag>("jets2");
   bJetTag_ = iConfig.getParameter<edm::InputTag>("bJets");
   metTag_ = iConfig.getParameter<edm::InputTag>("met");
   vertexTag_ = iConfig.getParameter<edm::InputTag>("vertices");
@@ -147,6 +151,7 @@ fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
   initFloatBranch( "weight" );
   initFloatBranch( "chargeProduct" );
   initTLorentzVectorBranch( "p4" );
+  initTLorentzVectorBranch( "vMet" );
   initTLorentzVectorBranch( "p4Gen" );
   initFloatBranch( "pt1" );
   initFloatBranch( "pt2" );
@@ -177,6 +182,10 @@ fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
   initIntBranch( "pdgId2" );
   initIntBranch( "matched" );
   initIntBranch( "motherPdgId" );
+  if(useJets2_) {
+    initFloatBranch( "ht2" );
+    initIntBranch( "nJets2" );    
+  }
   for ( std::vector<edm::ParameterSet>::iterator susyVar_i = susyVars_.begin(); susyVar_i != susyVars_.end(); ++susyVar_i ) {
     edm::InputTag var = susyVar_i->getParameter<edm::InputTag>( "var" );
     std::string type = susyVar_i->getParameter<std::string>( "type" );
@@ -294,6 +303,15 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         floatEventProperties["ht"] += (*it).pt();
   }
   floatEventProperties["weight"] = fctVtxWeight_( iEvent );
+  if(useJets2_) {
+    edm::Handle< std::vector< pat::Jet > > jets2;
+    iEvent.getByLabel(jet2Tag_, jets2);
+    intEventProperties["nJets2"] = jets->size();
+    floatEventProperties["ht2"] = 0.0;
+    for(std::vector<pat::Jet>::const_iterator it = jets2->begin(); it != jets2->end() ; ++it){
+      floatEventProperties["ht2"] += (*it).pt();
+    }
+  }
 
   makeCombinations< pat::Electron >("EE", *electrons, iEvent, met, intEventProperties, floatEventProperties);
   makeCombinations< pat::Electron, pat::Muon >("EMu", *electrons, *muons, iEvent, met, intEventProperties, floatEventProperties);
@@ -308,6 +326,7 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 template <class aT, class bT> void 
 DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT> &b, const edm::Event &ev, const TLorentzVector &met, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties)
 {
+  *(tLorentzVectorBranches_[treeName]["vMet"]) = met;
   for(std::map<std::string, int>::const_iterator it = intEventProperties.begin(); it != intEventProperties.end(); ++it){
     assert(intBranches_[treeName].find((*it).first) != intBranches_[treeName].end());
     *(intBranches_[treeName][(*it).first]) = (*it).second;
@@ -343,6 +362,7 @@ DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector
 template <class aT> void 
 DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const edm::Event &ev, const TLorentzVector &met, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties)
 {
+  *(tLorentzVectorBranches_[treeName]["vMet"]) = met;
   for(std::map<std::string, int>::const_iterator it = intEventProperties.begin(); it != intEventProperties.end(); ++it){
     assert(intBranches_[treeName].find((*it).first) != intBranches_[treeName].end());
     *(intBranches_[treeName][(*it).first]) = (*it).second;  
@@ -495,29 +515,54 @@ DiLeptonTrees::calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, cons
 void DiLeptonTrees::fillPdfUncert(const edm::Handle< std::vector<double> >& weightHandle, const std::string& pdfIdentifier, const std::string& treeName){
      std::string up = "Up";
      std::string down = "Down";
+     bool nnpdfFlag = (pdfIdentifier.substr(0,5)=="NNPDF");
      double centralValue = (*weightHandle)[0];
      *(floatBranches_[treeName][pdfIdentifier]) = float(centralValue);
      if(debug) std::cout << "Cen" << treeName << ": " << centralValue << std::endl;
      unsigned int nmembers = weightHandle->size();
      double wminus = 0.;
      double wplus = 0.;
+     unsigned int nplus = 0;
+     unsigned int nminus = 0;
      for (unsigned int j=1; j<nmembers; j+=2) {
         float wa = ((*weightHandle)[j]-centralValue)/centralValue;
         float wb = ((*weightHandle)[j+1]-centralValue)/centralValue;
-        if (wa>wb) {
+	if (nnpdfFlag) {
+	  if (wa>0.) {
+	    wplus += wa*wa; 
+	    nplus++;
+	  } else {
+	    wminus += wa*wa;
+	    nminus++;
+	  }
+	  if (wb>0.) {
+	    wplus += wb*wb; 
+	    nplus++;
+	  } else {
+	    wminus += wb*wb;
+	    nminus++;
+	  }
+	} else {
+	  
+	  if (wa>wb) {
             if (wa<0.) wa = 0.;
             if (wb>0.) wb = 0.;
             wplus += wa*wa;
             wminus += wb*wb;
-        } else {
+	  } else {
             if (wb<0.) wb = 0.;
             if (wa>0.) wa = 0.;
             wplus += wb*wb;
             wminus += wa*wa;
-        }
+	  }
+	}
     }
     if (wplus>0.) wplus = sqrt(wplus);
     if (wminus>0.) wminus = sqrt(wminus);
+    if (nnpdfFlag) {
+      if (nplus>0) wplus /= sqrt(nplus);
+      if (nminus>0) wminus /= sqrt(nminus);
+    }
     *(floatBranches_[treeName][pdfIdentifier+down]) = float(wminus);
     *(floatBranches_[treeName][pdfIdentifier+up]) = float(wplus);
 }

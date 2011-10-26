@@ -84,6 +84,11 @@ electronCleanJets = jetElectronCleaner.clone(
     src = cms.InputTag("selectedPatJetsPF")
 )
 
+from SuSyAachen.Skimming.jetSelectors_cfi import jetTauCleaner
+tauCleanJets = jetTauCleaner.clone(
+    src = cms.InputTag("selectedPatJetsPF")
+)
+
 from SuSyAachen.Skimming.jetSelectors_cfi import resCorrectedJetProducer
 resCorrectedJets = resCorrectedJetProducer.clone(
     src = cms.InputTag("selectedPatJetsPF")

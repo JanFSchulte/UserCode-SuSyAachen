@@ -46,6 +46,13 @@ jetElectronCleaner = cms.EDProducer('jetElectronCleaner',
     dRJetLepton = cms.double(0.4)
 )
 
+
+jetTauCleaner = cms.EDProducer('jetTauCleaner',
+    src = cms.InputTag("basicJets"),
+    leptSrc = cms.InputTag("basicTau"),
+    dRJetLepton = cms.double(0.4)
+)
+
 resCorrectedJetProducer = cms.EDProducer('ResCorrJetsProducer',
   src = cms.InputTag("basicJets"),
   jetCorrections = cms.string("ak5PFJetsL2L3Residual")

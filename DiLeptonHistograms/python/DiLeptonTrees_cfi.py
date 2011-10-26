@@ -45,6 +45,17 @@ DiLeptonTrees = cms.EDAnalyzer("DiLeptonTrees",
 
 )
 
+DiLeptonTreesForLMPoints = DiLeptonTrees.clone(
+          pdfWeightTags = cms.VInputTag(
+            "susyScanPdfWeights:cteq66",
+            "susyScanPdfWeights:MSTW2008nlo68cl",
+            "susyScanPdfWeights:NNPDF20"
+#            "susyScanPdfWeights:cteq66",
+#            "susyScanPdfWeights:MRST2006nnlo",
+#            "susyScanPdfWeights:NNPDF10"
+            )
+          )
+
 DiLeptonTreesmSugra = DiLeptonTrees.clone(
    susyVars = cms.VPSet(
        cms.PSet(var = cms.InputTag("seqSUSYPARS","susyScanA0"), type = cms.string("float")),

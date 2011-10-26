@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: IsoTreeWriter.cc,v 1.17 2011/06/18 22:53:22 edelhoff Exp $
+// $Id: IsoTreeWriter.cc,v 1.18 2011/06/23 13:34:37 sprenger Exp $
 //
 //
 
@@ -55,6 +55,7 @@
 #include "DataFormats/Math/interface/LorentzVector.h"
 
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/LeptonKindFunctor.h"
+#include "SuSyAachen/TagAndProbeTreeWriter/interface/IsoTreeEventFootprintExtensions.h"
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/IsoTreeTauExtensions.h"
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/IsolationFunctor.h"
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/IsoTreeSecondLeptonExtensions.h"
@@ -95,6 +96,7 @@ private:
 	// ----------member data ---------------------------
 	// Switch for debug output
 	bool mcInfo;
+        bool eventFootprintExtensionsActive_;
 	bool tauExtensionsActive_;
 	bool secondLeptonExtensionsActive_;
         bool genParticleActive_;
@@ -131,15 +133,18 @@ private:
 	float ht;
 	float met;
         float mT;
+        float ptJet1;
+        float ptJet2; 
 	int nLept;
 	int nJets;
 	int nVertices;
 	int leptonKind;
-  int hardId;
+        int hardId;
 	
-    float weight;
+        float weight;
 
 	//Extensions
+        IsoTreeEventFootprintExtensions eventFootprintExtensions_;
 	IsoTreeTauExtensions tauExtensions_;
 	IsoTreeSecondLeptonExtensions secondLeptonExtensions_;
 
@@ -160,11 +165,14 @@ IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig):
 fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
 {
 	//now do what ever initialization is needed
+        eventFootprintExtensionsActive_ = true;
 	tauExtensionsActive_ = false;
 	secondLeptonExtensionsActive_ = false;
 	mcInfo = false;
-	if( iConfig.existsAs<bool>("useTauExtensions")	&& iConfig.getParameter<bool> ("useTauExtensions"))
-	  tauExtensionsActive_ = true;
+	if( iConfig.existsAs<bool>("useEventFootprintExtensions") )
+	  eventFootprintExtensionsActive_ = iConfig.getParameter<bool> ("useEventFootprintExtensions");
+	if( iConfig.existsAs<bool>("useTauExtensions") )
+	  tauExtensionsActive_ = iConfig.getParameter<bool> ("useTauExtensions");
 	if( iConfig.existsAs<bool>("useMcInfo")  && iConfig.getParameter<bool> ("useMcInfo"))
 	  mcInfo = true;
 	
@@ -192,6 +200,8 @@ fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
 	treeIso->Branch("eta",&eta,"eta/F");
 	treeIso->Branch("tauDiscr",&tauDiscr,"tauDiscr/F");
 	treeIso->Branch("ht",&ht,"ht/F");
+        treeIso->Branch("ptJet1",&ptJet1,"ptJet1/F");
+        treeIso->Branch("ptJet2",&ptJet2,"ptJet2/F");
 	treeIso->Branch("met",&met,"met/F");
 	treeIso->Branch("nLept",&nLept,"nLept/I");
 	treeIso->Branch("nVertices",&nVertices,"nVertices/I");
@@ -201,6 +211,7 @@ fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
     treeIso->Branch("weight",&weight,"weight/F");
 
 	if(tauExtensionsActive_) tauExtensions_.init(iConfig, *treeIso);
+	if(eventFootprintExtensionsActive_) eventFootprintExtensions_.init(iConfig, *treeIso);
 	if( iConfig.existsAs<edm::InputTag>("secondLeptonElectronSrc") &&
 	    iConfig.existsAs<edm::InputTag>("secondLeptonMuonSrc") &&
 	    iConfig.existsAs<edm::InputTag>("secondLeptonTauSrc") &&
@@ -304,11 +315,26 @@ void IsoTreeWriter<T>::fillIso(const edm::Handle< std::vector<T> >& leptons, con
 	edm::Handle< std::vector< pat::MET > > mets;
 	iEvent.getByLabel(metTag_, mets);
 
+	edm::Handle< std::vector< pat::Jet > > jets;
+        iEvent.getByLabel(jetTag_, jets);	
+
 	nLept = 0;
 	edm::Handle<reco::GenParticleCollection> genParticles;
+	if(eventFootprintExtensionsActive_) eventFootprintExtensions_.fill(iEvent);
         if(genParticleActive_) iEvent.getByLabel(genTag_, genParticles);
 	for (typename std::vector<T>::const_iterator lep_i = leptons->begin(); lep_i != leptons->end(); ++lep_i){
-		nLept = leptons->size();
+	        ht = 0.0;
+		ptJet1 = 0.0;
+		ptJet2 = 0.0;
+		for(std::vector<pat::Jet>::const_iterator it = jets->begin(); it != jets->end() ; ++it){
+		  ht += (*it).pt();
+		  if((*it).pt() > ptJet1 &&  reco::deltaR<const T, const pat::Jet>( *lep_i, *it) > 0.5) {
+		      ptJet2 = ptJet1;
+		      ptJet1 = (*it).pt();
+		  }
+		}
+		
+	        nLept = leptons->size();
 		pt = lep_i->pt();
 		eta = lep_i->eta();
 		mT = transverseMass(lep_i->p4(), mets->front().p4());
@@ -351,11 +377,6 @@ void IsoTreeWriter<T >::analyze(const edm::Event& iEvent, const edm::EventSetup&
 	iEvent.getByLabel(vertexTag_, vertices);
 
 	met = mets->front().pt();
-
-	ht = 0.0;
-	for(std::vector<pat::Jet>::const_iterator it = jets->begin(); it != jets->end() ; ++it){
-		ht += (*it).pt();
-	}
 
 	// count number of vertices
 	nVertices = vertices->size();
