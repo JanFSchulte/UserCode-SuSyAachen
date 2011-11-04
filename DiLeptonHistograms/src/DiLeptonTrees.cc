@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.20 2011/10/25 13:58:03 nmohr Exp $
+// $Id: DiLeptonTrees.cc,v 1.21 2011/10/26 15:17:08 edelhoff Exp $
 //
 //
 
@@ -569,7 +569,7 @@ void DiLeptonTrees::fillPdfUncert(const edm::Handle< std::vector<double> >& weig
 
 float DiLeptonTrees::getId(const  pat::Electron &e)
 {
-  if (e.isEB())
+  if (e.isEE())
     return (e.dr03HcalTowerSumEt() + e.dr03EcalRecHitSumEt() + e.dr03TkSumPt())/e.pt();
   else
     return (e.dr03HcalTowerSumEt() + std::max(0.0, e.dr03EcalRecHitSumEt() - 1.0) + e.dr03TkSumPt())/e.pt();
