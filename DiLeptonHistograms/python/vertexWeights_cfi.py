@@ -5,5 +5,12 @@ vertexWeights = cms.PSet(
     mcName = cms.string('pileup'),
     dataFile = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/PU_dist.root'),
     dataName = cms.string('pileup'),
+    mc3DFile = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/mc_PU_3D_dist.root'),
+    mc3DName = cms.string('pileup'),
+    data3DFile = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/PU_3D_dist.root'),
+    data3DName = cms.string('pileup'),
     doWeight = cms.bool(True),
+    doWeight3D = cms.bool(True),
+    fractionRunA = cms.double(0.46502),
+    fractionRunB = cms.double(0.53498),
 )
