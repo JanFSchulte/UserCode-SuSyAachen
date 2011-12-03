@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.21 2011/10/26 15:17:08 edelhoff Exp $
+// $Id: DiLeptonTrees.cc,v 1.22 2011/11/04 16:06:17 sprenger Exp $
 //
 //
 
@@ -306,7 +306,7 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   if(useJets2_) {
     edm::Handle< std::vector< pat::Jet > > jets2;
     iEvent.getByLabel(jet2Tag_, jets2);
-    intEventProperties["nJets2"] = jets->size();
+    intEventProperties["nJets2"] = jets2->size();
     floatEventProperties["ht2"] = 0.0;
     for(std::vector<pat::Jet>::const_iterator it = jets2->begin(); it != jets2->end() ; ++it){
       floatEventProperties["ht2"] += (*it).pt();
