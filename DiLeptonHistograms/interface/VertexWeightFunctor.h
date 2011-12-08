@@ -39,7 +39,8 @@ public:
             LumiWeights_ = edm::LumiReWeighting(mcFile_, dataFile_, mcName_, dataName_);
             if (doWeight3D_) {
                 LumiWeights3D_ = edm::Lumi3DReWeighting(mc3DFile_, data3DFile_, mc3DName_, data3DName_);
-                LumiWeights3D_.weight3D_init(1.);
+		// 73.5 TOTEM inelastic x-Sec 68 CMS default
+                LumiWeights3D_.weight3D_init(73.5/68.);
             }
     
   }
