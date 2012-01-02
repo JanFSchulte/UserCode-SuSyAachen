@@ -1,4 +1,5 @@
 import FWCore.ParameterSet.Config as cms
+from SuSyAachen.DiLeptonHistograms.pdgIdDefinition_cff import defaultPdgIdDefinition
 from SuSyAachen.DiLeptonHistograms.vertexWeights_cfi import vertexWeights as vertexWeightPars
 from SuSyAachen.DiLeptonHistograms.efficiencies.electronEffPSet_cff import electronCenterEfficiencies as electronEfficiency
 from SuSyAachen.DiLeptonHistograms.efficiencies.muonEffPSet_cff import muonCenterEfficiencies as muonEfficiency
@@ -15,6 +16,7 @@ DiLeptonTrees = cms.EDAnalyzer("DiLeptonTrees",
    susyVars = cms.VPSet(),
    pdfWeightTags = cms.VInputTag(),
    vertexWeights = vertexWeightPars,
+   pdgIdDefinition = defaultPdgIdDefinition,
 
 # NOT USED RIGHT NOW
    fakeRates =  cms.PSet(

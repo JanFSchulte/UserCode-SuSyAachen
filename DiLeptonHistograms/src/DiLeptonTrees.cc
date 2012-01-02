@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.22 2011/11/04 16:06:17 sprenger Exp $
+// $Id: DiLeptonTrees.cc,v 1.23 2011/12/03 16:24:48 edelhoff Exp $
 //
 //
 
@@ -48,6 +48,7 @@
 #include <DataFormats/Provenance/interface/EventID.h>
 
 #include <SuSyAachen/DiLeptonHistograms/interface/WeightFunctor.h>
+#include <SuSyAachen/DiLeptonHistograms/interface/PdgIdFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/VertexWeightFunctor.h>
 #include <SuSyAachen/TagAndProbeTreeWriter/interface/IsolationFunctor.h>
 
@@ -112,6 +113,7 @@ private:
   WeightFunctor efficiencies_;
   VertexWeightFunctor fctVtxWeight_;
   IsolationFunctor fctIsolation_;
+  PdgIdFunctor getPdgId_;
 
   bool debug;
   bool useJets2_;
@@ -119,7 +121,8 @@ private:
 
 // constructors and destructor
 DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
-fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
+  fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") ),
+  getPdgId_( iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition") )
 {
   debug = false;
   useJets2_ = iConfig.existsAs<edm::InputTag>("jets2");
@@ -285,6 +288,8 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<reco::VertexCollection> vertices;
   iEvent.getByLabel(vertexTag_, vertices);
 
+  getPdgId_.loadGenParticles(iEvent);
+
   std::map<std::string, int> intEventProperties;
   std::map<std::string, float> floatEventProperties;
 
@@ -429,15 +434,18 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b, 
   int aMother = -99999;
   int bMother = -99999;
 
+  pdgId1 = getPdgId_.operator()<aT>(a);
+  pdgId2 = getPdgId_.operator()<bT>(b);
+
   TLorentzVector genVec( 0., 0., 0., 0. );
   if(a.genLepton() != NULL){
     matched |= 1;
-    pdgId1 = getLeptonPdgId(*(a.genLepton()));
+ // getLeptonPdgId(*(a.genLepton()));
     aMother = getMotherPdgId(*(a.genLepton()));
   }
   if(b.genLepton() != NULL){
     matched |= 2;
-    pdgId2 = getLeptonPdgId(*(b.genLepton()));
+//getLeptonPdgId(*(b.genLepton()));
     bMother = getMotherPdgId(*(b.genLepton()));
   }
   if(a.genLepton() != NULL && b.genLepton() != NULL){

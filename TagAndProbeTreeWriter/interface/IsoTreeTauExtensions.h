@@ -26,6 +26,7 @@ private:
     float trackIso;
 
     int decayModeTruth;
+    float ptLeptonTruth;
     float ptTruth;
     float etaTruth;
     float phiTruth;
@@ -51,6 +52,7 @@ void IsoTreeTauExtensions::init(const edm::ParameterSet& iConfig, TTree& tree)
     tree.Branch("electronPreIDOutput",&electronPreIDOutput,"electronPreIDOutput/F");
 
     tree.Branch("decayModeTruth",&decayModeTruth,"decayModeTruth/I");
+    tree.Branch("ptLeptonTruth",&ptTruth,"ptLeptonTruth/F");
     tree.Branch("ptTruth",&ptTruth,"ptTruth/F");
     tree.Branch("etaTruth",&etaTruth,"etaTruth/F");
     tree.Branch("phiTruth",&phiTruth,"phiTruth/F");
@@ -83,6 +85,7 @@ void IsoTreeTauExtensions::fill(TTree& tree, const pat::Tau& tau)
 
     decayModeTruth = -20;
     ptTruth = -1.;
+    ptLeptonTruth = -1.;
     etaTruth = -10.;
     phiTruth = -1.;
     if(debug_) std::cout << "dm("<<decayMode;
@@ -91,6 +94,7 @@ void IsoTreeTauExtensions::fill(TTree& tree, const pat::Tau& tau)
     	decayModeTruth = trueDecayMode(*dynamic_cast<const reco::Candidate*>(tau.genLepton()));
     	if(debug_) std::cout <<","<<decayModeTruth;
     	ptTruth = tau.genJet()->pt();
+	ptLeptonTruth = tau.genLepton()->pt();
     	etaTruth = tau.genJet()->eta();
     	phiTruth = tau.genJet()->phi();
     }
