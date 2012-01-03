@@ -21,27 +21,27 @@
 class PdgIdFunctor
 {
 public:
-        PdgIdFunctor(edm::ParameterSet const & params):genParticles_(){
-	  deltaR_ = params.getParameter<double>("deltaR");
-	  genTag_ = params.getParameter<edm::InputTag> ("genSrc");
-	}
-	
-	void loadGenParticles( const edm::Event& ev){
-	  edm::Handle<reco::GenParticleCollection> genParticles;
-	  ev.getByLabel(genTag_, genParticles);
-	  genParticles_ = *genParticles;
-	}
-
-	bool isUseable(){return initialized_;}
-	template<class T> int operator()(const T& lepton);
-
-private:
-	bool initialized_;
-	reco::GenParticleCollection genParticles_; 
-
-	double deltaR_;
-	edm::InputTag genTag_;
-
+ PdgIdFunctor(edm::ParameterSet const & params):genParticles_(){
+    hasGen_ = false;
+    deltaR_ = params.getParameter<double>("deltaR");
+    genTag_ = params.getParameter<edm::InputTag> ("genSrc");
+  }
+  
+  void loadGenParticles( const edm::Event& ev){
+    edm::Handle<reco::GenParticleCollection> genParticles;
+    hasGen_ = ev.getByLabel(genTag_, genParticles);
+    if(hasGen_) genParticles_ = *genParticles;
+  }
+  
+  bool hasGen(){return hasGen_;}
+  template<class T> int operator()(const T& lepton);
+  
+ private:
+  bool hasGen_;
+  reco::GenParticleCollection genParticles_; 
+  
+  double deltaR_;
+  edm::InputTag genTag_;  
 };
 
 template<class T>
@@ -49,7 +49,7 @@ int
 PdgIdFunctor::operator()(const T& lepton)
 {
    int result = -9999;
-   if(lepton.genLepton() == NULL){
+   if(lepton.genLepton() == NULL && hasGen_){
      double  minDeltaR = deltaR_;
      for(reco::GenParticleCollection::const_iterator it = genParticles_.begin(); it != genParticles_.end(); ++it){
        if((*it).status() == 3 && reco::deltaR<const T, const reco::GenParticle>( lepton, *it) < minDeltaR){
