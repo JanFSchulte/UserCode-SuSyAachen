@@ -57,7 +57,7 @@ PdgIdFunctor::operator()(const T& lepton)
 	 result = (*it).pdgId();
        }
      }
-   }else{
+   }else if(lepton.genLepton() != NULL){
      reco::GenParticle p(*lepton.genLepton());
      if(p.status() == 3)
        result = p.pdgId();
