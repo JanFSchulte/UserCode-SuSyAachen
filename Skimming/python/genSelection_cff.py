@@ -149,24 +149,23 @@ isoTauJetMatchedParticles = patMatchers.patMatchedTauSelector.clone( filter = fi
 )
 
 isoGenLepton = cms.EDProducer('IsoGenParticleProducer',
-    src = cms.InputTag("basicElectrons"),
-    cut_dR = cms.double(0.4),
-    cut_iso = cms.double(0.2),
-    cut_pt = cms.double(0.75),
-    exclude = cms.vint32( 11,-11, 13,-13,15,-15) #leptons
-)
+                              src = cms.InputTag("basicElectrons"),
+                              cut_dR = cms.double(0.4),
+                              cut_iso = cms.double(0.2),
+                              cut_pt = cms.double(0.75),
+                              exclude = cms.vint32( 11,-11, 13,-13,15,-15) #leptons
+                              )
 
+
+
+from SuSyAachen.DiLeptonHistograms.DiLeptonTrees_cfi import mSugraVars
 
 susyCrossSectionProducer = cms.EDProducer( "SusyXSecProducer", src = cms.InputTag("genParticles"),
-    susyVars = cms.VPSet(
-    cms.PSet(var = cms.string("susyScanM0")),
-    cms.PSet(var = cms.string("susyScanM12")),
-    cms.PSet(var = cms.string("susyScantanbeta"))
-    ),
-    crossSections = cms.VPSet(
+                                           susyVars = cms.VPSet(mSugraVars),
+                                           crossSections = cms.VPSet(
     cms.PSet(susyScanM0 = cms.double(270.), susyScanM12 = cms.double(450.), susyScantanbeta = cms.double(3.), susyScanA0 = cms.double(0.), susyScanMu = cms.double(-1.), ng = cms.double(0.224611), ns =  cms.double(0.0101205), nn = cms.double(53.1719), ll = cms.double(3.5998e-06), sb = cms.double(0.00592), ss = cms.double(0.0386), tb = cms.double(0.024632), bb = cms.double(0.001203), gg = cms.double(66.1), sg = cms.double(2.3)),
     )
-)
+                                           )
 
 # Produce PDF weights (maximum is 3)
 pdfWeights = cms.EDProducer("PdfWeightProducer",
@@ -176,8 +175,8 @@ pdfWeights = cms.EDProducer("PdfWeightProducer",
     PdfInfoTag = cms.untracked.InputTag("generator"),
     PdfSetNames = cms.untracked.vstring(
         "cteq66.LHgrid",
-        "MSTW2008nlo68cl.LHgrid",
-        "NNPDF20_100.LHgrid"
+#        "MSTW2008nlo68cl.LHgrid",
+#        "NNPDF20_100.LHgrid"
 #        "MRST2006nnlo.LHgrid",
 #        "NNPDF10_100.LHgrid"
     )

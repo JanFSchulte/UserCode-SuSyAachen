@@ -1,10 +1,10 @@
 import FWCore.ParameterSet.Config as cms
 def ScanNLOCrossSectionTanBeta10(process):  
     from SuSyAachen.Skimming.genSelection_cff import susyCrossSectionProducer
-    from SuSyAachen.Skimming.scale_xsection_nlo10_tandat10_cfi import scale_xsection_nlo10_tandat10
-    from SuSyAachen.Skimming.scale_xsection_nlo20_tandat10_cfi import scale_xsection_nlo20_tandat10
-    from SuSyAachen.Skimming.scale_xsection_nlo05_tandat10_cfi import scale_xsection_nlo05_tandat10
-    from SuSyAachen.Skimming.scale_kfactordat10_cfi import scale_kfactordat10
+    from SuSyAachen.Skimming.scale_xsection_nlo10_tandat10_cfi import msugra_m0_m12_10_0_1_NLO_10 as scale_xsection_nlo10_tandat10
+    from SuSyAachen.Skimming.scale_xsection_nlo20_tandat10_cfi import msugra_m0_m12_10_0_1_NLO_20  as scale_xsection_nlo20_tandat10
+    from SuSyAachen.Skimming.scale_xsection_nlo05_tandat10_cfi import msugra_m0_m12_10_0_1_NLO_05 as scale_xsection_nlo05_tandat10
+    from SuSyAachen.Skimming.scale_kfactordat10_cfi import msugra_m0_m12_10_0_1_NLOkFactor_10 as scale_kfactordat10
     process.susyScanNLOCrossSection = susyCrossSectionProducer.clone(
                 crossSections = scale_xsection_nlo10_tandat10
                 )

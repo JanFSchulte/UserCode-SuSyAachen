@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr
 //         Created:  Wed Aug 18 15:37:34 CEST 2010
-// $Id: SusyXSecProducer.cc,v 1.1 2011/01/07 15:47:27 nmohr Exp $
+// $Id: SusyXSecProducer.cc,v 1.2 2011/07/29 15:16:39 nmohr Exp $
 //
 //
 
@@ -111,6 +111,7 @@ class SusyXSecProducer : public edm::EDProducer {
       virtual int getSUSYSubprocess(const edm::Handle< std::vector<reco::GenParticle> >& );
       virtual int sFinalState(int, int);
       virtual double susyNLOXSec(int, CMSSMStruct);
+      std::string  convertInputTag(const edm::InputTag tag);
       
       // ----------member data ---------------------------
       std::vector<CMSSMStruct> theNLO_;
@@ -140,8 +141,8 @@ SusyXSecProducer::SusyXSecProducer(const edm::ParameterSet& iConfig)
    susyVars_ = iConfig.getParameter< std::vector<edm::ParameterSet> >("susyVars");
    scan_ = iConfig.getParameter< std::vector<edm::ParameterSet> >("crossSections");
    for ( std::vector<edm::ParameterSet>::iterator susyVar_i = susyVars_.begin(); susyVar_i != susyVars_.end(); ++susyVar_i ) {
-        std::string var = susyVar_i->getParameter<std::string>( "var" );
-        theVars_.push_back(var);
+     edm::InputTag var = susyVar_i->getParameter<edm::InputTag>( "var" );
+     theVars_.push_back(convertInputTag(var));
    }
    for ( std::vector<edm::ParameterSet>::iterator scan_i = scan_.begin(); scan_i != scan_.end(); ++scan_i ) {
         CMSSMStruct point;
@@ -271,10 +272,10 @@ SusyXSecProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
     std::map<std::string,double> map_;
     for( std::vector<edm::ParameterSet>::iterator susyVar_i = susyVars_.begin(); susyVar_i != susyVars_.end(); ++susyVar_i ) {
-        std::string var = susyVar_i->getParameter<std::string>( "var" );
+        edm::InputTag var = susyVar_i->getParameter<edm::InputTag>( "var" );
         edm::Handle< double > var_;
-        iEvent.getByLabel("seqSUSYPARS",var, var_);
-        map_[var] = (*var_);
+        iEvent.getByLabel(var, var_);
+        map_[convertInputTag(var)] = (*var_);
     } 
     CMSSMStruct point;
     point.set_values(map_);
@@ -308,6 +309,17 @@ SusyXSecProducer::beginJob()
 void 
 SusyXSecProducer::endJob() {
 }
+
+std::string
+SusyXSecProducer::convertInputTag(const edm::InputTag tag)
+{
+  std::string result = tag.label();
+  if(tag.instance().length() > 0)
+    result = tag.instance();
+  //  std::cerr << "'"<<tag.label() << "', '"<< tag.instance()<<"' = '"<< result<<"'"<<std::endl;                                                                                                                                      
+  return result;
+}
+
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(SusyXSecProducer);
