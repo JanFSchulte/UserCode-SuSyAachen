@@ -5,11 +5,27 @@ def SUSYPATdata(process):
       fileName = cms.untracked.string('dummy.root'),
       outputCommands = cms.untracked.vstring( 'drop *')
     )
-#    process.source.duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
-    addDefaultSUSYPAT(process,False,'HLT','Spring10','35x',['IC5Calo','AK5PF'])
-    #addDefaultSUSYPAT(process,True,'HLT','Summer09_7TeV_ReReco332') #no up-to-date JetMET corrections for FastSim these were recomendate somewhere...
-    #SUSY_pattuple_outputCommands = getSUSY_pattuple_outputCommands( process ) 
 
+    mcInfo = False
+    hltName = 'HLT'
+    jetCorrections = ['L1FastJet', "L2Relative", "L3Absolute"]
+    mcVersion = ''
+    jetTypes = ['AK5PF']
+    doValidation = False
+    doExtensiveMatching = False
+    doSusyTopProjection = True
+
+    #Apply SUSYPAT
+    addDefaultSUSYPAT(process,mcInfo,hltName,jetCorrections, mcVersion, jetTypes, doValidation, doExtensiveMatching, doSusyTopProjection)
+    SUSY_pattuple_outputCommands = getSUSY_pattuple_outputCommands( process )
+    ############################## END SUSYPAT specifics ####################################
+
+    ### AACHEN specific, need better place for this #####
+    from SuSyAachen.Configuration.AachenSUSYPAT_cff import reduceEventsize, additionalTaus
+    additionalTaus(process,postfix="PF")
+    reduceEventsize(process)
+    
     del process.out
     process.seqSUSYPATdata = process.susyPatDefaultSequence
-                         
+
+    
