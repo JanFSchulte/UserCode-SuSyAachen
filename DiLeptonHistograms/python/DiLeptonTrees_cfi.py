@@ -4,15 +4,15 @@ from SuSyAachen.DiLeptonHistograms.vertexWeights_cfi import vertexWeights as ver
 from SuSyAachen.DiLeptonHistograms.efficiencies.electronEffPSet_cff import electronCenterEfficiencies as electronEfficiency
 from SuSyAachen.DiLeptonHistograms.efficiencies.muonEffPSet_cff import muonCenterEfficiencies as muonEfficiency
 
-DiLeptonTrees = cms.EDAnalyzer("DiLeptonTrees",
+DiLeptonTreesNoTaus = cms.EDAnalyzer("DiLeptonTrees",
    electrons = cms.InputTag("triggerMatchedPatElectronsPF"),
    muons = cms.InputTag("triggerMatchedPatMuonsPF"),
-   taus = cms.InputTag("triggerMatchedPatTausPF"),
+#   taus = cms.InputTag("triggerMatchedPatTausPF"),
    jets = cms.InputTag("triggerMatchedPatJetsPF"),
    bJets = cms.InputTag("triggerMatchedPatJetsPF"),
    met = cms.InputTag("patMETsPF"),
    vertices = cms.InputTag("offlinePrimaryVertices"),
-   tauId = cms.string("byTaNCfrHalfPercent"),
+#   tauId = cms.string("byTaNCfrHalfPercent"),
    susyVars = cms.VPSet(),
    pdfWeightTags = cms.VInputTag(),
    vertexWeights = vertexWeightPars,
@@ -46,6 +46,11 @@ DiLeptonTrees = cms.EDAnalyzer("DiLeptonTrees",
 #    )
 
 )
+
+DiLeptonTrees = DiLeptonTreesNoTaus.clone(
+    taus = cms.InputTag("triggerMatchedPatTausPF"),
+    tauId = cms.string("byTaNCfrHalfPercent"), 
+    )
 
 DiLeptonTreesForLMPoints = DiLeptonTrees.clone(
           pdfWeightTags = cms.VInputTag(

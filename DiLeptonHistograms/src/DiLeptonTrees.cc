@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.23 2011/12/03 16:24:48 edelhoff Exp $
+// $Id: DiLeptonTrees.cc,v 1.24 2012/01/02 12:57:01 edelhoff Exp $
 //
 //
 
@@ -117,6 +117,7 @@ private:
 
   bool debug;
   bool useJets2_;
+  bool useTaus_;
 };
 
 // constructors and destructor
@@ -125,12 +126,13 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
   getPdgId_( iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition") )
 {
   debug = false;
+  useTaus_ = iConfig.existsAs<edm::InputTag>("taus");
   useJets2_ = iConfig.existsAs<edm::InputTag>("jets2");
   
   // read config
   eTag_ = iConfig.getParameter<edm::InputTag>("electrons");
   muTag_ = iConfig.getParameter<edm::InputTag>("muons");
-  tauTag_ = iConfig.getParameter<edm::InputTag>("taus");
+  if(useTaus_)tauTag_ = iConfig.getParameter<edm::InputTag>("taus");
   jetTag_ = iConfig.getParameter<edm::InputTag>("jets");
   if(useJets2_) jet2Tag_ = iConfig.getParameter<edm::InputTag>("jets2");
   bJetTag_ = iConfig.getParameter<edm::InputTag>("bJets");
@@ -148,9 +150,11 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
   trees_["EE"] = file->make<TTree>("EEDileptonTree", "EE DileponTree");
   trees_["EMu"] = file->make<TTree>("EMuDileptonTree", "EMu DileponTree");
   trees_["MuMu"] = file->make<TTree>("MuMuDileptonTree", "MuMu DileponTree");
-  trees_["ETau"] = file->make<TTree>("ETauDileptonTree", "ETau DileponTree");
-  trees_["MuTau"] = file->make<TTree>("MuTauDileptonTree", "MuTau DileponTree");
-  trees_["TauTau"] = file->make<TTree>("TauTauDileptonTree", "TauTau DileponTree");
+  if(useTaus_){
+    trees_["ETau"] = file->make<TTree>("ETauDileptonTree", "ETau DileponTree");
+    trees_["MuTau"] = file->make<TTree>("MuTauDileptonTree", "MuTau DileponTree");
+    trees_["TauTau"] = file->make<TTree>("TauTauDileptonTree", "TauTau DileponTree");
+  }
   initFloatBranch( "weight" );
   initFloatBranch( "chargeProduct" );
   initTLorentzVectorBranch( "p4" );
@@ -272,9 +276,11 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   edm::Handle< std::vector< pat::Muon > > muons;
   iEvent.getByLabel(muTag_, muons);
+
   
   edm::Handle< std::vector< pat::Tau > > taus;
-  iEvent.getByLabel(tauTag_, taus);
+  if(useTaus_)
+    iEvent.getByLabel(tauTag_, taus);
   
   edm::Handle< std::vector< pat::Jet > > jets;
   iEvent.getByLabel(jetTag_, jets);
@@ -321,10 +327,11 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   makeCombinations< pat::Electron >("EE", *electrons, iEvent, met, intEventProperties, floatEventProperties);
   makeCombinations< pat::Electron, pat::Muon >("EMu", *electrons, *muons, iEvent, met, intEventProperties, floatEventProperties);
   makeCombinations< pat::Muon >("MuMu", *muons, iEvent, met, intEventProperties, floatEventProperties);
-  makeCombinations< pat::Electron, pat::Tau >("ETau", *electrons, *taus, iEvent, met, intEventProperties, floatEventProperties);
-  makeCombinations< pat::Muon, pat::Tau>("MuTau", *muons, *taus, iEvent, met, intEventProperties, floatEventProperties);
-  makeCombinations< pat::Tau >("TauTau", *taus, iEvent, met, intEventProperties, floatEventProperties);
-
+  if(useTaus_){
+    makeCombinations< pat::Electron, pat::Tau >("ETau", *electrons, *taus, iEvent, met, intEventProperties, floatEventProperties);
+    makeCombinations< pat::Muon, pat::Tau>("MuTau", *muons, *taus, iEvent, met, intEventProperties, floatEventProperties);
+    makeCombinations< pat::Tau >("TauTau", *taus, iEvent, met, intEventProperties, floatEventProperties);
+  }
   //  if( nMu != 2) std::cout << "-------! "<<nMu<<std::endl;
 }
 
