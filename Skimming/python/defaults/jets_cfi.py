@@ -13,7 +13,7 @@ patJetCountFilter = patJetCountFilterOrig.clone(
            minNumber = 1
 )
 
-genJetSelector = cms.EDFilter("CandViewSelector", 
+genJetSelector = cms.EDFilter("GenJetSelector", 
            filter = cms.bool(True),
            src = cms.InputTag("ak5GenJets"),
            cut = cms.string("pt > 100")
