@@ -10,7 +10,7 @@ vertexWeights = cms.PSet(
     data3DFile = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/PU_3D_dist.root'),
     data3DName = cms.string('pileup'),
     doWeight = cms.bool(True),
-    doWeight3D = cms.bool(True),
+    doWeight3D = cms.bool(False),
     fractionRunA = cms.double(0.46502),
     fractionRunB = cms.double(0.53498),
 )
