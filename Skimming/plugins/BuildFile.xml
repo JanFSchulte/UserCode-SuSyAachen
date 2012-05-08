@@ -18,6 +18,12 @@
   <use   name="CommonTools/UtilAlgos"/>
   <use   name="DataFormats/PatCandidates"/>
 </library>
+<library name="SuSyAachenElectronSelectors" file="electronSelectors.cc">
+         <use name="CommonTools/UtilAlgos"/>
+         <use name="DataFormats/PatCandidates"/>
+         <use name="DataFormats/ParticleFlowCandidate"/>
+         <!--use name="Egamma/EGammaAnalysisTools"/-->
+</library>
 <library   name="SuSyAachenMCSelectors" file="MCSelectors.cc">
   <use   name="CommonTools/UtilAlgos"/>
   <use   name="DataFormats/HepMCCandidate"/>

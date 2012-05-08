@@ -38,12 +38,18 @@ electronMuonCleaner = cms.EDProducer('electronMuonCleaner',
     dRJetLepton = cms.double(0.1)
 )
 
-
 isoElectrons = cms.EDFilter("PATElectronSelector", filter = filterElectrons,
   src = cms.InputTag("cleanElectrons"),
   #cut = cms.string('hcalIsoDeposit.candEnergy < 999 &  ecalIsoDeposit.candEnergy < 999')
   cut = cms.string('(trackIso + ecalIso + hcalIso) / pt < 0.4')
 )
+
+effectiveAreaIsoElectrons = cms.EDFilter("PATElectronEffectiveAreaSelector",filter = filterElectrons,
+                                           src = cms.InputTag("cleanElectrons"),
+                                           rhoSource = cms.InputTag("kt6PFJets", "rho"),
+                                           isoMin = cms.double(-1.),
+                                           isoMax = cms.double(0.09),                                         
+                                           )
 
 pfElectronProducer = cms.EDProducer('PfElectronProducer',
   src = cms.InputTag("basicElectrons"),

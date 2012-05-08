@@ -36,6 +36,12 @@ PATElectronConversionSelector = cms.EDFilter("PATElectronConversionSelector",
            maxLostHits = cms.int32(1)
 )
 
+from SuSyAachen.Skimming.electronSelection_cff import effectiveAreaIsoElectrons
+
+PATElectronEffectiveAreaSelector = effectiveAreaIsoElectrons.clone(
+)
+
+
 patMatchedElectronSelector = cms.EDFilter("PATElectronMatchedSelector", 
    src = cms.InputTag("cleanLayer1Electrons"),
    pdgId = cms.int32(11),
