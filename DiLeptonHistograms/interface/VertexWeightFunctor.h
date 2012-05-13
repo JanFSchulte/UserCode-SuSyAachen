@@ -12,6 +12,7 @@
 #include <FWCore/ParameterSet/interface/ParameterSet.h>
 #include <PhysicsTools/Utilities/interface/LumiReWeighting.h>
 #include <PhysicsTools/Utilities/interface/Lumi3DReWeighting.h>
+#include <SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h>
 
 #include <iostream>
 
@@ -44,21 +45,45 @@ public:
             }
     
   }
+  
   const double operator()(const edm::Event &iEvent){
-    //std::cout << LumiWeights_.weight( iEvent ) << std::endl;
-    if (iEvent.isRealData() || !(doWeight_)) return 1.;
-    else {
-        if (doWeight3D_) return (fractionRunA_*LumiWeights_.weight( iEvent )+fractionRunB_*LumiWeights3D_.weight3D( iEvent ));
-        else return LumiWeights_.weight( iEvent ); 
-    }
+    //std::cout << LumiWeights_.weight( iEvent ) << std::endl
+    doWeight_ = !(iEvent.isRealData());
+    int nTruePV = getTrueNPV(iEvent);
+    return operator()(nTruePV);
   }
   const double operator()(const int nVertices){
     //std::cout << LumiWeights_.weight( nVertices ) << std::endl;
-    if (!doWeight_) return 1.;
-    else return LumiWeights_.weight( nVertices );
+    if (!(doWeight_)) return 1.;
+    else{
+      //      if (doWeight3D_)(fractionRunA_*LumiWeights_.weight( nVertices )+fractionRunB_*LumiWeights3D_.weight3D(nVertices));
+      if (doWeight3D_)(fractionRunA_*LumiWeights_.weight( nVertices )+fractionRunB_*LumiWeights_.weight(nVertices));   
+      return LumiWeights_.weight( nVertices );
+    }
+  }
+  
+  int getTrueNPV(const edm::Event &iEvent){
+    // from https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupMCReweightingUtilities
+    edm::Handle<std::vector< PileupSummaryInfo > >  PupInfo;
+    iEvent.getByLabel(edm::InputTag("addPileupInfo"), PupInfo);
+
+    std::vector<PileupSummaryInfo>::const_iterator PVI;
+
+    float Tnpv = -1;
+    for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
+
+      int BX = PVI->getBunchCrossing();
+
+      if(BX == 0) { 
+	Tnpv = PVI->getTrueNumInteractions();
+	continue;
+      }
+    }
+    return Tnpv;
   }
 
 private:
+
   edm::LumiReWeighting LumiWeights_;
   edm::Lumi3DReWeighting LumiWeights3D_;
   bool doWeight_;
