@@ -19,6 +19,7 @@ struct effectiveAreaIsolationSelector {
   effectiveAreaIsolationSelector ( const edm::ParameterSet & cfg ):
     isoMin_( cfg.getParameter<double>( "isoMin") ),
     isoMax_( cfg.getParameter<double>( "isoMax" ) ),
+    isoMaxEE_(0.1),
     rhoSrc_( cfg.getParameter<edm::InputTag>( "rhoSource" ) )  { }
   
   const_iterator begin() const { return selected_.begin(); }
@@ -36,18 +37,28 @@ struct effectiveAreaIsolationSelector {
       double caloIso = 0.;
       caloIso += (*it).pfIsolationVariables().neutralHadronIso;
       caloIso += (*it).pfIsolationVariables().photonIso;
-      //caloIso += (*it).pfIsolationR03().sumNeutralHadronEt();                                                                                                                                                                                                                                                            
-      //caloIso += (*it).pfIsolationR03().sumPhotonEt(); 
+
       caloIso -= getAEff((*it).eta()) * rhoIso;
   
       double iso = 0.;
       iso += (*it).pfIsolationVariables().chargedHadronIso;
-      //iso += (*it).pfIsolationR03().sumChargedHadronPt();
+
       if (caloIso > 0)
 	iso += caloIso;
-	  iso /= (*it).pt();
-      if( (iso > isoMin_ || isoMin_ < 0) && (iso < isoMax_ || isoMax_ < 0) )
+      iso /= (*it).pt();
+      if (isoMin_ < 0 &&  isoMax_ < 0)
+	std::cout << "++BRPT+++> pt "<< (*it).pt()<<", iso" << iso <<std::endl;
+
+      bool passesIsolation=false;
+      if(iso < isoMaxEE_ && (*it).pt() < 20. && (*it).isEE()) passesIsolation=true;
+      if(iso < isoMax_   && (*it).pt() > 20. && (*it).isEE()) passesIsolation=true;
+      if(iso < isoMax_   &&                    !(*it).isEE()) passesIsolation=true;
+      if( isoMax_ < 0)  passesIsolation=true;
+      
+      if( (iso > isoMin_ || isoMin_ < 0) && passesIsolation){
+	//	std::cout << "++picked+++> pt "<< (*it).pt()<<", iso" << iso <<" isEB "<< (*it).isEB()<<std::endl;
 	  selected_.push_back( & (*it) );
+      }
     }
   }
 
@@ -59,7 +70,7 @@ struct effectiveAreaIsolationSelector {
     //from http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/UserCode/EGamma/EGammaAnalysisTools/src/EGammaCutBasedEleId.cc
     // but gamma + neutral hadrons values...
     double etaAbs = fabs(eta);
-    double AEff = 0.10;
+    double AEff = 0.1;
     if (etaAbs > 1.0 && etaAbs <= 1.479) AEff = 0.12;
     if (etaAbs > 1.479 && etaAbs <= 2.0) AEff = 0.085;
     if (etaAbs > 2.0 && etaAbs <= 2.2) AEff = 0.11;
@@ -72,6 +83,7 @@ struct effectiveAreaIsolationSelector {
     container selected_;
     double isoMin_;
     double isoMax_;
+    double isoMaxEE_;
     edm::InputTag rhoSrc_;
 };
 

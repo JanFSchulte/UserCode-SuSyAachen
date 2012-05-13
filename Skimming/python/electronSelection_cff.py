@@ -44,7 +44,7 @@ isoElectrons = cms.EDFilter("PATElectronSelector", filter = filterElectrons,
   cut = cms.string('(trackIso + ecalIso + hcalIso) / pt < 0.4')
 )
 
-effectiveAreaIsoElectrons = cms.EDFilter("PATElectronEffectiveAreaSelector",filter = filterElectrons,
+effectiveAreaIsoElectrons = cms.EDFilter("PATElectronEffectiveAreaSelector", filter = cms.bool(True),
                                            src = cms.InputTag("cleanElectrons"),
                                            rhoSource = cms.InputTag("kt6PFJets", "rho"),
                                            isoMin = cms.double(-1.),
