@@ -70,13 +70,15 @@ public:
     std::vector<PileupSummaryInfo>::const_iterator PVI;
 
     float Tnpv = -1;
-    for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
-
-      int BX = PVI->getBunchCrossing();
-
-      if(BX == 0) { 
-	Tnpv = PVI->getTrueNumInteractions();
-	continue;
+    if(doWeight_){
+      for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
+	
+	int BX = PVI->getBunchCrossing();
+	
+	if(BX == 0) { 
+	  Tnpv = PVI->getTrueNumInteractions();
+	  continue;
+	}
       }
     }
     return Tnpv;
