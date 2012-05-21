@@ -50,6 +50,11 @@ effectiveAreaIsoElectrons = cms.EDFilter("PATElectronEffectiveAreaSelector", fil
                                            isoMin = cms.double(-1.),
                                            isoMax = cms.double(0.09),                                         
                                            )
+noMatchedConversionsElectrons = cms.EDFilter("PATElectronMatchedConversionSelector", filter = cms.bool(True),
+                                             src = cms.InputTag("cleanElectrons"),
+                                             conversionsSource = cms.InputTag("allConversions"),
+                                             beamspotSource = cms.InputTag("offlineBeamSpot"),
+                                             )
 
 pfElectronProducer = cms.EDProducer('PfElectronProducer',
   src = cms.InputTag("basicElectrons"),
