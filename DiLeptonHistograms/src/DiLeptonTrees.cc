@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.24 2012/01/02 12:57:01 edelhoff Exp $
+// $Id: DiLeptonTrees.cc,v 1.25 2012/04/23 20:18:59 edelhoff Exp $
 //
 //
 
@@ -182,6 +182,11 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
   initIntBranch( "nJets" );
   initIntBranch( "nBJets" );
   initIntBranch( "nVertices" );
+  initFloatBranch( "jet1pt" );
+  initFloatBranch( "jet2pt" );
+  initFloatBranch( "jet3pt" );
+  initFloatBranch( "jet4pt" );
+  initFloatBranch( "bjet1pt" );
   initIntBranch( "runNr" );
   initIntBranch( "lumiSec" );
   initIntBranch( "eventNr" );
@@ -313,6 +318,26 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   for(std::vector<pat::Jet>::const_iterator it = jets->begin(); it != jets->end() ; ++it){
         floatEventProperties["ht"] += (*it).pt();
   }
+
+  // jet pt
+  floatEventProperties["jet1pt"] = -1.0;
+  floatEventProperties["jet2pt"] = -1.0;
+  floatEventProperties["jet3pt"] = -1.0;
+  floatEventProperties["jet4pt"] = -1.0;
+  if (jets->size() > 0)
+    floatEventProperties["jet1pt"] = jets->at(0).pt();
+  if (jets->size() > 1)
+    floatEventProperties["jet2pt"] = jets->at(1).pt();
+  if (jets->size() > 2)
+    floatEventProperties["jet3pt"] = jets->at(2).pt();
+  if (jets->size() > 3)
+    floatEventProperties["jet4pt"] = jets->at(3).pt();
+
+  // bjet pt
+  floatEventProperties["bjet1pt"] = -1.0;
+  if (bJets->size() > 0)
+    floatEventProperties["bjet1pt"] = bJets->at(0).pt();
+
   floatEventProperties["weight"] = fctVtxWeight_( iEvent );
   if(useJets2_) {
     edm::Handle< std::vector< pat::Jet > > jets2;
