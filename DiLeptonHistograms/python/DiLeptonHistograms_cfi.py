@@ -4,6 +4,7 @@ from SuSyAachen.DiLeptonHistograms.fakeRates.electronCenter_cff import fakes as 
 from SuSyAachen.DiLeptonHistograms.fakeRates.muonCenter_cff import fakes as muonCenterFakeRates
 from SuSyAachen.DiLeptonHistograms.fakeRates.tauCenter_cff import fakes as tauCenterFakeRates
 from SuSyAachen.DiLeptonHistograms.vertexWeights_cfi import vertexWeights as vertexWeightPars
+from SuSyAachen.TagAndProbeTreeWriter.isolationFunctor_cfi import isolationDefinitions
 
 DiLeptonAnalysis = cms.EDAnalyzer('DiLeptonHistograms',
 
@@ -44,6 +45,7 @@ maxJetsForAlphaT = cms.uint32(10),
 fakeRates = cms.bool(False),
 fakeRatesMc = cms.bool(False),
 vertexWeights = vertexWeightPars,
+isolationDefinitions = isolationDefinitions,
 
 )
 

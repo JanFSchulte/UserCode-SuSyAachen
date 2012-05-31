@@ -1,4 +1,5 @@
 import FWCore.ParameterSet.Config as cms
+from SuSyAachen.TagAndProbeTreeWriter.isolationFunctor_cfi import isolationDefinitions
 
 electrontnptreewriterdpc = cms.EDAnalyzer('ElectronTnPTreeWriterDPC',
 mcInfoAvailable = cms.untracked.bool(False),
@@ -9,7 +10,8 @@ mcSource = cms.InputTag("genParticles"),
 tnpPairsSource = cms.InputTag("EE"),
 passProbeSource = cms.InputTag("cleanLayer1Electrons"),
 jetSource = cms.InputTag("cleanLayer1JetsAK5"),
-vertexSource = cms.InputTag("offlinePrimaryVertices")
+vertexSource = cms.InputTag("offlinePrimaryVertices"),
+isolationDefinitions = isolationDefinitions, 
 )
 
 electrontracktnptreewriterdpc = cms.EDAnalyzer('ElectronTrackTnPTreeWriterDPC',
@@ -21,7 +23,8 @@ mcSource = cms.InputTag("genParticles"),
 tnpPairsSource = cms.InputTag("EE"),
 passProbeSource = cms.InputTag("cleanLayer1Electrons"),
 jetSource = cms.InputTag("cleanLayer1JetsAK5"),
-vertexSource = cms.InputTag("offlinePrimaryVertices")
+vertexSource = cms.InputTag("offlinePrimaryVertices"),
+isolationDefinitions = isolationDefinitions, 
 )
 
 electronisotnptreewriterdpc = cms.EDAnalyzer('ElectronIsoTnPTreeWriterDPC',
@@ -33,5 +36,6 @@ mcSource = cms.InputTag("genParticles"),
 tnpPairsSource = cms.InputTag("EE"),
 passProbeSource = cms.InputTag("cleanLayer1Electrons"),
 jetSource = cms.InputTag("cleanLayer1JetsAK5"),
-vertexSource = cms.InputTag("offlinePrimaryVertices")
+vertexSource = cms.InputTag("offlinePrimaryVertices"),
+isolationDefinitions = isolationDefinitions, 
 )

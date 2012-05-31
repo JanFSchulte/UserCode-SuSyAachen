@@ -3,6 +3,7 @@ from SuSyAachen.DiLeptonHistograms.pdgIdDefinition_cff import defaultPdgIdDefini
 from SuSyAachen.DiLeptonHistograms.vertexWeights_cfi import vertexWeights as vertexWeightPars
 from SuSyAachen.DiLeptonHistograms.efficiencies.electronEffPSet_cff import electronCenterEfficiencies as electronEfficiency
 from SuSyAachen.DiLeptonHistograms.efficiencies.muonEffPSet_cff import muonCenterEfficiencies as muonEfficiency
+from SuSyAachen.TagAndProbeTreeWriter.isolationFunctor_cfi import isolationDefinitions
 
 DiLeptonTreesNoTaus = cms.EDAnalyzer("DiLeptonTrees",
    electrons = cms.InputTag("triggerMatchedPatElectronsPF"),
@@ -17,6 +18,7 @@ DiLeptonTreesNoTaus = cms.EDAnalyzer("DiLeptonTrees",
    pdfWeightTags = cms.VInputTag(),
    vertexWeights = vertexWeightPars,
    pdgIdDefinition = defaultPdgIdDefinition,
+   isolationDefinitions = isolationDefinitions,
 
 # NOT USED RIGHT NOW
    fakeRates =  cms.PSet(

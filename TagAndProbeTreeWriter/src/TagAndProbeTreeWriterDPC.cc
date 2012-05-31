@@ -99,9 +99,6 @@ private:
 
   DecayLengthFunctor fctDecayLength_;
   IsolationFunctor fctIsolation_;
-  ChargedHadronIsolationFunctor fctIsolationChargedHadrons_;
-  NeutralHadronIsolationFunctor fctIsolationNeutralHadrons_;
-  PhotonIsolationFunctor fctIsolationPhotons_;
 
   //Trees
   TTree*  treeTnP;
@@ -151,8 +148,8 @@ private:
 // constructors and destructor
 //
 template< typename T, typename P > 
-TagAndProbeTreeWriterDPC<T,P>::TagAndProbeTreeWriterDPC(const edm::ParameterSet& iConfig)
-
+TagAndProbeTreeWriterDPC<T,P>::TagAndProbeTreeWriterDPC(const edm::ParameterSet& iConfig):
+  fctIsolation_  (iConfig.getParameter<edm::ParameterSet>("isolationDefinitions"))
 {
     //now do what ever initialization is needed
     //Debug flag
@@ -334,9 +331,9 @@ void TagAndProbeTreeWriterDPC<T,P>::TnP(const collection& pairs, const edm::Hand
     // isolation
     pfIsoAbs = fctIsolation_(*probe);
     pfIso = fctIsolation_(*probe) / probe->pt();
-    pfIsoAbsChargedHadrons = fctIsolationChargedHadrons_(*probe);
-    pfIsoAbsNeutralHadrons = fctIsolationNeutralHadrons_(*probe);
-    pfIsoAbsPhotons = fctIsolationPhotons_(*probe);
+    pfIsoAbsChargedHadrons = -1.;//fctIsolationChargedHadrons_(*probe);
+    pfIsoAbsNeutralHadrons = -1.;//fctIsolationNeutralHadrons_(*probe);
+    pfIsoAbsPhotons = -1.;//fctIsolationPhotons_(*probe);
 
     // jet information
     for (typename std::vector<pat::Jet>::const_iterator jet_i = jets->begin(); jet_i != jets->end(); ++jet_i){
@@ -413,9 +410,10 @@ void TagAndProbeTreeWriterDPC<T,P>::analyze(const edm::Event& iEvent, const edm:
     iEvent.getByLabel(vertexSrc, vertices);
 
     //count the number of jets
-    nJets = jets->size();
-    
+    nJets = jets->size();    
     nVertices = vertices->size();
+
+    fctIsolation_.init(iEvent);
 
     //run the TnP
     TnP(*tnpPairs, pass_probes, jets, vertices, iSetup);

@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.25 2012/04/23 20:18:59 edelhoff Exp $
+// $Id: DiLeptonTrees.cc,v 1.26 2012/05/29 07:32:54 sprenger Exp $
 //
 //
 
@@ -123,6 +123,7 @@ private:
 // constructors and destructor
 DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
   fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") ),
+  fctIsolation_  (iConfig.getParameter<edm::ParameterSet>("isolationDefinitions")),
   getPdgId_( iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition") )
 {
   debug = false;
@@ -300,6 +301,7 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel(vertexTag_, vertices);
 
   getPdgId_.loadGenParticles(iEvent);
+  fctIsolation_.init(iEvent);
 
   std::map<std::string, int> intEventProperties;
   std::map<std::string, float> floatEventProperties;
@@ -609,21 +611,23 @@ void DiLeptonTrees::fillPdfUncert(const edm::Handle< std::vector<double> >& weig
 
 float DiLeptonTrees::getId(const  pat::Electron &e)
 {
-  if (e.isEE())
-    return (e.dr03HcalTowerSumEt() + e.dr03EcalRecHitSumEt() + e.dr03TkSumPt())/e.pt();
-  else
-    return (e.dr03HcalTowerSumEt() + std::max(0.0, e.dr03EcalRecHitSumEt() - 1.0) + e.dr03TkSumPt())/e.pt();
+  //  if (e.isEE())
+  //  return (e.dr03HcalTowerSumEt() + e.dr03EcalRecHitSumEt() + e.dr03TkSumPt())/e.pt();
+  // else
+  //  return (e.dr03HcalTowerSumEt() + std::max(0.0, e.dr03EcalRecHitSumEt() - 1.0) + e.dr03TkSumPt())/e.pt();
 
   //  std::cout<<"electron " << (lepton.trackIso()+lepton.ecalIso()+lepton.hcalIso())/lepton.pt() << std::endl;
   // return (lepton.trackIso()+lepton.ecalIso()+lepton.hcalIso())/lepton.pt() ;
     //  return (e.chargedHadronIso() + e.photonIso() + e.neutralHadronIso()) / e.pt();
+  return fctIsolation_(e)* 1./e.pt();
 }
 
 float DiLeptonTrees::getId(const  pat::Muon &mu)
 {
   //  std::cout<<"muon " << (lepton.trackIso()+lepton.ecalIso()+lepton.hcalIso())/lepton.pt() << std::endl;
-  return (mu.isolationR03().hadEt + mu.isolationR03().emEt + mu.isolationR03().sumPt) / mu.pt();
+  //  return (mu.isolationR03().hadEt + mu.isolationR03().emEt + mu.isolationR03().sumPt) / mu.pt();
   //  return (mu.chargedHadronIso() + mu.photonIso() + mu.neutralHadronIso()) / mu.pt();
+  return fctIsolation_(mu)* 1./mu.pt();
 }
 
 float DiLeptonTrees::getId(const  pat::Tau &tau)

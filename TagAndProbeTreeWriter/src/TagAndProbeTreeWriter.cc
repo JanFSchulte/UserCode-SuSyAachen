@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: TagAndProbeTreeWriter.cc,v 1.14 2010/12/10 15:59:06 nmohr Exp $
+// $Id: TagAndProbeTreeWriter.cc,v 1.15 2011/01/07 15:49:31 nmohr Exp $
 //
 //
 
@@ -129,7 +129,6 @@ class TagAndProbeTreeWriter : public edm::EDAnalyzer {
 //
 template< typename T, typename P > 
 TagAndProbeTreeWriter<T,P>::TagAndProbeTreeWriter(const edm::ParameterSet& iConfig)
-
 {
     //now do what ever initialization is needed
     //Debug flag

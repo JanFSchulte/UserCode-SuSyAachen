@@ -1,5 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 from SuSyAachen.DiLeptonHistograms.vertexWeights_cfi import vertexWeights as vertexWeightPars
+from SuSyAachen.TagAndProbeTreeWriter.isolationFunctor_cfi import isolationDefinitions
 
 muonisotreewriter = cms.EDAnalyzer('MuonIsoTreeWriter',
     src = cms.InputTag("cleanLayer1Muons"),
@@ -10,6 +11,7 @@ muonisotreewriter = cms.EDAnalyzer('MuonIsoTreeWriter',
     useTauExtensions = cms.bool(False),
     useMcInfo = cms.bool(True),
     vertexWeights = vertexWeightPars,
+    isolationDefinitions = isolationDefinitions,
 )
 
 muonisotreewriterWithSecondLepton = muonisotreewriter.clone(
