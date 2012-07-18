@@ -19,6 +19,33 @@ DiLeptonTreesNoTaus = cms.EDAnalyzer("DiLeptonTrees",
    vertexWeights = vertexWeightPars,
    pdgIdDefinition = defaultPdgIdDefinition,
    isolationDefinitions = isolationDefinitions,
+   electronCorrections = cms.VPSet(
+    cms.PSet(
+    absEta = cms.double(0.4),
+    correction = cms.double(1.00594),
+    ),
+    cms.PSet(
+    absEta = cms.double(0.8),
+    correction = cms.double(1.0082),
+    ),
+    cms.PSet(
+    absEta = cms.double(1.2),
+    correction = cms.double(1.01092),
+    ),
+    cms.PSet(
+    absEta = cms.double(1.5),
+    correction = cms.double(1.01659),
+    ),
+    cms.PSet(
+    absEta = cms.double(2.),
+    correction = cms.double(1.01271),
+    ),
+    cms.PSet(
+    absEta = cms.double(2.5),
+    correction = cms.double(1.02727),
+    ),
+
+    ),                                  
 
 # NOT USED RIGHT NOW
    fakeRates =  cms.PSet(

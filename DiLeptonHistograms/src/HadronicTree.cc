@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: HadronicTree.cc,v 1.3 2011/05/30 17:58:22 nmohr Exp $
+// $Id: HadronicTree.cc,v 1.4 2011/05/30 18:51:26 nmohr Exp $
 //
 //
 
@@ -108,7 +108,7 @@ class HadronicTree : public edm::EDAnalyzer {
         int nPrimaryInts;
         
         float weight;
-        VertexWeightFunctor fctVtxWeight_;
+  //        VertexWeightFunctor fctVtxWeight_;
 
         std::map< std::string, int*>  hlTrigDecision_;
         std::map< std::string, float*>  hlTrigPrescale_;
@@ -125,8 +125,9 @@ class HadronicTree : public edm::EDAnalyzer {
 //
 // constructors and destructor
 //
-HadronicTree::HadronicTree(const edm::ParameterSet& iConfig):
-fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
+HadronicTree::HadronicTree(const edm::ParameterSet& iConfig)
+//:
+//fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
 {
     //now do what ever initialization is needed
     //Input collections
@@ -213,7 +214,7 @@ void HadronicTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     nJets = jets->size();
     nVertices = vertices->size();
     nPrimaryInts = -1;
-    weight = fctVtxWeight_( iEvent );
+    weight = 1.;    //fctVtxWeight_( iEvent );
     if (nJets > 0) {
         leadJetPt = jets->front().pt();
         leadJetPhi = jets->front().phi();
@@ -254,16 +255,17 @@ void HadronicTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
     }
     
-    edm::Handle< std::vector< reco::GenJet > > genJets;
-    iEvent.getByLabel(genJetTag_, genJets);
+    
+    //    edm::Handle< std::vector< reco::GenJet > > genJets;
+    //    iEvent.getByLabel(genJetTag_, genJets);
 
     edm::Handle< std::vector< reco::GenParticle > > genParticles;
     iEvent.getByLabel(genTag_, genParticles);
     
-    genNJets = genJets->size();
-    for(std::vector<reco::GenJet>::const_iterator it = genJets->begin(); it != genJets->end() ; ++it){
-         genHt += (*it).pt();
-    }
+    //    genNJets = genJets->size();
+    //for(std::vector<reco::GenJet>::const_iterator it = genJets->begin(); it != genJets->end() ; ++it){
+    //     genHt += (*it).pt();
+    //}
     
     int pid = 0;
     double metx = 0.;
