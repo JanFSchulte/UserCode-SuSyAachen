@@ -25,6 +25,7 @@ public:
             std::string mcName_ = params.getParameter<std::string>("mcName");
             std::string dataFile_ = params.getParameter<std::string>("dataFile");
             std::string dataName_ = params.getParameter<std::string>("dataName");
+            std::string outputName_ = "WeightOutputs";
             std::string mc3DFile_ = params.getParameter<std::string>("mc3DFile");
             std::string mc3DName_ = params.getParameter<std::string>("mc3DName");
             std::string data3DFile_ = params.getParameter<std::string>("data3DFile");
@@ -39,7 +40,7 @@ public:
             std::cout << dataName_ << std::endl;*/
             LumiWeights_ = edm::LumiReWeighting(mcFile_, dataFile_, mcName_, dataName_);
             if (doWeight3D_) {
-                LumiWeights3D_ = edm::Lumi3DReWeighting(mc3DFile_, data3DFile_, mc3DName_, data3DName_);
+                LumiWeights3D_ = edm::Lumi3DReWeighting(mc3DFile_, data3DFile_, mc3DName_, data3DName_,outputName_);
 		// 73.5 TOTEM inelastic x-Sec 68 CMS default
                 LumiWeights3D_.weight3D_init(73.5/68.);
             }
