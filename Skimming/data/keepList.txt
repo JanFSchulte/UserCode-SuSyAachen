@@ -2,10 +2,13 @@ drop *_cleanPatJetsAK5Calo__PAT
 drop *_cleanPatJetsIC5Calo__PAT
 drop *_cleanPatJetsAK5PF__PAT
 drop *_cleanPatPhotons_*_*
+drop *_patMETsAK5Calo_*_*
+drop *_patMETsTC_*_*
+drop *_cleanPatTaus_*_*
+drop *_selectedPatTausPF_*_*
+keep *_selectedPatJetsAK5PF_*_*
 keep *_addPileupInfo_*_*
-keep *_selectedPat*PF_*_*
 keep *_selectedPatTausPFShrinkingCone_*_*
-keep *_cleanPat*_*_*
 keep *_mergedTruth_*_*
 #drop *_genParticles_*_*
 keep *_patMETsTypeIPF_*_
@@ -14,3 +17,9 @@ drop *_selectedPatPFParticlesPF_*_*
 drop *_cleanPatJetsAK5PF_*_* 
 keep *_allConversions_*_*
 keep *_kt6PFJets_rho_*
+keep *_hcalLaserEventFilter_*_*
+keep *_eeBadScFilter_*_*		 
+keep *_trackingFailureFilter_*_*
+keep *_beamHaloFilter_*_*
+keep *_EcalDeadCellTriggerPrimitiveFilter_*_*
+keep *_HBHENoiseFilterResultProducer_*_*
