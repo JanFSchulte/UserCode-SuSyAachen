@@ -19,7 +19,7 @@ DiLeptonTreesNoTaus = cms.EDAnalyzer("DiLeptonTrees",
    vertexWeights = vertexWeightPars,
    pdgIdDefinition = defaultPdgIdDefinition,
    isolationDefinitions = isolationDefinitions,
-   electronCorrections = cms.VPSet(
+   NOelectronCorrections = cms.VPSet(
     cms.PSet(
     absEta = cms.double(0.4),
     correction = cms.double(1.00594),
