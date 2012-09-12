@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.28 2012/07/18 16:13:16 edelhoff Exp $
+// $Id: DiLeptonTrees.cc,v 1.29 2012/09/04 10:51:58 jschulte Exp $
 //
 //
 
@@ -206,6 +206,7 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
   initIntBranch( "nJets" );
   initIntBranch( "nBJets" );
   initIntBranch( "nVertices" );
+  initIntBranch( "nLightLeptons" );
   initFloatBranch( "jet1pt" );
   initFloatBranch( "jet2pt" );
   initFloatBranch( "jet3pt" );
@@ -339,6 +340,7 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   intEventProperties["nVertices"] = vertices->size();
   intEventProperties["nJets"] = jets->size();
   intEventProperties["nBJets"] = bJets->size();
+  intEventProperties["nLightLeptons"] = electrons->size() + muons->size();
   intEventProperties["runNr"] = iEvent.id().run();
   intEventProperties["lumiSec"] = iEvent.id().luminosityBlock();
   intEventProperties["eventNr"] = iEvent.id().event();
