@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.29 2012/09/04 10:51:58 jschulte Exp $
+// $Id: DiLeptonTrees.cc,v 1.30 2012/09/12 09:19:06 sprenger Exp $
 //
 //
 
@@ -118,6 +118,8 @@ private:
   std::map<std::string, std::map< std::string, int*> > intBranches_; 
   std::map<std::string, std::map< std::string, TLorentzVector*> > tLorentzVectorBranches_;
 
+  edm::Handle< std::vector< pat::Jet > > jets_;
+
   WeightFunctor fakeRates_;
   WeightFunctor efficiencies_;
   VertexWeightFunctor fctVtxWeight_;
@@ -215,6 +217,7 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
   initFloatBranch( "bjet2pt" );
   initFloatBranch( "bjet3pt" );
   initFloatBranch( "bjet4pt" );
+  initFloatBranch( "sqrts" );
   initIntBranch( "runNr" );
   initIntBranch( "lumiSec" );
   initIntBranch( "eventNr" );
@@ -316,8 +319,8 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   if(useTaus_)
     iEvent.getByLabel(tauTag_, taus);
   
-  edm::Handle< std::vector< pat::Jet > > jets;
-  iEvent.getByLabel(jetTag_, jets);
+  //edm::Handle< std::vector< pat::Jet > > jets;
+  iEvent.getByLabel(jetTag_, jets_);
 
   edm::Handle< std::vector< pat::Jet > > bJets;
   iEvent.getByLabel(bJetTag_, bJets);
@@ -338,7 +341,7 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::map<std::string, float> floatEventProperties;
 
   intEventProperties["nVertices"] = vertices->size();
-  intEventProperties["nJets"] = jets->size();
+  intEventProperties["nJets"] = jets_->size();
   intEventProperties["nBJets"] = bJets->size();
   intEventProperties["nLightLeptons"] = electrons->size() + muons->size();
   intEventProperties["runNr"] = iEvent.id().run();
@@ -363,7 +366,7 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   TLorentzVector leadingJetMomentum;
   floatEventProperties["ht"] = 0.0;
-  for(std::vector<pat::Jet>::const_iterator it = jets->begin(); it != jets->end() ; ++it){
+  for(std::vector<pat::Jet>::const_iterator it = jets_->begin(); it != jets_->end() ; ++it){
         floatEventProperties["ht"] += (*it).pt();
 	if((*it).pt() > leadingJetMomentum.Pt()){
 	  leadingJetMomentum.SetPxPyPzE((*it).px(), (*it).py(), (*it).pz(), (*it).energy());
@@ -376,14 +379,14 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   floatEventProperties["jet2pt"] = -1.0;
   floatEventProperties["jet3pt"] = -1.0;
   floatEventProperties["jet4pt"] = -1.0;
-  if (jets->size() > 0)
-    floatEventProperties["jet1pt"] = jets->at(0).pt();
-  if (jets->size() > 1)
-    floatEventProperties["jet2pt"] = jets->at(1).pt();
-  if (jets->size() > 2)
-    floatEventProperties["jet3pt"] = jets->at(2).pt();
-  if (jets->size() > 3)
-    floatEventProperties["jet4pt"] = jets->at(3).pt();
+  if (jets_->size() > 0)
+    floatEventProperties["jet1pt"] = jets_->at(0).pt();
+  if (jets_->size() > 1)
+    floatEventProperties["jet2pt"] = jets_->at(1).pt();
+  if (jets_->size() > 2)
+    floatEventProperties["jet3pt"] = jets_->at(2).pt();
+  if (jets_->size() > 3)
+    floatEventProperties["jet4pt"] = jets_->at(3).pt();
 
   // bjet pt
   floatEventProperties["bjet1pt"] = -1.0;
@@ -563,6 +566,15 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b, 
   *(floatBranches_[treeName]["jzb"]) = (uncorrectedMet+comb).Pt() - comb.Pt();
   *(floatBranches_[treeName]["pZeta"]) = pZeta.first;
   *(floatBranches_[treeName]["pZetaVis"]) = pZeta.second;
+
+  if (jets_->size() >= 2){
+    TLorentzVector vJet1 = TLorentzVector(jets_->at(0).p4().x(), jets_->at(0).p4().y(), jets_->at(0).p4().z(), jets_->at(0).p4().t());
+    TLorentzVector vJet2 = TLorentzVector(jets_->at(0).p4().x(), jets_->at(0).p4().y(), jets_->at(0).p4().z(), jets_->at(0).p4().t());
+    TLorentzVector sub = aVec + bVec + vJet1 + vJet2;
+    *(floatBranches_[treeName]["sqrts"]) = std::sqrt(TMath::Power((std::sqrt(sub.M2() + sub.Perp2()) + met.Et()), 2.0) - (sub.Vect() + met.Vect()).Mag2());
+  } else {
+    *(floatBranches_[treeName]["sqrts"]) = -1.0;
+  }
 
   if(debug) std::cout << "dB1: "<< *(floatBranches_[treeName]["dB1"]) 
 		      << "dB2: "<< *(floatBranches_[treeName]["dB2"])<< std::endl;
