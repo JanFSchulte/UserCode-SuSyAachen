@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.30 2012/09/12 09:19:06 sprenger Exp $
+// $Id: DiLeptonTrees.cc,v 1.31 2012/09/17 17:38:58 sprenger Exp $
 //
 //
 
@@ -110,6 +110,7 @@ private:
   std::vector<edm::ParameterSet> susyVars_;
   std::vector<edm::InputTag> pdfs_;
   std::string tauId_;
+  std::string jecLevel_;
 
   std::map<double, double> electronCorrections_;
   //data
@@ -125,6 +126,7 @@ private:
   VertexWeightFunctor fctVtxWeight_;
   IsolationFunctor fctIsolation_;
   PdgIdFunctor getPdgId_;
+
 
   bool debug;
   bool useJets2_;
@@ -155,6 +157,7 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
   pdfs_ = iConfig.getParameter<std::vector<edm::InputTag> > ("pdfWeightTags");
 
   tauId_ = iConfig.getParameter<std::string >("tauId");
+  jecLevel_ = iConfig.getParameter<std::string >("jecLevel");
   fakeRates_.SetSource(iConfig,"fakeRates");// TODO use these and add mcInfo flag to choose right rates...
   efficiencies_.SetSource(iConfig,"efficiencies");// TODO use these and add mcInfo flag to choose right rates...
   
@@ -225,7 +228,7 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
   initIntBranch( "pdgId2" );
   initIntBranch( "matched" );
   initIntBranch( "motherPdgId" );
-  initIntBranch( "IntConvCand" );
+  initIntBranch( "nLightLeptons");
   if(useJets2_) {
     initFloatBranch( "ht2" );
     initIntBranch( "nJets2" );    
@@ -341,6 +344,7 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::map<std::string, float> floatEventProperties;
 
   intEventProperties["nVertices"] = vertices->size();
+
   intEventProperties["nJets"] = jets_->size();
   intEventProperties["nBJets"] = bJets->size();
   intEventProperties["nLightLeptons"] = electrons->size() + muons->size();
@@ -348,8 +352,6 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   intEventProperties["lumiSec"] = iEvent.id().luminosityBlock();
   intEventProperties["eventNr"] = iEvent.id().event();
 
-  intEventProperties["IntConvCand"] = 0;
-  if (electrons->size()>2 || muons->size()>2 || (muons->size()+electrons->size()) >2) intEventProperties["IntConvCand"] = 1;
 
   pat::MET met = mets->front();
   TLorentzVector metVector(mets->front().px(), mets->front().py(), mets->front().pz(), mets->front().energy());
@@ -367,9 +369,19 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   TLorentzVector leadingJetMomentum;
   floatEventProperties["ht"] = 0.0;
   for(std::vector<pat::Jet>::const_iterator it = jets_->begin(); it != jets_->end() ; ++it){
-        floatEventProperties["ht"] += (*it).pt();
+	if(jecLevel_ == "patDefault"){
+	  jecLevel_ = (*it).currentJECLevel();
+	}
+        floatEventProperties["ht"] += (*it).correctedJet(jecLevel_).pt();
+	/*	std::cout << jecLevel_ << ": "<< (*it).correctedJet(jecLevel_).pt() 
+		  << " default: "<< (*it).pt() << " diff = "
+		  << (*it).correctedJet(jecLevel_).pt() - (*it).pt()
+		  <<std::endl; */
 	if((*it).pt() > leadingJetMomentum.Pt()){
-	  leadingJetMomentum.SetPxPyPzE((*it).px(), (*it).py(), (*it).pz(), (*it).energy());
+	  leadingJetMomentum.SetPxPyPzE((*it).correctedJet(jecLevel_).px(),
+					(*it).correctedJet(jecLevel_).py(),
+					(*it).correctedJet(jecLevel_).pz(), 
+					(*it).correctedJet(jecLevel_).energy());
 	}
   }
   floatEventProperties["deltaPhiJetMET"] = leadingJetMomentum.DeltaPhi(metVector);
@@ -380,13 +392,13 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   floatEventProperties["jet3pt"] = -1.0;
   floatEventProperties["jet4pt"] = -1.0;
   if (jets_->size() > 0)
-    floatEventProperties["jet1pt"] = jets_->at(0).pt();
+    floatEventProperties["jet1pt"] = jets_->at(0).correctedJet(jecLevel_).pt();
   if (jets_->size() > 1)
-    floatEventProperties["jet2pt"] = jets_->at(1).pt();
+    floatEventProperties["jet2pt"] = jets_->at(1).correctedJet(jecLevel_).pt();
   if (jets_->size() > 2)
-    floatEventProperties["jet3pt"] = jets_->at(2).pt();
+    floatEventProperties["jet3pt"] = jets_->at(2).correctedJet(jecLevel_).pt();
   if (jets_->size() > 3)
-    floatEventProperties["jet4pt"] = jets_->at(3).pt();
+    floatEventProperties["jet4pt"] = jets_->at(3).correctedJet(jecLevel_).pt();
 
   // bjet pt
   floatEventProperties["bjet1pt"] = -1.0;
@@ -409,13 +421,13 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	for(std::vector<pat::Jet>::const_iterator it = bJets->begin(); it != bJets->end() ; ++it){
 
-		if((*it).pt() > leadingbjet.Pt()){
-		leadingbjet.SetPxPyPzE((*it).px(), (*it).py(), (*it).pz(), (*it).energy());
-		}
-		else if ((*it).pt() < leadingbjet.Pt() && (*it).pt() > subleadingbjet.Pt() ){
-		subleadingbjet.SetPxPyPzE((*it).px(), (*it).py(), (*it).pz(), (*it).energy());
-		}
-
+	  if((*it).pt() > leadingbjet.Pt()){
+	    leadingbjet.SetPxPyPzE((*it).px(), (*it).py(), (*it).pz(), (*it).energy());
+	  }
+	  else if ((*it).pt() < leadingbjet.Pt() && (*it).pt() > subleadingbjet.Pt() ){
+	    subleadingbjet.SetPxPyPzE((*it).px(), (*it).py(), (*it).pz(), (*it).energy());
+	  }
+	  
 	}
 
 	bjetsum = leadingbjet+subleadingbjet;
@@ -434,7 +446,7 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     intEventProperties["nJets2"] = jets2->size();
     floatEventProperties["ht2"] = 0.0;
     for(std::vector<pat::Jet>::const_iterator it = jets2->begin(); it != jets2->end() ; ++it){
-      floatEventProperties["ht2"] += (*it).pt();
+      floatEventProperties["ht2"] += (*it).correctedJet(jecLevel_).pt();
     }
   }
 
@@ -801,7 +813,6 @@ float DiLeptonTrees::getDeltaB(const  pat::Tau &tau)
   float result = -1; // not available for pat::Tau could use ip of leading ch. Hadr if needed.
   return result;
 }
-
 
 float DiLeptonTrees::transverseMass(const TLorentzVector& p, const TLorentzVector& met)
 {
