@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr
 //         Created:  Wed Aug 18 15:37:34 CEST 2010
-// $Id: ResCorrJetsProducer.cc,v 1.2 2010/08/18 20:55:13 nmohr Exp $
+// $Id: ResCorrJetsProducer.cc,v 1.3 2011/04/06 16:51:00 edelhoff Exp $
 //
 //
 

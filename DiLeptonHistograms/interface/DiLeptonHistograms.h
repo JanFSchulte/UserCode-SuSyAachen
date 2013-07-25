@@ -7,8 +7,8 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2011/05/30 13:47:50 $
- *  $Revision: 1.33 $
+ *  $Date: 2011/06/18 22:53:20 $
+ *  $Revision: 1.34 $
  *  for CMSSW_2_2_3
  *  \author Niklas Mohr  --  niklas.mohr@cern.ch
  *

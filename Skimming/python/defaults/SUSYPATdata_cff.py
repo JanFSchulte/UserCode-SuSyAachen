@@ -8,7 +8,7 @@ def SUSYPATdata(process):
 
     mcInfo = False
     hltName = 'HLT'
-    jetCorrections = ['L1FastJet', "L2Relative", "L3Absolute"]
+    jetCorrections = ['L1FastJet', "L2Relative", "L3Absolute","L2L3Residual"]
     mcVersion = ''
     jetTypes = ['AK5PF']
     doValidation = False
@@ -21,9 +21,9 @@ def SUSYPATdata(process):
     ############################## END SUSYPAT specifics ####################################
 
     ### AACHEN specific, need better place for this #####
-    from SuSyAachen.Configuration.AachenSUSYPAT_cff import reduceEventsize, additionalTaus
-    additionalTaus(process,postfix="PF")
-    reduceEventsize(process)
+    #from SuSyAachen.Configuration.AachenSUSYPAT_cff import reduceEventsize, additionalTaus
+    #additionalTaus(process,postfix="PF")
+    #reduceEventsize(process)
     
     del process.out
     process.seqSUSYPATdata = process.susyPatDefaultSequence

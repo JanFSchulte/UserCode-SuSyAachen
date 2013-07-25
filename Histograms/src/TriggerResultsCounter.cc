@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: TriggerResultsCounter.cc,v 1.4 2010/04/27 12:52:06 nmohr Exp $
+// $Id: TriggerResultsCounter.cc,v 1.5 2010/09/26 18:43:08 edelhoff Exp $
 //
 //
 

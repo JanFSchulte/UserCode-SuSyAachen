@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: IsoTreeWriter.cc,v 1.19 2011/10/26 15:17:09 edelhoff Exp $
+// $Id: IsoTreeWriter.cc,v 1.20 2012/05/31 20:54:58 edelhoff Exp $
 //
 //
 
@@ -82,9 +82,9 @@ private:
 	virtual void endJob() ;
 
   virtual void fillIso(const edm::Handle< std::vector<T> >&, const edm::Event&);
-	virtual void fillExtraVars(const pat::Electron&);
-	virtual void fillExtraVars(const pat::Muon&);
-	virtual void fillExtraVars(const pat::Tau&);
+	virtual void fillExtraVars(const pat::Electron&, const edm::Event& iEvent);
+	virtual void fillExtraVars(const pat::Muon&, const edm::Event& iEvent);
+	virtual void fillExtraVars(const pat::Tau&, const edm::Event& iEvent);
 	//        virtual double calcIso(const T &);
 	virtual double calcIso(const pat::Electron &);
 	virtual double calcIso(const pat::Muon &);
@@ -164,7 +164,7 @@ IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig):
   fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
 {
 	//now do what ever initialization is needed
-        debug_ = false;
+        debug_ = true;
         eventFootprintExtensionsActive_ = true;
 	tauExtensionsActive_ = false;
 	secondLeptonExtensionsActive_ = false;
@@ -270,12 +270,14 @@ double IsoTreeWriter<T>::calcIsoMinPt(const pat::Electron& lepton)
 }
 
 template< typename T > 
-void IsoTreeWriter<T>::fillExtraVars(const pat::Electron& lepton)
+void IsoTreeWriter<T>::fillExtraVars(const pat::Electron& lepton, const edm::Event& iEvent)
 {
 	tauDiscr = -1.0;
 	mva = lepton.mva();
 	iso = calcIso(lepton);
 	isoMinPt = calcIsoMinPt(lepton);
+        edm::Handle<reco::VertexCollection> vertices;
+        iEvent.getByLabel(vertexTag_, vertices);
 	if(debug_){
 	  std::cout << "****Electron***" 
 		    << std::endl
@@ -288,17 +290,25 @@ void IsoTreeWriter<T>::fillExtraVars(const pat::Electron& lepton)
 		    << " hadronicOverEm "<< lepton.hadronicOverEm()
 		    << std::endl << "\t\t"
 		    << " abs(1.0/ecalEnergy - eSuperClusterOverP/ecalEnergy) " << fabs(1.0/lepton.ecalEnergy() - lepton.eSuperClusterOverP()/lepton.ecalEnergy())
-	  
+		    << std::endl << "\t\t"	
+		    << "d0 " << lepton.gsfTrack()->dxy(vertices->at(0).position()) << std::endl << "\t\t"
+		    << "dZ " << fabs(lepton.gsfTrack()->dz(vertices->at(0).position())) << std::endl << "\t\t"
+		    << " passes Conversion " << lepton.passConversionVeto()  << std::endl << "\t\t"
+		    << " iso " << fctIsolation_(lepton)/lepton.pt() 
+	  	    << std::endl << "\t\t"	
 	    //		  << std::endl << "\t\t"
 	    //		  << " ch "<<lepton.pfIsolationR03().sumChargedHadronPt <<" neut "<< lepton.pfIsolationR03().sumNeutralHadronEt <<" photo "<<  lepton.pfIsolationR03().sumPhotonEt << " pu " <<lepton.pfIsolationR03().sumPUPt       
 		    <<std::endl;  
 	}
+	
 
 }
 
 template< typename T > 
-void IsoTreeWriter<T>::fillExtraVars(const pat::Muon& lepton)
+void IsoTreeWriter<T>::fillExtraVars(const pat::Muon& lepton, const edm::Event& iEvent)
 {
+  edm::Handle<reco::VertexCollection> vertices;
+  iEvent.getByLabel(vertexTag_, vertices);
   if(debug_){
     std::cout << "*******Muon***********"
 	      << "++++> pt "<< lepton.pt() << " eta "<< lepton.eta() 
@@ -306,8 +316,16 @@ void IsoTreeWriter<T>::fillExtraVars(const pat::Muon& lepton)
 	      << " emVetoEt " << lepton.isolationR03().emVetoEt
 	      << " hadVetoEt " << lepton.isolationR03().hadVetoEt 
 	      << std::endl << "\t\t"
-	      << "relIso "<< (lepton.pfIsolationR03().sumChargedHadronPt + lepton.pfIsolationR03().sumNeutralHadronEt + lepton.pfIsolationR03().sumPhotonEt - 0.5 * lepton.pfIsolationR03().sumPUPt) * 1. / lepton.pt()
+
+	      << "relIso "<< (lepton.pfIsolationR03().sumChargedHadronPt + std::max(0.,lepton.pfIsolationR03().sumNeutralHadronEt + lepton.pfIsolationR03().sumPhotonEt - 0.5 * lepton.pfIsolationR03().sumPUPt)) * 1. / lepton.pt()
 	      << std::endl << "\t\t"
+	      << "Chi^2 " << lepton.globalTrack()->normalizedChi2() << std::endl << "\t\t"
+	      << "NumberOfValidMuonHits " << lepton.globalTrack()->hitPattern().numberOfValidMuonHits() << std::endl << "\t\t"
+	      << "MatchedStations " << lepton.numberOfMatchedStations() << std::endl << "\t\t"
+	      << "ValidPixelHits " << lepton.innerTrack()->hitPattern().numberOfValidPixelHits() << std::endl << "\t\t"
+	      << "NLayers " << lepton.track()->hitPattern().trackerLayersWithMeasurement() << std::endl << "\t\t"
+	      << "d0 " << lepton.dB() << std::endl << "\t\t"
+	      << "dZ " << fabs(lepton.muonBestTrack()->dz(vertices->at(0).position())) << std::endl << "\t\t"
 	      << " ch "<<lepton.pfIsolationR03().sumChargedHadronPt <<" neut "<< lepton.pfIsolationR03().sumNeutralHadronEt <<" photo "<<  lepton.pfIsolationR03().sumPhotonEt << " pu " <<lepton.pfIsolationR03().sumPUPt
 	      << std::endl;  
   }
@@ -318,7 +336,7 @@ void IsoTreeWriter<T>::fillExtraVars(const pat::Muon& lepton)
 }
 
 template< typename T > 
-void IsoTreeWriter<T>::fillExtraVars(const pat::Tau& lepton)
+void IsoTreeWriter<T>::fillExtraVars(const pat::Tau& lepton, const edm::Event& iEvent)
 {
   tauDiscr = -1;//lepton.tauID("byTaNCfrOnePercent");
   mva = -1;//lepton.tauID("byTaNC");
@@ -350,6 +368,8 @@ void IsoTreeWriter<T>::fillIso(const edm::Handle< std::vector<T> >& leptons, con
 	
 	fctIsolation_.init(iEvent);
 
+
+
 	nLept = 0;
 	edm::Handle<reco::GenParticleCollection> genParticles;
 	if(eventFootprintExtensionsActive_) eventFootprintExtensions_.fill(iEvent);
@@ -371,7 +391,7 @@ void IsoTreeWriter<T>::fillIso(const edm::Handle< std::vector<T> >& leptons, con
 		eta = lep_i->eta();
 		mT = transverseMass(lep_i->p4(), mets->front().p4());
 		leptonKind = fctLeptonKind_(*lep_i);
-		fillExtraVars(*lep_i);
+		fillExtraVars(*lep_i,iEvent);
 
 		// isolation
 		pfIsoAbs = fctIsolation_(*lep_i);
@@ -417,6 +437,7 @@ void IsoTreeWriter<T >::analyze(const edm::Event& iEvent, const edm::EventSetup&
 	//Probes
 	//run the TnP
 	fillIso(leptons, iEvent);
+        std::cout << "end event" << std::endl;
 
 }
 

@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr,32 4-C02,+41227676330,
 //         Created:  Tue Jan  5 13:23:46 CET 2010
-// $Id: DummyTrees.cc,v 1.9 2010/08/18 20:55:13 nmohr Exp $
+// $Id: DummyTrees.cc,v 1.1 2010/10/11 08:58:50 nmohr Exp $
 //
 //
 

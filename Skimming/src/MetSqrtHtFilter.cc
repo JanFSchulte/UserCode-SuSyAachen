@@ -13,7 +13,7 @@
 //
 // Original Author:  Matthias Edelhoff
 //         Created:  Mon Nov 16 11:26:19 CET 2009
-// $Id: MetSqrtHtFilter.cc,v 1.2 2010/06/28 13:33:29 nmohr Exp $
+// $Id: MetSqrtHtFilter.cc,v 1.1 2011/01/17 11:01:11 nmohr Exp $
 //
 //
 

@@ -4,8 +4,8 @@
  *  This class is an EDAnalyzer for PAT 
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2011/06/18 22:53:21 $
- *  $Revision: 1.43 $ for CMSSW 3_6_X
+ *  $Date: 2011/06/30 18:51:38 $
+ *  $Revision: 1.44 $ for CMSSW 3_6_X
  *
  *  \author: Niklas Mohr -- niklas.mohr@cern.ch
  *  

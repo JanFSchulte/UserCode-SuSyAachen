@@ -13,7 +13,7 @@
 //
 // Original Author:  Matthias Edelhoff
 //         Created:  Mon Nov 16 11:26:19 CET 2009
-// $Id: CompositeDiLeptonFilter.cc,v 1.1 2011/01/05 16:22:57 edelhoff Exp $
+// $Id: CompositeDiLeptonFilter.cc,v 1.2 2011/01/13 00:05:55 edelhoff Exp $
 //
 //
 

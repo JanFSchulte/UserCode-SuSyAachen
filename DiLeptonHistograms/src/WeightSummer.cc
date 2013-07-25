@@ -4,7 +4,7 @@
  *  This class is an EDAnalyzer for PAT
  *  Layer 0 and Layer 1 output
  *
- *  $Date: 2011/12/05 13:53:20 $
+ *  $Date: 2011/12/05 13:47:01 $
  *  $Revision: 1.1 $
  *  for CMSSW_4_2_8
  *  \author Daniel Sprenger  --  daniel.sprenger@cern.ch

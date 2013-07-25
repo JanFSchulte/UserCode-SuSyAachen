@@ -4,6 +4,8 @@
 <use   name="CommonTools/Utils"/>
 <use   name="FWCore/ServiceRegistry"/>
 <use   name="DataFormats/PatCandidates"/>
+<use   name="DataFormats/HLTReco"/>
+<use   name="DataFormats/Common"/>
 <use   name="CondFormats/JetMETObjects"/>
 <use   name="SuSyAachen/TagAndProbeTreeWriter"/>
 <flags   EDM_PLUGIN="1"/>

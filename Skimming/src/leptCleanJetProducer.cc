@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr
 //         Created:  Wed Aug 18 15:37:34 CEST 2010
-// $Id: leptCleanJetProducer.cc,v 1.3 2011/06/18 22:53:22 edelhoff Exp $
+// $Id: leptCleanJetProducer.cc,v 1.4 2011/10/26 15:17:08 edelhoff Exp $
 //
 //
 

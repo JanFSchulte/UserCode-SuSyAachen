@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr
 //         Created:  Wed Aug 18 15:37:34 CEST 2010
-// $Id: PfElectronProducer.cc,v 1.2 2010/08/18 20:55:13 nmohr Exp $
+// $Id: PfPatElectronProducer.cc,v 1.1 2010/10/05 09:37:32 nmohr Exp $
 //
 //
 

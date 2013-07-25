@@ -13,7 +13,7 @@
 //
 // Original Author:  Matthias Edelhoff
 //         Created:  Mon Nov 16 11:26:19 CET 2009
-// $Id: MtFilter.cc,v 1.2 2010/06/11 14:15:44 nmohr Exp $
+// $Id: MtFilter.cc,v 1.3 2010/09/30 18:59:33 edelhoff Exp $
 //
 //
 

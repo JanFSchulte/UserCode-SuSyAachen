@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr
 //         Created:  Wed Aug 18 15:37:34 CEST 2010
-// $Id: GenParticlePatProducer.cc,v 1.1 2010/08/27 14:48:04 nmohr Exp $
+// $Id: GenParticleProducer.cc,v 1.1 2011/05/18 10:55:37 nmohr Exp $
 //
 //
 

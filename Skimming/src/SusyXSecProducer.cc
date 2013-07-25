@@ -13,7 +13,7 @@
 //
 // Original Author:  Niklas Mohr
 //         Created:  Wed Aug 18 15:37:34 CEST 2010
-// $Id: SusyXSecProducer.cc,v 1.2 2011/07/29 15:16:39 nmohr Exp $
+// $Id: SusyXSecProducer.cc,v 1.3 2012/03/20 17:06:44 edelhoff Exp $
 //
 //
 

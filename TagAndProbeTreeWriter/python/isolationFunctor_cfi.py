@@ -1,4 +1,4 @@
 import FWCore.ParameterSet.Config as cms
 isolationDefinitions = cms.PSet(
-    rhoSource = cms.InputTag("kt6PFJets", "rho"),
+    rhoSource = cms.InputTag("kt6PFJetsForIsolation", "rho"),
     ) 
