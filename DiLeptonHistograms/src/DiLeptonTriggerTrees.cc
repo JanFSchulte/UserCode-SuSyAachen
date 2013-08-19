@@ -467,7 +467,7 @@ DiLeptonTriggerTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& i
   floatEventProperties["htJESDown"] = 0.0;
   floatEventProperties["mht"] = 0.0;
 
-  edm::FileInPath fip("CondFormats/JetMETObjects/data/GR_P_V40_AN1::All_Uncertainty_AK5PF.txt");
+  edm::FileInPath fip("SuSyAachen/DiLeptonHistograms/data/GR_P_V40_AN1::All_Uncertainty_AK5PF.txt");
   JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(fip.fullPath());
 
 
