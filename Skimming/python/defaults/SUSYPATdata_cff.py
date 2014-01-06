@@ -14,9 +14,10 @@ def SUSYPATdata(process):
     doValidation = False
     doExtensiveMatching = False
     doSusyTopProjection = True
+    doType1MetCorrection=False
 
     #Apply SUSYPAT
-    addDefaultSUSYPAT(process,mcInfo,hltName,jetCorrections, mcVersion, jetTypes, doValidation, doExtensiveMatching, doSusyTopProjection)
+    addDefaultSUSYPAT(process,mcInfo,hltName,jetCorrections, mcVersion, jetTypes, doValidation, doExtensiveMatching, doSusyTopProjection,doType1MetCorrection)
     SUSY_pattuple_outputCommands = getSUSY_pattuple_outputCommands( process )
     ############################## END SUSYPAT specifics ####################################
 

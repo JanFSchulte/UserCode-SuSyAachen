@@ -8,6 +8,7 @@
 <use   name="DataFormats/Common"/>
 <use   name="CondFormats/JetMETObjects"/>
 <use   name="SuSyAachen/TagAndProbeTreeWriter"/>
+<use   name="SuSyAachen/Skimming"/>
 <flags   EDM_PLUGIN="1"/>
 <export>
   <!--lib   name="SuSyAachenDiLeptonHistograms"/-->

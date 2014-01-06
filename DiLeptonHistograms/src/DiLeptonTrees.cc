@@ -120,6 +120,14 @@ private:
   edm::InputTag caloMetTag_;
   edm::InputTag genMetTrueTag_;
   edm::InputTag vertexTag_;
+  edm::InputTag vertexTagUp_;
+  edm::InputTag vertexTagDown_;
+  edm::InputTag vertexTagBlockA_;
+  edm::InputTag vertexTagBlockAUp_;
+  edm::InputTag vertexTagBlockADown_;
+  edm::InputTag vertexTagBlockB_;
+  edm::InputTag vertexTagBlockBUp_;
+  edm::InputTag vertexTagBlockBDown_;
   edm::InputTag pfCandTag_;
   edm::InputTag genParticleTag_;
   edm::InputTag rhoTag_;
@@ -132,7 +140,7 @@ private:
   //data
   std::map<std::string, TTree*> trees_;  
   std::map<std::string, std::map< std::string, float*> > floatBranches_; 
-  std::map<std::string, std::map< std::string, int*> > intBranches_; 
+  std::map<std::string, std::map< std::string, unsigned int*> > intBranches_; 
   std::map<std::string, std::map< std::string, TLorentzVector*> > tLorentzVectorBranches_;
 
   edm::Handle< std::vector< pat::Jet > > jets_;
@@ -140,6 +148,14 @@ private:
   WeightFunctor fakeRates_;
   WeightFunctor efficiencies_;
   VertexWeightFunctor fctVtxWeight_;
+  VertexWeightFunctor fctVtxWeightBlockA_;
+  VertexWeightFunctor fctVtxWeightBlockB_;
+  VertexWeightFunctor fctVtxWeightUp_;
+  VertexWeightFunctor fctVtxWeightBlockAUp_;
+  VertexWeightFunctor fctVtxWeightBlockBUp_;
+  VertexWeightFunctor fctVtxWeightDown_;
+  VertexWeightFunctor fctVtxWeightBlockADown_;
+  VertexWeightFunctor fctVtxWeightBlockBDown_;
   IsolationFunctor fctIsolation_;
   PdgIdFunctor getPdgId_;
 
@@ -151,6 +167,14 @@ private:
 // constructors and destructor
 DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
   fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") ),
+  fctVtxWeightBlockA_    (iConfig.getParameter<edm::ParameterSet>("vertexWeightsBlockA") ),
+  fctVtxWeightBlockB_    (iConfig.getParameter<edm::ParameterSet>("vertexWeightsBlockB") ),
+  fctVtxWeightUp_    (iConfig.getParameter<edm::ParameterSet>("vertexWeightsUp") ),
+  fctVtxWeightBlockAUp_    (iConfig.getParameter<edm::ParameterSet>("vertexWeightsBlockAUp") ),
+  fctVtxWeightBlockBUp_    (iConfig.getParameter<edm::ParameterSet>("vertexWeightsBlockBUp") ),
+  fctVtxWeightDown_    (iConfig.getParameter<edm::ParameterSet>("vertexWeightsDown") ),
+  fctVtxWeightBlockADown_    (iConfig.getParameter<edm::ParameterSet>("vertexWeightsBlockADown") ),
+  fctVtxWeightBlockBDown_    (iConfig.getParameter<edm::ParameterSet>("vertexWeightsBlockBDown") ),
   fctIsolation_  (iConfig.getParameter<edm::ParameterSet>("isolationDefinitions")),
   getPdgId_( iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition") )
 {
@@ -200,6 +224,14 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
     trees_["TauTau"] = file->make<TTree>("TauTauDileptonTree", "TauTau DileponTree");
   }
   initFloatBranch( "weight" );
+  initFloatBranch( "weightBlockA" );
+  initFloatBranch( "weightBlockB" );
+  initFloatBranch( "weightUp" );
+  initFloatBranch( "weightBlockAUp" );
+  initFloatBranch( "weightBlockBUp" );
+  initFloatBranch( "weightDown" );
+  initFloatBranch( "weightBlockADown" );
+  initFloatBranch( "weightBlockBDown" );
   initFloatBranch( "topWeightBen" );
   initFloatBranch( "topWeightTOP" );
   initFloatBranch( "genPtTop1" );
@@ -344,7 +376,7 @@ DiLeptonTrees::initIntBranch(const std::string &name)
   for( std::map<std::string, TTree*>::const_iterator it = trees_.begin();
        it != trees_.end(); ++it){
     if(debug) std::cout << (*it).first <<" - "<< name << std::endl;
-    intBranches_[(*it).first][name] = new int;
+    intBranches_[(*it).first][name] = new unsigned int;
     (*it).second->Branch(name.c_str(), intBranches_[(*it).first][name], (name+"/I").c_str());
   }
 }
@@ -359,9 +391,9 @@ DiLeptonTrees::~DiLeptonTrees()
       delete (*it2).second;
     }
   }
-  for( std::map<std::string, std::map< std::string, int*> >::const_iterator it = intBranches_.begin();
+  for( std::map<std::string, std::map< std::string, unsigned int*> >::const_iterator it = intBranches_.begin();
        it != intBranches_.end(); ++it){
-    for( std::map< std::string, int*>::const_iterator it2 = (*it).second.begin();
+    for( std::map< std::string, unsigned int*>::const_iterator it2 = (*it).second.begin();
 	 it2 != (*it).second.end(); ++it2){
       if(debug) std::cout << "deleting: " << (*it).first << " - "<< (*it2).first << std::endl;
       delete (*it2).second;
@@ -395,7 +427,7 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 
 
-
+	
   edm::Handle< std::vector< pat::Jet > > bJets;
   iEvent.getByLabel(bJetTag_, bJets);
   
@@ -575,7 +607,6 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     if (correction==0.0){
 	correction = 0.045; 
     }
-
     //    std::cout << "jet pt = "<<itJet->p4()<<", uncertainty = "<<correction<<std::endl;
     ajetUp.setP4( itJet->p4() * (1.0 + correction) );
     ajetDown.setP4( itJet->p4() * (1.0 - correction) );
@@ -742,6 +773,14 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     	
 
   floatEventProperties["weight"] = fctVtxWeight_( iEvent );
+  floatEventProperties["weightBlockA"] = fctVtxWeightBlockA_( iEvent );
+  floatEventProperties["weightBlockB"] = fctVtxWeightBlockB_( iEvent );
+  floatEventProperties["weightUp"] = fctVtxWeightUp_( iEvent );
+  floatEventProperties["weightBlockAUp"] = fctVtxWeightBlockAUp_( iEvent );
+  floatEventProperties["weightBlockBUp"] = fctVtxWeightBlockBUp_( iEvent );
+  floatEventProperties["weightDown"] = fctVtxWeightDown_( iEvent );
+  floatEventProperties["weightBlockADown"] = fctVtxWeightBlockADown_( iEvent );
+  floatEventProperties["weightBlockBDown"] = fctVtxWeightBlockBDown_( iEvent );
   
   if(useJets2_) {
     edm::Handle< std::vector< pat::Jet > > jets2;
