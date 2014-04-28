@@ -13,7 +13,7 @@ def SUSYPATdata(process):
     jetTypes = ['AK5PF']
     doValidation = False
     doExtensiveMatching = False
-    doSusyTopProjection = True
+    doSusyTopProjection = False
     doType1MetCorrection=False
 
     #Apply SUSYPAT
@@ -27,6 +27,6 @@ def SUSYPATdata(process):
     #reduceEventsize(process)
     
     del process.out
-    process.seqSUSYPATdata = process.susyPatDefaultSequence
+    #process.seqSUSYPATdata = process.susyPatDefaultSequence
 
     

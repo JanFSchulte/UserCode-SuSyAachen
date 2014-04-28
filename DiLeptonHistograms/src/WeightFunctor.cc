@@ -3,7 +3,7 @@
 WeightFunctor::WeightFunctor()
 {
 	initialized_ = false;
-	bool looseNotTight_ = false;
+// 	bool looseNotTight_ = false;
 }
 
 void
