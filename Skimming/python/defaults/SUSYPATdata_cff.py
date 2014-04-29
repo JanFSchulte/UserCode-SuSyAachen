@@ -27,6 +27,6 @@ def SUSYPATdata(process):
     #reduceEventsize(process)
     
     del process.out
-    #process.seqSUSYPATdata = process.susyPatDefaultSequence
+    process.seqSUSYPATdata = cms.Sequence(process.susyPatDefaultSequence)
 
     
