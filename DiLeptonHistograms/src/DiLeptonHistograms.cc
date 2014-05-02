@@ -1414,9 +1414,9 @@ void DiLeptonHistograms::TauMonitor(const pat::Tau* tau,const int n_Tau, double 
   if (debug) std::cout <<" < iso";
   hTauNSignalTracks[process]->Fill(tau->signalPFChargedHadrCands().size(),weight);
   double sumIsoPt = 0.;
-  const reco::PFCandidateRefVector isoCands = tau->isolationPFCands();
+  const std::vector<edm::Ptr<reco::PFCandidate> > isoCands = tau->isolationPFCands();
     if (debug) std::cout <<" < gotIsoCands";
-  for( reco::PFCandidateRefVector::const_iterator it = isoCands.begin();
+  for( std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator it = isoCands.begin();
        it != isoCands.end(); ++it)      {
     if( (*it).isAvailable())
       sumIsoPt += (*it)->pt();

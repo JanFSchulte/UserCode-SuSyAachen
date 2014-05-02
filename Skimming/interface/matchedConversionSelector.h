@@ -17,7 +17,7 @@ struct matchedConversionSelector {
   typedef collectionType collection;
   typedef containerType container;
   typedef typename container::const_iterator const_iterator;
-  matchedConversionSelector ( const edm::ParameterSet & cfg ):
+  matchedConversionSelector ( const edm::ParameterSet & cfg, edm::ConsumesCollector ):
     conversionsSrc_( cfg.getParameter<edm::InputTag>( "conversionsSource" ) ), 
     beamspotSrc_( cfg.getParameter<edm::InputTag>( "beamspotSource" ) )  { }
   

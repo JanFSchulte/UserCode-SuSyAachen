@@ -16,7 +16,7 @@ template<typename collectionType, typename containerType>
     typedef collectionType collection;
     typedef containerType container;
     typedef typename container::const_iterator const_iterator;
-    TauToTauMatchSelector ( const edm::ParameterSet & cfg ):
+    TauToTauMatchSelector ( const edm::ParameterSet & cfg, edm::ConsumesCollector ):
       dRMin_( cfg.getParameter<double>( "dRMin") ),
       otherTauId_(cfg.getParameter<std::string>( "otherTauId")),
       otherTauSrc_( cfg.getParameter<edm::InputTag>( "otherTauSource" ) ) { }

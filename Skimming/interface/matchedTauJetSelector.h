@@ -4,7 +4,7 @@
 #include "DataFormats/PatCandidates/interface/Tau.h"
 struct MatchedTauJetSelector {
 MatchedTauJetSelector() { }
-MatchedTauJetSelector( const edm::ParameterSet & cfg ) { }
+MatchedTauJetSelector( const edm::ParameterSet & cfg, edm::ConsumesCollector ) { }
 
   bool operator()( const pat::Tau & p ) const 
   { 

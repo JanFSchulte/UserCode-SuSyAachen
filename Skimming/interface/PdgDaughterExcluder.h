@@ -10,7 +10,7 @@ struct PdgDaughterExcluder {
   typedef reco::CompositeRefCandidateT<reco::GenParticleRefVector>::daughters daughters;
 
   PdgDaughterExcluder( std::vector<int> daughters) : daughterIds_( daughters ) { }
-  PdgDaughterExcluder( const edm::ParameterSet & cfg ) :
+  PdgDaughterExcluder( const edm::ParameterSet & cfg, edm::ConsumesCollector ) :
   daughterIds_( cfg.getParameter< std::vector<int> >( "daughterIds" ) ) { }
 
   bool operator()( const reco::GenParticle & p ) const 

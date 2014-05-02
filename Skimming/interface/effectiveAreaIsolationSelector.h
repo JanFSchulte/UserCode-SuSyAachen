@@ -18,7 +18,7 @@ struct effectiveAreaIsolationSelector {
   typedef collectionType collection;
   typedef containerType container;
   typedef typename container::const_iterator const_iterator;
-  effectiveAreaIsolationSelector ( const edm::ParameterSet & cfg ):
+  effectiveAreaIsolationSelector ( const edm::ParameterSet & cfg, edm::ConsumesCollector ):
     fctIsolation_ (cfg.getParameter<edm::ParameterSet>("isolationDefinitions")),
     isoMin_( cfg.getParameter<double>( "isoMin") ),
     isoMax_( cfg.getParameter<double>( "isoMax" ) ),

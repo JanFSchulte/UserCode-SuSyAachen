@@ -16,7 +16,7 @@ struct patFlagSelector {
   typedef collectionType collection;
   typedef containerType container;
   typedef typename container::const_iterator const_iterator;
-  patFlagSelector ( const edm::ParameterSet & cfg ):
+  patFlagSelector ( const edm::ParameterSet & cfg, edm::ConsumesCollector):
    flag_( cfg.getParameter<std::string>( "cut" ) ) { }
   
   const_iterator begin() const { return selected_.begin(); }

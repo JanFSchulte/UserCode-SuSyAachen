@@ -99,7 +99,7 @@ MCDiLeptonHistograms::MCDiLeptonHistograms(const edm::ParameterSet& iConfig)
   tauJetTag_ = iConfig.getParameter<edm::InputTag>("tauJets");
 
   // init histos
-  edm::Service<TFileService> file;
+  edm::Service<TFileDirectory> file;
   initInvMass( *file);
   initCommon( "Electron", *file);
   initCommon( "Muon", *file);

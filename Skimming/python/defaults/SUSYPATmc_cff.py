@@ -13,7 +13,7 @@ def SUSYPATmc(process):
     jetTypes = ['AK5PF']
     doValidation = False
     doExtensiveMatching = False
-    doSusyTopProjection = True
+    doSusyTopProjection = False
     doType1MetCorrection=False
 
     #Apply SUSYPAT
@@ -27,6 +27,6 @@ def SUSYPATmc(process):
     #reduceEventsize(process)
     
     del process.out
-    process.seqSUSYPATmc = process.susyPatDefaultSequence
+    process.seqSUSYPATmc = cms.Sequence(process.susyPatDefaultSequence)
 
     

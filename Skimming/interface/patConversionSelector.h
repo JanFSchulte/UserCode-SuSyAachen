@@ -17,7 +17,7 @@ struct patConversionSelector {
   typedef collectionType collection;
   typedef containerType container;
   typedef typename container::const_iterator const_iterator;
-  patConversionSelector ( const edm::ParameterSet & cfg ):
+  patConversionSelector ( const edm::ParameterSet & cfg, edm::ConsumesCollector ):
    cutLow_( cfg.getParameter<int>( "minLostHits") ), 
    cutHigh_( cfg.getParameter<int>( "maxLostHits" ) ),
    conv_( cfg.getParameter<bool>( "convInfo") ), 

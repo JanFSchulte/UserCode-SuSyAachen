@@ -18,7 +18,7 @@ struct d0Selector {
   typedef collectionType collection;
   typedef containerType container;
   typedef typename container::const_iterator const_iterator;
-  d0Selector ( const edm::ParameterSet & cfg ):
+  d0Selector ( const edm::ParameterSet & cfg, edm::ConsumesCollector ):
     d0Min_( cfg.getParameter<double>( "d0Min") ),
     d0Max_( cfg.getParameter<double>( "d0Max" ) ),
     dZMin_( cfg.getParameter<double>( "dZMin") ),
