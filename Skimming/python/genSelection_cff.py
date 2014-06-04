@@ -174,11 +174,11 @@ pdfWeights = cms.EDProducer("PdfWeightProducer",
     GenTag = cms.untracked.InputTag("genParticles"),
     PdfInfoTag = cms.untracked.InputTag("generator"),
     PdfSetNames = cms.untracked.vstring(
-        "cteq66.LHgrid",
-#        "MSTW2008nlo68cl.LHgrid",
+        "CT10.LHgrid",
+        "MSTW2008nlo68cl.LHgrid",
 #        "NNPDF20_100.LHgrid"
 #        "MRST2006nnlo.LHgrid",
-#        "NNPDF10_100.LHgrid"
+        "NNPDF10_100.LHgrid"
     )
 )
 
