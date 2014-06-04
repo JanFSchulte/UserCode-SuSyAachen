@@ -118,10 +118,10 @@ struct effectiveAreaIsolationSelector {
   }
     
     container selected_;
+    IsolationFunctor fctIsolation_;
     double isoMin_;
     double isoMax_;
     double isoMaxEE_;
-    IsolationFunctor fctIsolation_;
     edm::InputTag rhoSrc_;
 };
 

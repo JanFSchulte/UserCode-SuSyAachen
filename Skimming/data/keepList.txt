@@ -28,3 +28,4 @@ keep *_HBHENoiseFilterResultProducer_*_*
 keep *_pfType1CorrectedMet_*_*
 keep *_pfMet*_*_*
 keep *_pfMET*_*_*
+keep *_cleanPatMuons_*_*
