@@ -13,7 +13,7 @@ from SuSyAachen.DiLeptonHistograms.efficiencies.electronEffPSet_cff import elect
 from SuSyAachen.DiLeptonHistograms.efficiencies.muonEffPSet_cff import muonCenterEfficiencies as muonEfficiency
 from SuSyAachen.TagAndProbeTreeWriter.isolationFunctor_cfi import isolationDefinitions
 
-DiLeptonTreesNoTaus = cms.EDAnalyzer("DiLeptonTrees",
+MultiLeptonTreesNoTaus = cms.EDAnalyzer("MultiLeptonTrees",
    electrons = cms.InputTag("triggerMatchedPatElectronsPF"),
    muons = cms.InputTag("triggerMatchedPatMuonsPF"),
 #   taus = cms.InputTag("triggerMatchedPatTausPF"),
@@ -101,12 +101,12 @@ DiLeptonTreesNoTaus = cms.EDAnalyzer("DiLeptonTrees",
 
 )
 
-DiLeptonTrees = DiLeptonTreesNoTaus.clone(
+MultiLeptonTrees = MultiLeptonTreesNoTaus.clone(
     taus = cms.InputTag("triggerMatchedPatTausPF"),
     tauId = cms.string("byTaNCfrHalfPercent"), 
     )
 
-DiLeptonTreesForLMPoints = DiLeptonTrees.clone(
+MultiLeptonTreesForLMPoints = MultiLeptonTrees.clone(
           pdfWeightTags = cms.VInputTag(
 #            "susyScanPdfWeights:cteq66",
 #            "susyScanPdfWeights:MSTW2008nlo68cl",
@@ -135,7 +135,7 @@ xSecVars = [
     cms.PSet(var = cms.InputTag("susyScankFactor"), type = cms.string("float")),
 ]
 
-DiLeptonTreesmSugra = DiLeptonTrees.clone(
+MultiLeptonTreesmSugra = MultiLeptonTrees.clone(
    susyVars = cms.VPSet( mSugraVars + xSecVars),
    pdfWeightTags = cms.VInputTag(
         "susyScanPdfWeights:cteq66",
@@ -161,7 +161,7 @@ simplifedVars = cms.VPSet(
         #    cms.PSet(var = cms.InputTag("seqSUSYPARS","susyScanMu"), type = cms.string("int"))
             )
 
-DiLeptonTreesSimplified = DiLeptonTrees.clone(
+MultiLeptonTreesSimplified = MultiLeptonTrees.clone(
 #    vertexWeights = vertexWeightPars.clone(doWeight = False)
     susyVars = simplifedVars,
     pdfWeightTags = cms.VInputTag(
@@ -172,4 +172,4 @@ DiLeptonTreesSimplified = DiLeptonTrees.clone(
 #    "susyScanPdfWeights:NNPDF10"
     )
     )
-DiLeptonTreesSimplified.vertexWeights.doWeight=False
+MultiLeptonTreesSimplified.vertexWeights.doWeight=False
