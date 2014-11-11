@@ -88,12 +88,14 @@ private:
   void initFloatBranch( const std::string &name);
   void initIntBranch( const std::string &name);
   void initTLorentzVectorBranch( const std::string &name);
+
   //~ template <class aT, class bT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT >&b, const std::vector<reco::PFCandidate>&pfCands, const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const int &nGenLeptons, const TLorentzVector &genLept1, const TLorentzVector &genLept2, const TLorentzVector &genLept3, const TLorentzVector &genLept4, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
   //~ template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a , const std::vector<reco::PFCandidate>&pfCands,  const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const int &nGenLeptons, const TLorentzVector &genLept1, const TLorentzVector &genLept2, const TLorentzVector &genLept3, const TLorentzVector &genLept4, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
   //~ template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<reco::PFCandidate>&pfCands, const pat::MET &patMet, const TLorentzVector &MHT, const int &nGenLeptons, const TLorentzVector &genLept1, const TLorentzVector &genLept2, const TLorentzVector &genLept3, const TLorentzVector &genLept4);
   template <class aT, class bT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT >&b, const std::vector<reco::PFCandidate>&pfCands, const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const int &nGenLeptons, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
   template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a , const std::vector<reco::PFCandidate>&pfCands,  const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const int &nGenLeptons, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
   template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<reco::PFCandidate>&pfCands, const pat::MET &patMet, const TLorentzVector &MHT, const int &nGenLeptons);
+
   int getLeptonPdgId( const reco::GenParticle &p);
   int getMotherPdgId( const reco::GenParticle &p);
   std::pair<double, double> calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, const TLorentzVector& met);
@@ -328,7 +330,6 @@ DiLeptonSystematicTrees::DiLeptonSystematicTrees(const edm::ParameterSet& iConfi
   initFloatBranch( "fastSimScaleFactorDown" );
   initTLorentzVectorBranch( "p4" );
   initTLorentzVectorBranch( "vMet" );
-  //~ initTLorentzVectorBranch( "vLeptonMet" );
   initTLorentzVectorBranch( "vGenMet" );
   initTLorentzVectorBranch( "vGenMetNeutrinos" );
   initTLorentzVectorBranch( "p4Gen" );
@@ -379,7 +380,6 @@ DiLeptonSystematicTrees::DiLeptonSystematicTrees(const edm::ParameterSet& iConfi
   initFloatBranch( "htJESDown" );
   initFloatBranch( "mht" );
   initFloatBranch( "met" );
-  //~ initFloatBranch( "leptonMet" );
   initFloatBranch( "metJESUp" );
   initFloatBranch( "metJESDown" );
   initFloatBranch( "metChargedEMEtFraction" );
@@ -753,6 +753,7 @@ DiLeptonSystematicTrees::analyze(const edm::Event& iEvent, const edm::EventSetup
   floatEventProperties["genPtTop1"] = -1;
   floatEventProperties["genPtTop2"] = -1;
   floatEventProperties["genPtDiSbottom"] = -1;
+
   if (genParticles.isValid()){
 	
 	for (std::vector<reco::GenParticle>::const_iterator itGenParticle = genParticles->begin(); itGenParticle != genParticles->end(); itGenParticle++) {
@@ -1382,7 +1383,7 @@ DiLeptonSystematicTrees::fillTree( const std::string &treeName, const aT& a, con
   //~ *(tLorentzVectorBranches_[treeName]["vLeptonMet"]) = leptonMetVec;
   //~ *(floatBranches_[treeName]["leptonMet"]) = leptonMetVec.Pt();
 		  
-  
+
   trees_[treeName]->Fill();
 }
 
