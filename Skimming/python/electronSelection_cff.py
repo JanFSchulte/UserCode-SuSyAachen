@@ -47,7 +47,7 @@ isoElectrons = cms.EDFilter("PATElectronSelector", filter = filterElectrons,
 from SuSyAachen.TagAndProbeTreeWriter.isolationFunctor_cfi import isolationDefinitions
 effectiveAreaIsoElectrons = cms.EDFilter("PATElectronEffectiveAreaSelector", filter = cms.bool(True),
                                            src = cms.InputTag("cleanElectrons"),
-                                           rhoSource = cms.InputTag("kt6PFJetsForIsolation", "rho"),
+                                           rhoSource = cms.InputTag("fixedGridRhoFastjetAll"),
                                            isolationDefinitions = isolationDefinitions,
                                            isoMin = cms.double(-1.),
                                            isoMax = cms.double(0.09),                                         

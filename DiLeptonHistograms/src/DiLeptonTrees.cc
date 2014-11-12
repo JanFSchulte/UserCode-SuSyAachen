@@ -921,7 +921,7 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b,c
 
   TLorentzVector comb = aVec+bVec;
   TLorentzVector MHT2 = comb + MHT;
-  std::pair<double, double> pZeta = calcPZeta(a.p(), b.p(), met);
+  std::pair<double, double> pZeta = calcPZeta(aVec, bVec, met);
   *(floatBranches_[treeName]["chargeProduct"]) = a.charge()*b.charge();
   *(tLorentzVectorBranches_[treeName]["p4"]) = comb;
   *(tLorentzVectorBranches_[treeName]["lepton1"]) = aVec;

@@ -273,7 +273,7 @@ template< typename T >
 void IsoTreeWriter<T>::fillExtraVars(const pat::Electron& lepton, const edm::Event& iEvent)
 {
 	tauDiscr = -1.0;
-	mva = lepton.mva();
+	mva = -1.;
 	iso = calcIso(lepton);
 	isoMinPt = calcIsoMinPt(lepton);
         edm::Handle<reco::VertexCollection> vertices;

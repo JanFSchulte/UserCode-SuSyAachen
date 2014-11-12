@@ -548,7 +548,7 @@ DiLeptonVectorTrees::fillTree( const std::string &treeName, const aT& a, const b
   //<< "=> "<< met.Et()* 1./uncorrectedMet.Et()<< " (xCheck: "<< patMet.corSumEt()*1./patMet.uncorrectedPt(pat::MET::uncorrALL) <<")"<<std::endl;
 
   TLorentzVector comb = aVec+bVec;
-  std::pair<double, double> pZeta = calcPZeta(a.p(), b.p(), met);
+  std::pair<double, double> pZeta = calcPZeta( aVec, bVec, met);
   *(floatBranches_[treeName]["chargeProduct"]) = a.charge()*b.charge();
   *(tLorentzVectorBranches_[treeName]["p4"]) = comb;
   *(tLorentzVectorBranches_[treeName]["lepton1"]) = aVec;

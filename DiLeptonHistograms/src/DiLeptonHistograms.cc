@@ -1199,7 +1199,7 @@ void DiLeptonHistograms::ElectronMonitor(const pat::Electron* electron,const int
     double deltaPhiIn = electron->deltaPhiSuperClusterTrackAtVtx();
     double deltaEtaIn = electron->deltaEtaSuperClusterTrackAtVtx();
   
-    hElectronMva[process]->Fill(electron->mva(),weight); 
+    hElectronMva[process]->Fill(-1.,weight); 
     hElectronEoverP[process]->Fill(eOverP,weight); 
     hElectronfBrem[process]->Fill(fBrem,weight); 
     hElectronHoverE[process]->Fill(hOverE,weight); 
@@ -1211,7 +1211,7 @@ void DiLeptonHistograms::ElectronMonitor(const pat::Electron* electron,const int
     hElectronsigmaIetaIeta[process]->Fill(sigmaIetaIeta,weight);
     if(!electron->gsfTrack().isNull()){
         //impact parameter
-        int lostHits = electron->gsfTrack()->trackerExpectedHitsInner().numberOfHits();
+        int lostHits = electron->gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS);
         double d0tobs = electron->gsfTrack()->dxy(bs);
         double d0topv = electron->gsfTrack()->dxy(pv);
         double dZtobs = electron->gsfTrack()->dz(bs);

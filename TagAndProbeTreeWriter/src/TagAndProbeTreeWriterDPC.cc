@@ -269,14 +269,14 @@ void TagAndProbeTreeWriterDPC<T,P>::fillExtraVars(const pat::Muon& probe){
 
 template< typename T, typename P > 
 void TagAndProbeTreeWriterDPC<T,P>::fillExtraVars(const pat::Electron& probe){
-  mva = probe.mva();
+  mva = -1.;
   eOverP = probe.eSuperClusterOverP();
   float pin  = probe.trackMomentumAtVtx().R();
   float pout = probe.trackMomentumOut().R();
   fBrem = (pin-pout)/pin;
   logSigIetaIeta = log(probe.sigmaIetaIeta());
   deltaEtaIn = probe.deltaEtaSuperClusterTrackAtVtx();
-  nLostHits = probe.gsfTrack()->trackerExpectedHitsInner().numberOfLostHits();
+  nLostHits = probe.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS);
  
   // charge methods
   chargeMethodsProbe = 2;

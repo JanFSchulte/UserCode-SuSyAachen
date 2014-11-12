@@ -229,7 +229,7 @@ void fillExtraVars(const pat::Electron *lepton, float *iso, float *mva,
         float *fBrem, float *deltaEtaIn, float *logSigIetaIeta, float *eOverP,
 		   int *chargeMethodsProbe, int *chargeDeviatingProbe){
     *iso = (lepton->chargedHadronIso()+lepton->photonIso()+lepton->neutralHadronIso())/lepton->pt();
-    *mva = lepton->mva();
+    *mva = -1.;
     *eOverP = lepton->eSuperClusterOverP();
     float pin  = lepton->trackMomentumAtVtx().R();
     float pout = lepton->trackMomentumOut().R();
