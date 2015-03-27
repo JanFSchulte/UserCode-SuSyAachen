@@ -1,9 +1,9 @@
 // -*- C++ -*-
 //
 // Package:    Histograms
-// Class:      DiLeptonTrees
+// Class:      SingleLeptonTrees
 // 
-/**\class DiLeptonTrees DiLeptonTrees.cc brot/DiLeptonTrees/src/DiLeptonTrees.cc
+/**\class SingleLeptonTrees SingleLeptonTrees.cc brot/SingleLeptonTrees/src/SingleLeptonTrees.cc
 
  Description: <one line class summary>
 
@@ -13,7 +13,7 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: DiLeptonTrees.cc,v 1.31 2012/09/17 17:38:58 sprenger Exp $
+// $Id: SingleLeptonTrees.cc,v 1.31 2012/09/17 17:38:58 sprenger Exp $
 //
 //
 
@@ -49,8 +49,6 @@
 
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 
-#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
-
 
 #include <SuSyAachen/DiLeptonHistograms/interface/WeightFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/PdgIdFunctor.h>
@@ -68,10 +66,10 @@ using namespace std;
 // class decleration
 //
 
-class DiLeptonTrees : public edm::EDAnalyzer {
+class SingleLeptonTrees : public edm::EDAnalyzer {
 public:
-  explicit DiLeptonTrees(const edm::ParameterSet&);
-  ~DiLeptonTrees();
+  explicit SingleLeptonTrees(const edm::ParameterSet&);
+  ~SingleLeptonTrees();
 
 private:
   //  typedef reco::Candidate candidate;
@@ -85,9 +83,11 @@ private:
   void initFloatBranch( const std::string &name);
   void initIntBranch( const std::string &name);
   void initTLorentzVectorBranch( const std::string &name);
-  template <class aT, class bT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT >&b, const std::vector<reco::PFCandidate>&pfCands, const std::vector<reco::GenParticle>&genParticles, const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
-  template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a , const std::vector<reco::PFCandidate>&pfCands, const std::vector<reco::GenParticle>&genParticles,  const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
-  template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<reco::PFCandidate>&pfCands, const std::vector<reco::GenParticle>&genParticles, const pat::MET &patMet, const TLorentzVector &MHT);
+  template <class aT, class bT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT >&b, const std::vector<reco::PFCandidate>&pfCands, const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
+  template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a , const std::vector<reco::PFCandidate>&pfCands,  const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
+  template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<reco::PFCandidate>&pfCands, const pat::MET &patMet, const TLorentzVector &MHT);
+  //~ template<class aT> void fillLepton( const std::string &treeName, const aT &a, const std::string &leptonFlavorNumber);
+  //~ template<class aT> void fillLepton( const std::string &treeName, const aT &a, const std::string &leptonFlavorNumber, const  std::map<std::string, float> &floatEventProperties);
   int getLeptonPdgId( const reco::GenParticle &p);
   int getMotherPdgId( const reco::GenParticle &p);
   std::pair<double, double> calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, const TLorentzVector& met);
@@ -99,7 +99,6 @@ private:
   float getPhiAtECAL(const  pat::Electron &e, const std::vector<reco::PFCandidate>&pfCands);
   float getPhiAtECAL(const  pat::Muon &mu, const std::vector<reco::PFCandidate>&pfCands);
   float getPhiAtECAL(const  pat::Tau &tau, const std::vector<reco::PFCandidate>&pfCands);
-  template <class aT> std::vector<int>  getGenMatches(const aT &l, const std::vector<reco::GenParticle>&genParticles);  
   float topPtWeightBen(double topPt);
   float topPtWeightTOP(double topPt);
   float getId(const  pat::Electron &e);
@@ -132,12 +131,10 @@ private:
   edm::InputTag vertexTagBlockBUp_;
   edm::InputTag vertexTagBlockBDown_;
   edm::InputTag pfCandTag_;
-  edm::InputTag pdfInfo_;
   edm::InputTag genParticleTag_;
   edm::InputTag rhoTag_;
   std::vector<edm::ParameterSet> susyVars_;
   std::vector<edm::InputTag> pdfs_;
-  std::vector<edm::InputTag> metUncertaintyInputs_;
   std::string tauId_;
 
 
@@ -170,7 +167,7 @@ private:
 };
 
 // constructors and destructor
-DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
+SingleLeptonTrees::SingleLeptonTrees(const edm::ParameterSet& iConfig):
   fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") ),
   fctVtxWeightBlockA_    (iConfig.getParameter<edm::ParameterSet>("vertexWeightsBlockA") ),
   fctVtxWeightBlockB_    (iConfig.getParameter<edm::ParameterSet>("vertexWeightsBlockB") ),
@@ -205,8 +202,6 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
   genParticleTag_ = iConfig.getParameter<edm::InputTag>("genParticles");
   rhoTag_ = iConfig.getParameter<edm::InputTag>("rho");
   pdfs_ = iConfig.getParameter<std::vector<edm::InputTag> > ("pdfWeightTags");
-  pdfInfo_ = iConfig.getParameter<edm::InputTag>("pdfInfo");
-  metUncertaintyInputs_ = iConfig.getParameter<std::vector<edm::InputTag> > ("metUncertaintyInputs");
 
   tauId_ = iConfig.getParameter<std::string >("tauId");
   fakeRates_.SetSource(iConfig,"fakeRates");// TODO use these and add mcInfo flag to choose right rates...
@@ -222,14 +217,12 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
 
   // init trees
   edm::Service<TFileService> file;
-  trees_["EE"] = file->make<TTree>("EEDileptonTree", "EE DileponTree");
-  trees_["EMu"] = file->make<TTree>("EMuDileptonTree", "EMu DileponTree");
-  trees_["MuMu"] = file->make<TTree>("MuMuDileptonTree", "MuMu DileponTree");
-  if(useTaus_){
-    trees_["ETau"] = file->make<TTree>("ETauDileptonTree", "ETau DileponTree");
-    trees_["MuTau"] = file->make<TTree>("MuTauDileptonTree", "MuTau DileponTree");
-    trees_["TauTau"] = file->make<TTree>("TauTauDileptonTree", "TauTau DileponTree");
-  }
+  trees_["SingleLepton"] = file->make<TTree>("SingleLeptonTree", "SingleLeptonTree");
+  //~ if(useTaus_){
+    //~ trees_["ETau"] = file->make<TTree>("ETauDileptonTree", "ETau DileponTree");
+    //~ trees_["MuTau"] = file->make<TTree>("MuTauDileptonTree", "MuTau DileponTree");
+    //~ trees_["TauTau"] = file->make<TTree>("TauTauDileptonTree", "TauTau DileponTree");
+  //~ }
   initFloatBranch( "weight" );
   initFloatBranch( "weightBlockA" );
   initFloatBranch( "weightBlockB" );
@@ -239,63 +232,25 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
   initFloatBranch( "weightDown" );
   initFloatBranch( "weightBlockADown" );
   initFloatBranch( "weightBlockBDown" );
-  initFloatBranch( "topWeightBen" );
-  initFloatBranch( "topWeightTOP" );
-  initFloatBranch( "genPtTop1" );
-  initFloatBranch( "genPtTop2" );
-  initFloatBranch( "genPtDiSbottom" );
-  initFloatBranch( "sbottomWeight" );
-  initFloatBranch( "chargeProduct" );
-  initFloatBranch( "charge1" );
-  initFloatBranch( "charge2" );
-  initFloatBranch( "inv" );
-  initTLorentzVectorBranch( "p4" );
   initTLorentzVectorBranch( "vMet" );
   initTLorentzVectorBranch( "vGenMet" );
   initTLorentzVectorBranch( "vGenMetNeutrinos" );
-  initTLorentzVectorBranch( "p4Gen" );
-  initTLorentzVectorBranch( "lepton1" );
-  initTLorentzVectorBranch( "lepton2" );
-  initTLorentzVectorBranch( "genLepton1" );
-  initTLorentzVectorBranch( "genLepton2" );
+  initTLorentzVectorBranch( "vHt" );
+  initTLorentzVectorBranch( "electron" );
+  initTLorentzVectorBranch( "muon" );
   initTLorentzVectorBranch( "jet1" );
   initTLorentzVectorBranch( "jet2" );
   initTLorentzVectorBranch( "jet3" );
-  initTLorentzVectorBranch( "jet4" );
-  initTLorentzVectorBranch( "bJet1" );
-  initTLorentzVectorBranch( "bJet2" );
-  initTLorentzVectorBranch( "bJet3" );
-  initTLorentzVectorBranch( "bJet4" );
   initTLorentzVectorBranch( "vMetType1" );
   initFloatBranch( "rho" );
-  initFloatBranch( "pt1" );
-  initFloatBranch( "pt2" );
-  initFloatBranch( "phiAtECALEntrance1");
-  initFloatBranch( "phiAtECALEntrance2");
-  initFloatBranch( "eta1" );
-  initFloatBranch( "eta2" );
-  initFloatBranch( "id1" );
-  initFloatBranch( "id2" );
-  initFloatBranch( "dB1" );
-  initFloatBranch( "dB2" );
-  initFloatBranch( "mt1" );
-  initFloatBranch( "mt2" );
-  initFloatBranch( "mbb" );
-  initFloatBranch( "eff1" );
-  initFloatBranch( "eff2" );
-  initFloatBranch( "fakeWeight1" );
-  initFloatBranch( "fakeWeight2" );
-  initFloatBranch( "deltaPhiJetMET" );
-  initFloatBranch( "deltaPhiSecondJetMET" );
-  initFloatBranch( "deltaPhi" );
-  initFloatBranch( "deltaPhiLeptonMET1");
-  initFloatBranch( "deltaPhiLeptonMET2");
-  initFloatBranch( "deltaR" );
-  initFloatBranch( "jzb" );
+  initFloatBranch( "deltaPhiJet1HT" );
+  initFloatBranch( "deltaPhiJet2HT" );
+  initFloatBranch( "deltaPhiJet3HT" );
+  initFloatBranch( "absvHt" );
+  initFloatBranch( "mt" );
   initFloatBranch( "ht" );
   initFloatBranch( "htJESUp" );
   initFloatBranch( "htJESDown" );
-  initFloatBranch( "mht" );
   initFloatBranch( "met" );
   initFloatBranch( "metJESUp" );
   initFloatBranch( "metJESDown" );
@@ -310,8 +265,6 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
   initFloatBranch( "tcMet" );
   initFloatBranch( "caloMet" );
   initFloatBranch( "genMetTrue" );
-  initFloatBranch( "pZeta" );
-  initFloatBranch( "pZetaVis" );
   initIntBranch( "nJets" );
   initIntBranch( "nBJets" );
   initIntBranch( "nShiftedJetsJESUp" );
@@ -319,39 +272,14 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
   initIntBranch( "nVertices" );
   initIntBranch( "nLightLeptons" );
   initIntBranch( "nGenSUSYLeptons" );
-  initFloatBranch( "jet1pt" );
-  initFloatBranch( "jet2pt" );
-  initFloatBranch( "jet3pt" );
-  initFloatBranch( "jet4pt" );
-  initFloatBranch( "bjet1pt" );
-  initFloatBranch( "bjet2pt" );
-  initFloatBranch( "bjet3pt" );
-  initFloatBranch( "bjet4pt" );
-  initFloatBranch( "sqrts" );
-  initFloatBranch( "pdf_x1" );
-  initFloatBranch( "pdf_x2" );
-  initFloatBranch( "pdf_scale" );
-  initFloatBranch( "pdf_id1" );
-  initFloatBranch( "pdf_id2" );
-  initFloatBranch( "pdf_weight" );
+  initIntBranch( "nGenSUSYLightLeptons" );
+  initIntBranch( "nGenSUSYTaus" );
+  initIntBranch( "nGenSUSYNeutrinos" );
+  initIntBranch( "nElectrons" );
+  initIntBranch( "nMuons" );
   initIntBranch( "runNr" );
   initIntBranch( "lumiSec" );
   initIntBranch( "eventNr" );
-  initIntBranch( "pdgId1" );
-  initIntBranch( "pdgId2" );
-  initIntBranch( "matched" );
-  initIntBranch( "motherPdgId1" );
-  initIntBranch( "motherPdgId2" );
-  initIntBranch( "pdgIdETH1" );
-  initIntBranch( "pdgIdETH2" );
-  initIntBranch( "motherPdgIdETH1" );
-  initIntBranch( "motherPdgIdETH2" ); 
-  initIntBranch( "grandMotherPdgIdETH1" );
-  initIntBranch( "grandMotherPdgIdETH2" );   
-  if(useJets2_) {
-    initFloatBranch( "ht2" );
-    initIntBranch( "nJets2" );    
-  }
   for ( std::vector<edm::ParameterSet>::iterator susyVar_i = susyVars_.begin(); susyVar_i != susyVars_.end(); ++susyVar_i ) {
     edm::InputTag var = susyVar_i->getParameter<edm::InputTag>( "var" );
     std::string type = susyVar_i->getParameter<std::string>( "type" );
@@ -369,16 +297,10 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
      initFloatBranch( pdfIdentifier+up );
      initFloatBranch( pdfIdentifier+down );
   }
-  for ( std::vector<edm::InputTag>::iterator uncertaintyInput_i = metUncertaintyInputs_.begin(); uncertaintyInput_i != metUncertaintyInputs_.end(); ++uncertaintyInput_i ) {
-     std::string metName = (*uncertaintyInput_i).label();
-     initFloatBranch( metName );
-     
-
-  }
 }
 
 void 
-DiLeptonTrees::initTLorentzVectorBranch(const std::string &name)
+SingleLeptonTrees::initTLorentzVectorBranch(const std::string &name)
 {
   for( std::map<std::string, TTree*>::const_iterator it = trees_.begin();
        it != trees_.end(); ++it){
@@ -389,7 +311,7 @@ DiLeptonTrees::initTLorentzVectorBranch(const std::string &name)
 }
 
 void 
-DiLeptonTrees::initFloatBranch(const std::string &name)
+SingleLeptonTrees::initFloatBranch(const std::string &name)
 {
   for( std::map<std::string, TTree*>::const_iterator it = trees_.begin();
        it != trees_.end(); ++it){
@@ -400,7 +322,7 @@ DiLeptonTrees::initFloatBranch(const std::string &name)
 }
 
 void 
-DiLeptonTrees::initIntBranch(const std::string &name)
+SingleLeptonTrees::initIntBranch(const std::string &name)
 {
   for( std::map<std::string, TTree*>::const_iterator it = trees_.begin();
        it != trees_.end(); ++it){
@@ -410,7 +332,7 @@ DiLeptonTrees::initIntBranch(const std::string &name)
   }
 }
 
-DiLeptonTrees::~DiLeptonTrees()
+SingleLeptonTrees::~SingleLeptonTrees()
 { 
   for( std::map<std::string, std::map< std::string, float*> >::const_iterator it = floatBranches_.begin();
        it != floatBranches_.end(); ++it){
@@ -435,7 +357,7 @@ DiLeptonTrees::~DiLeptonTrees()
 // member functions
 // ------------ method called to for each event  ------------
 void
-DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+SingleLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   edm::Handle< std::vector< pat::Electron > > electrons;
   iEvent.getByLabel(eTag_, electrons);
@@ -501,38 +423,16 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   intEventProperties["nBJets"] = bJets->size();
   intEventProperties["nLightLeptons"] = electrons->size() + muons->size();
+  intEventProperties["nElectrons"] = electrons->size();
+  intEventProperties["nMuons"] = muons->size();
   intEventProperties["runNr"] = iEvent.id().run();
   intEventProperties["lumiSec"] = iEvent.id().luminosityBlock();
   intEventProperties["eventNr"] = iEvent.id().event();
-
-  floatEventProperties["pdf_x1"] = -10.;
-  floatEventProperties["pdf_x2"] = -10.;
-  floatEventProperties["pdf_scale"] = -1.;
-  floatEventProperties["pdf_id1"] = -1.;
-  floatEventProperties["pdf_id2"] = -1.;
-  floatEventProperties["pdf_weight"] = -1.;
-
-  edm::Handle<GenEventInfoProduct> pdfstuff;
-  if (iEvent.getByLabel(pdfInfo_, pdfstuff)) {
-
-  	floatEventProperties["pdf_x1"] = pdfstuff->pdf()->x.first;
-  	floatEventProperties["pdf_x2"] = pdfstuff->pdf()->x.second;
-  	floatEventProperties["pdf_scale"] = pdfstuff->pdf()->scalePDF;
-  	floatEventProperties["pdf_id1"] = pdfstuff->pdf()->id.first;
-  	floatEventProperties["pdf_id2"] = pdfstuff->pdf()->id.second;
-  	floatEventProperties["pdf_weight"] = -1.;
-
-
-      }
-
 
 
 
   pat::MET met = mets->front();
   TLorentzVector metVector(mets->front().px(), mets->front().py(), mets->front().pz(), mets->front().energy());
-  //TLorentzVector uncorrectedMet;
-  //  uncorrectedMet.SetPtEtaPhiE(mets->front().uncorrectedPt(), 0,	
-  //  mets->front().uncorrectedPhi(), mets->front().uncorrectedPt());
   floatEventProperties["met"] = metVector.Pt();
   floatEventProperties["metChargedEMEtFraction"]= met.ChargedEMEtFraction();
   floatEventProperties["metChargedHadEtFraction"]= met.ChargedHadEtFraction();
@@ -541,9 +441,8 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   floatEventProperties["metNeutralHadEtFraction"]= met.NeutralHadEtFraction();
   floatEventProperties["metType6EtFraction"]= met.Type6EtFraction();
   floatEventProperties["metType7EtFraction"]= met.Type7EtFraction();
-
-
-
+  
+  tLorentzVectorEventProperties["vMet"] = metVector;
 
 
 
@@ -563,11 +462,6 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   floatEventProperties["caloMet"] = calometVector.Pt();
 
 
-  for ( std::vector<edm::InputTag>::iterator uncertaintyInput_i = metUncertaintyInputs_.begin(); uncertaintyInput_i != metUncertaintyInputs_.end(); ++uncertaintyInput_i ) {
-	floatEventProperties[(*uncertaintyInput_i).label()] = -1.;
-
-  }
-
   if (!genMetTrues.isValid()){
 	floatEventProperties["genMetTrue"] = -1.;
 	tLorentzVectorEventProperties["vGenMet"] = TLorentzVector(0.,0.,0.,0.);
@@ -578,126 +472,48 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   	TLorentzVector genMetTrueVector(genMetTrues->front().px(), genMetTrues->front().py(), genMetTrues->front().pz(), genMetTrues->front().energy());
 	floatEventProperties["genMetTrue"] = genMetTrueVector.Pt();
 	tLorentzVectorEventProperties["vGenMet"] = genMetTrueVector;
-// 
-	for ( std::vector<edm::InputTag>::iterator uncertaintyInput_i = metUncertaintyInputs_.begin(); uncertaintyInput_i != metUncertaintyInputs_.end(); ++uncertaintyInput_i ) {
-	
-	edm::Handle< std::vector< pat::MET > > shiftedMets;
-	iEvent.getByLabel((*uncertaintyInput_i), shiftedMets);
-// 	pat::MET shiftedMet = shiftedMets->front();
-	TLorentzVector shiftedMetVector(shiftedMets->front().px(), shiftedMets->front().py(), shiftedMets->front().pz(), shiftedMets->front().energy());
-	//TLorentzVector uncorrectedMet;
-	//  uncorrectedMet.SetPtEtaPhiE(mets->front().uncorrectedPt(), 0,	
-	//  mets->front().uncorrectedPhi(), mets->front().uncorrectedPt());
-	floatEventProperties[(*uncertaintyInput_i).label()] = shiftedMetVector.Pt();
-
-	
-	}
 
   }
 
-  TLorentzVector genNeutrino1(0.,0.,0.,0.);
-  TLorentzVector genNeutrino2(0.,0.,0.,0.);
-  TLorentzVector genSbottom1(0.,0.,0.,0.);
-  TLorentzVector genSbottom2(0.,0.,0.,0.);
-  TLorentzVector genDiSbottom(0.,0.,0.,0.);
+  floatEventProperties["absvHt"] = 0.0;
+  floatEventProperties["ht"] = 0.0;
+  floatEventProperties["htJESUp"] = 0.0;
+  floatEventProperties["htJESDown"] = 0.0;
+
+  edm::FileInPath fip("SuSyAachen/DiLeptonHistograms/data/GR_P_V40_AN1::All_Uncertainty_AK5PF.txt");
+  JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(fip.fullPath());
+  
   int nGenLeptons = 0;
-  bool foundOne = false;
-  float topWeightBen = 1;
-  float topWeightTOP = 1;
-  float sbottomWeight = 1;
-  floatEventProperties["genPtTop1"] = -1;
-  floatEventProperties["genPtTop2"] = -1;
-  floatEventProperties["genPtDiSbottom"] = -1;
+  int nGenLightLeptons = 0;
+  int nGenTaus = 0;
+  int nGenNeutrinos = 0;
   if (genParticles.isValid()){
 	
 	for (std::vector<reco::GenParticle>::const_iterator itGenParticle = genParticles->begin(); itGenParticle != genParticles->end(); itGenParticle++) {
-		if ((abs((*itGenParticle).pdgId())==12 || abs((*itGenParticle).pdgId())==14) && abs(getMotherPdgId(*itGenParticle))==24 ){
-			
-			if (!foundOne){
-				genNeutrino1.SetPxPyPzE((*itGenParticle).px(), (*itGenParticle).py(), (*itGenParticle).pz(), (*itGenParticle).energy());
-				foundOne=true;
-			}
-			else{
-				genNeutrino2.SetPxPyPzE((*itGenParticle).px(), (*itGenParticle).py(), (*itGenParticle).pz(), (*itGenParticle).energy());
-			}				
-			
-			
+		if ((abs((*itGenParticle).pdgId())==12 || abs((*itGenParticle).pdgId())==14 || abs((*itGenParticle).pdgId())==16) && ((*itGenParticle).status() == 1 || (*itGenParticle).status() == 2) && abs(getMotherPdgId(*itGenParticle))==1000023 ){
+			nGenNeutrinos++;
 
 
 		}
-		if ((abs((*itGenParticle).pdgId())==11 || abs((*itGenParticle).pdgId())==13) && (*itGenParticle).status() == 3 && abs(getMotherPdgId(*itGenParticle))==1000023 ){
+		if ((abs((*itGenParticle).pdgId())==11 || abs((*itGenParticle).pdgId())==13 || abs((*itGenParticle).pdgId())==15) && ((*itGenParticle).status() == 1 || (*itGenParticle).status() == 2) && abs(getMotherPdgId(*itGenParticle))==1000023 ){
 			nGenLeptons++;
 
 
 		}
-		if (abs((*itGenParticle).pdgId())== 6){
-			topWeightBen*=topPtWeightBen((*itGenParticle).pt());
-			topWeightTOP*=topPtWeightTOP((*itGenParticle).pt());
-			if ((*itGenParticle).pdgId()== 6){
-				floatEventProperties["genPtTop1"] = (*itGenParticle).pt();
-			}
-			else if ((*itGenParticle).pdgId()== -6){
-				floatEventProperties["genPtTop2"] = (*itGenParticle).pt();
-			}
+		if ((abs((*itGenParticle).pdgId())==11 || abs((*itGenParticle).pdgId())==13) && ((*itGenParticle).status() == 1 || (*itGenParticle).status() == 2) && abs(getMotherPdgId(*itGenParticle))==1000023 ){
+			nGenLightLeptons++;
 
 		}
-
-		if (abs((*itGenParticle).pdgId())== 1000005){
-			if ((*itGenParticle).pdgId()== 1000005){
-				genSbottom1.SetPxPyPzE((*itGenParticle).px(), (*itGenParticle).py(), (*itGenParticle).pz(), (*itGenParticle).energy());
-			}
-			else if ((*itGenParticle).pdgId()== -1000005){
-				genSbottom2.SetPxPyPzE((*itGenParticle).px(), (*itGenParticle).py(), (*itGenParticle).pz(), (*itGenParticle).energy());
-			}
-
+		if ( abs((*itGenParticle).pdgId())==15 && ((*itGenParticle).status() == 1 || (*itGenParticle).status() == 2) && abs(getMotherPdgId(*itGenParticle))==1000023 ){
+			nGenTaus++;
 		}
-
-
 	}
-
-	
-	
-
   }
+
   intEventProperties["nGenSUSYLeptons"] = nGenLeptons;
-  tLorentzVectorEventProperties["vGenMetNeutrinos"] = genNeutrino1+genNeutrino2;
-  floatEventProperties["topWeightBen"] = sqrt(topWeightBen);
-  floatEventProperties["topWeightTOP"] = sqrt(topWeightTOP);
-  genDiSbottom = genSbottom1 + genSbottom2;
-  if (genDiSbottom.Pt() > 1){
-  	floatEventProperties["genPtDiSbottom"] = genDiSbottom.Pt();
-  }
-
-  if (genDiSbottom.Pt() < 120) {
-	sbottomWeight = 1.;
-  }
-  else if (genDiSbottom.Pt() > 120) {
-	if (genDiSbottom.Pt() < 150){
-		sbottomWeight = 0.95;
-	}
-	else if (genDiSbottom.Pt() > 150){
-		if (genDiSbottom.Pt() < 250){
-			sbottomWeight = 0.9;
-		}
-		else {
-			sbottomWeight = 0.8;
-		}
-	}
-  }
-  floatEventProperties["sbottomWeight"] = sbottomWeight;
-
-  TLorentzVector MHT;
-  TLorentzVector tempMHT;
-  TLorentzVector leadingJetMomentum;
-  TLorentzVector subLeadingJetMomentum;
-  floatEventProperties["ht"] = 0.0;
-  floatEventProperties["htJESUp"] = 0.0;
-  floatEventProperties["htJESDown"] = 0.0;
-  floatEventProperties["mht"] = 0.0;
-
-  edm::FileInPath fip("SuSyAachen/DiLeptonHistograms/data/START53_V19PR::All_Uncertainty_AK5PF.txt");
-  JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(fip.fullPath());
-
+  intEventProperties["nGenSUSYLightLeptons"] = nGenLightLeptons;
+  intEventProperties["nGenSUSYTaus"] = nGenTaus;
+  intEventProperties["nGenSUSYNeutrinos"] = nGenNeutrinos;
 
 
   TLorentzVector changeUp(0,0,0,0);
@@ -716,13 +532,10 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     jecUnc->setJetPt(itJet->pt()); // IMPORTANT: the uncertainty is a function of the CORRECTED pt
     double correction = jecUnc->getUncertainty(true);
     //double correction = itJet->relCorrUncert(dir_); 
-//     cout << correction << endl;
+    
     //use pat::Jet::relCorrUncert
-    if (correction==0.0 || (fabs(itJet->eta()) > 2.4 && itJet->pt() < 15.)){
+    if (correction==0.0){
 	correction = 0.045; 
-    }
-    if (correction > 1.0){
-	cout << "eta: " << itJet->eta() << " pt: " << itJet->pt() <<  endl;
     }
     //    std::cout << "jet pt = "<<itJet->p4()<<", uncertainty = "<<correction<<std::endl;
     ajetUp.setP4( itJet->p4() * (1.0 + correction) );
@@ -737,49 +550,49 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     shiftedJetsJESUp->push_back(ajetUp);
     shiftedJetsJESDown->push_back(ajetDown);
   }
-  int nJets=0;
+  
+  int nJets=0;    
+  TLorentzVector htVector(0.,0.,0.,0.);
+  
+  float px = 0.;
+  float py = 0.;
+  float pz = 0.;
+  float energy = 0.;
+  
   for(std::vector<pat::Jet>::const_iterator it = jets_->begin(); it != jets_->end() ; ++it){
-	if ((*it).pt() >=40.0){
+	if (((*it).pt() >=30.0) && (abs((*it).eta()) <2.5)){
+		px += -(*it).px();
+		py += -(*it).py();
+		pz += -(*it).pz();
+		energy += (*it).energy();
 		nJets++;
-		tempMHT.SetPxPyPzE((*it).px(), (*it).py(), (*it).pz(), (*it).energy());	
-		MHT = MHT + tempMHT;
-		floatEventProperties["ht"] += (*it).pt();
-		if((*it).pt() > leadingJetMomentum.Pt()){
-		leadingJetMomentum.SetPxPyPzE((*it).px(), (*it).py(), (*it).pz(), (*it).energy());
-		}
-		if((*it).pt() < leadingJetMomentum.Pt() && ((*it).pt() > subLeadingJetMomentum.Pt())){
-		subLeadingJetMomentum.SetPxPyPzE((*it).px(), (*it).py(), (*it).pz(), (*it).energy());
-		}
+		floatEventProperties["ht"] += (*it).pt();	
 	}
   }
   intEventProperties["nJets"] = nJets;
+  htVector.SetPxPyPzE(px,py,pz,energy);
+  tLorentzVectorEventProperties["vHt"] = htVector;
+  floatEventProperties["absvHt"] = htVector.Pt();
 
 
   TLorentzVector jet1Vector(0.,0.,0.,0.);
   TLorentzVector jet2Vector(0.,0.,0.,0.);
   TLorentzVector jet3Vector(0.,0.,0.,0.);
-  TLorentzVector jet4Vector(0.,0.,0.,0.); 
-
-
+ 
   if (nJets > 0)
     jet1Vector.SetPxPyPzE(jets_->at(0).px(),jets_->at(0).py(),jets_->at(0).pz(),jets_->at(0).energy());
   if (nJets > 1)
     jet2Vector.SetPxPyPzE(jets_->at(1).px(),jets_->at(1).py(),jets_->at(1).pz(),jets_->at(1).energy());
   if (nJets > 2)
     jet3Vector.SetPxPyPzE(jets_->at(2).px(),jets_->at(2).py(),jets_->at(2).pz(),jets_->at(2).energy());
-  if (nJets > 3)
-    jet4Vector.SetPxPyPzE(jets_->at(3).px(),jets_->at(3).py(),jets_->at(3).pz(),jets_->at(3).energy());
+      
   tLorentzVectorEventProperties["jet1"] = jet1Vector;
   tLorentzVectorEventProperties["jet2"] = jet2Vector;
   tLorentzVectorEventProperties["jet3"] = jet3Vector;
-  tLorentzVectorEventProperties["jet4"] = jet4Vector;
-
-
-
-
-
-
-
+  
+  floatEventProperties["deltaPhiJet1HT"] = jet1Vector.DeltaPhi(htVector);
+  floatEventProperties["deltaPhiJet2HT"] = jet2Vector.DeltaPhi(htVector);
+  floatEventProperties["deltaPhiJet3HT"] = jet3Vector.DeltaPhi(htVector);
 
   int nJetsJESUp=0;
   for(std::vector<pat::Jet>::const_iterator it = shiftedJetsJESUp->begin(); it != shiftedJetsJESUp->end() ; ++it){
@@ -801,93 +614,8 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   TLorentzVector metVectorJESDown = metVector + changeDown;
   floatEventProperties["metJESUp"] = metVectorJESUp.Pt();
 
-
   floatEventProperties["metJESDown"] = metVectorJESDown.Pt();
-
-//   floatEventProperties["metJESUp"] = 0.;
-// 
-// 
-//   floatEventProperties["metJESDown"] = 0.;
-
-
-//   floatEventProperties["mht"] = MHT.Pt();
-  floatEventProperties["deltaPhiJetMET"] = leadingJetMomentum.DeltaPhi(metVector);
-  floatEventProperties["deltaPhiSecondJetMET"] = 999.;
-  floatEventProperties["deltaPhiSecondJetMET"] = subLeadingJetMomentum.DeltaPhi(metVector);
-
-  // Jet pt
-  floatEventProperties["jet1pt"] = -1.0;
-  floatEventProperties["jet2pt"] = -1.0;
-  floatEventProperties["jet3pt"] = -1.0;
-  floatEventProperties["jet4pt"] = -1.0;
-  if (jets_->size() > 0)
-    floatEventProperties["jet1pt"] = jets_->at(0).pt();
-  if (jets_->size() > 1)
-    floatEventProperties["jet2pt"] = jets_->at(1).pt();
-  if (jets_->size() > 2)
-    floatEventProperties["jet3pt"] = jets_->at(2).pt();
-  if (jets_->size() > 3)
-    floatEventProperties["jet4pt"] = jets_->at(3).pt();
-
-  // bjet pt
-
-  TLorentzVector bJet1Vector(0.,0.,0.,0.);
-  TLorentzVector bJet2Vector(0.,0.,0.,0.);
-  TLorentzVector bJet3Vector(0.,0.,0.,0.);
-  TLorentzVector bJet4Vector(0.,0.,0.,0.); 
-
-
-  floatEventProperties["bjet1pt"] = -1.0;
-  floatEventProperties["bjet2pt"] = -1.0;
-  floatEventProperties["bjet3pt"] = -1.0;
-  floatEventProperties["bjet4pt"] = -1.0;
-  if (bJets->size() > 0){
-    floatEventProperties["bjet1pt"] = bJets->at(0).pt();
-    bJet1Vector.SetPxPyPzE(bJets->at(0).px(),bJets->at(0).py(),bJets->at(0).pz(),bJets->at(0).energy());
-  }
-  if (bJets->size() > 1){
-    floatEventProperties["bjet2pt"] = bJets->at(1).pt();
-    bJet2Vector.SetPxPyPzE(bJets->at(1).px(),bJets->at(1).py(),bJets->at(1).pz(),bJets->at(1).energy());
-  }
-  if (bJets->size() > 2){
-    floatEventProperties["bjet3pt"] = bJets->at(2).pt();
-    bJet3Vector.SetPxPyPzE(bJets->at(2).px(),bJets->at(2).py(),bJets->at(2).pz(),bJets->at(2).energy());
-  }
-  if (bJets->size() > 3){
-    floatEventProperties["bjet4pt"] = bJets->at(3).pt();
-    bJet4Vector.SetPxPyPzE(bJets->at(3).px(),bJets->at(3).py(),bJets->at(3).pz(),bJets->at(3).energy());
-  }
-
-  tLorentzVectorEventProperties["bJet1"] = bJet1Vector;
-  tLorentzVectorEventProperties["bJet2"] = bJet2Vector;
-  tLorentzVectorEventProperties["bJet3"] = bJet3Vector;
-  tLorentzVectorEventProperties["bJet4"] = bJet4Vector;
-
-  TLorentzVector leadingbjet;
-  TLorentzVector subleadingbjet;
-  TLorentzVector bjetsum;
-  floatEventProperties["mbb"] = -1.0;
-  if (bJets->size() > 1) {
-
-	for(std::vector<pat::Jet>::const_iterator it = bJets->begin(); it != bJets->end() ; ++it){
-
-		if((*it).pt() > leadingbjet.Pt()){
-		leadingbjet.SetPxPyPzE((*it).px(), (*it).py(), (*it).pz(), (*it).energy());
-		}
-		else if ((*it).pt() < leadingbjet.Pt() && (*it).pt() > subleadingbjet.Pt() ){
-		subleadingbjet.SetPxPyPzE((*it).px(), (*it).py(), (*it).pz(), (*it).energy());
-		}
-
-	}
-
-	bjetsum = leadingbjet+subleadingbjet;
-	floatEventProperties["mbb"] = bjetsum.M();		
-	
-	
-	
-
-   }
-    	
+     
 
   floatEventProperties["weight"] = fctVtxWeight_( iEvent );
   floatEventProperties["weightBlockA"] = fctVtxWeightBlockA_( iEvent );
@@ -899,25 +627,48 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   floatEventProperties["weightBlockADown"] = fctVtxWeightBlockADown_( iEvent );
   floatEventProperties["weightBlockBDown"] = fctVtxWeightBlockBDown_( iEvent );
   
-  if(useJets2_) {
-    edm::Handle< std::vector< pat::Jet > > jets2;
-    iEvent.getByLabel(jet2Tag_, jets2);
-    intEventProperties["nJets2"] = jets2->size();
-    floatEventProperties["ht2"] = 0.0;
-    for(std::vector<pat::Jet>::const_iterator it = jets2->begin(); it != jets2->end() ; ++it){
-      floatEventProperties["ht2"] += (*it).pt();
-    }
+  float mt = 0;
+  TLorentzVector electronVector(0.,0.,0.,0.);
+  TLorentzVector muonVector(0.,0.,0.,0.);
+  
+  if (intEventProperties["nElectrons"] == 1){
+	  if (intEventProperties["nMuons"] == 0){
+		  electronVector.SetPxPyPzE(electrons->at(0).px(),electrons->at(0).py(),electrons->at(0).pz(),electrons->at(0).energy());
+		  mt = transverseMass(electronVector, metVector);
+	  }
+  }
+  if (intEventProperties["nMuons"] == 1){
+	  if (intEventProperties["nElectrons"] == 0){
+		  muonVector.SetPxPyPzE(muons->at(0).px(),muons->at(0).py(),muons->at(0).pz(),muons->at(0).energy());
+		  mt = transverseMass(muonVector, metVector);
+	  }
+  }
+  floatEventProperties["mt"] = mt;
+  tLorentzVectorEventProperties["electron"] = electronVector;
+  tLorentzVectorEventProperties["muon"] = muonVector;
+  
+  
+  const std::string treeName = "SingleLepton";
+  
+  for(std::map<std::string, int>::const_iterator it = intEventProperties.begin(); it != intEventProperties.end(); ++it){
+	//~ std::cout << (*it).first<< endl;
+    assert(intBranches_[treeName].find((*it).first) != intBranches_[treeName].end());
+    *(intBranches_[treeName][(*it).first]) = (*it).second;
+  }
+  for(std::map<std::string, float>::const_iterator it = floatEventProperties.begin(); it != floatEventProperties.end(); ++it){
+	//~ std::cout << (*it).first<< endl;
+    assert(floatBranches_[treeName].find((*it).first) != floatBranches_[treeName].end());
+    *(floatBranches_[treeName][(*it).first]) = (*it).second;
   }
 
-  makeCombinations< pat::Electron >("EE", *electrons,*pfCands,*genParticles, iEvent, met,MHT, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
-  makeCombinations< pat::Electron, pat::Muon >("EMu", *electrons, *muons,*pfCands,*genParticles, iEvent, met,MHT, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
-  makeCombinations< pat::Muon >("MuMu", *muons,*pfCands,*genParticles, iEvent, met,MHT, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
-  if(useTaus_){
-    makeCombinations< pat::Electron, pat::Tau >("ETau", *electrons, *taus,*pfCands,*genParticles, iEvent, met,MHT, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
-    makeCombinations< pat::Muon, pat::Tau>("MuTau", *muons, *taus,*pfCands,*genParticles, iEvent, met,MHT, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
-    makeCombinations< pat::Tau >("TauTau", *taus,*pfCands,*genParticles, iEvent, met,MHT, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
+  for(std::map<std::string, TLorentzVector>::const_iterator it = tLorentzVectorEventProperties.begin(); it != tLorentzVectorEventProperties.end(); ++it){
+	//~ std::cout << (*it).first<< endl;
+    assert(tLorentzVectorBranches_[treeName].find((*it).first) != tLorentzVectorBranches_[treeName].end());
+    *(tLorentzVectorBranches_[treeName][(*it).first]) = (*it).second;
   }
-  //  if( nMu != 2) std::cout << "-------! "<<nMu<<std::endl;
+  
+  trees_[treeName]->Fill();
+	  
 
   delete jecUnc;
   delete shiftedJetsJESUp;
@@ -927,7 +678,7 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 }
 
 template <class aT, class bT> void 
-DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT> &b,const std::vector<reco::PFCandidate>&pfCands, const std::vector<reco::GenParticle>&genParticles, const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties)
+SingleLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT> &b,const std::vector<reco::PFCandidate>&pfCands, const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties)
 {
   TLorentzVector met(patMet.px(), patMet.py(), patMet.pz(), patMet.energy());
   TLorentzVector uncorrectedMet;
@@ -968,13 +719,13 @@ DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector
     for( typename std::vector<bT>::const_iterator itB = b.begin(); itB != b.end(); ++itB){
 //      std::cout << treeName <<": "<< fakeRates_(*itA) << std::endl;
 //      weight *= fakeRates_();
-      fillTree<aT,bT>( treeName, *itA, *itB,pfCands,genParticles, patMet,MHT); 
+      fillTree<aT,bT>( treeName, *itA, *itB,pfCands, patMet,MHT); 
     }
   }
 }
 
 template <class aT> void 
-DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a,const std::vector<reco::PFCandidate>&pfCands, const std::vector<reco::GenParticle>&genParticles, const edm::Event &ev, const pat::MET &patMet , const TLorentzVector &MHT, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties)
+SingleLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a,const std::vector<reco::PFCandidate>&pfCands, const edm::Event &ev, const pat::MET &patMet , const TLorentzVector &MHT, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties)
 {
   TLorentzVector met(patMet.px(), patMet.py(), patMet.pz(), patMet.energy());
   TLorentzVector uncorrectedMet;
@@ -1014,13 +765,35 @@ DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector
     for( typename std::vector<aT>::const_iterator itB = a.begin(); itB != itA; ++itB){
       //std::cout << treeName<<"("<<(*itA).pt()<<", "<<(*itA).eta() <<"): "<< fakeRates_(*itA) << std::endl;
 //      weight *= fakeRates_();
-      fillTree<aT, aT>( treeName, *itA, *itB,pfCands, genParticles, patMet,MHT); 
+      fillTree<aT, aT>( treeName, *itA, *itB,pfCands, patMet,MHT); 
     }
   }
 }
+  
+//~ template <class aT> void 
+//~ SingleLeptonTrees::fillLepton( const std::string &treeName, const aT& a, const std::string &leptonFlavorNumber,const  std::map<std::string, float> &floatEventProperties)
+//~ {
+  //~ if(debug) std::cout << treeName << "- pts:"<< a.pt();
+
+  //~ std::cout << treeName << " charge"+leptonFlavorNumber+": " << a.charge() << endl;
+  //~ std::cout << treeName << " id"+leptonFlavorNumber+": " << getId(a) << endl;
+  //~ std::cout << treeName << " dB"+leptonFlavorNumber+": " << getDeltaB(a) << endl;
+
+  //~ *(floatBranches_[treeName]["charge"+leptonFlavorNumber]) = a.charge();
+  //~ *(floatBranches_[treeName]["id"+leptonFlavorNumber]) = getId(a);
+  //~ *(floatBranches_[treeName]["dB"+leptonFlavorNumber]) = getDeltaB(a);
+//~ 
+//~ 
+  //~ TLorentzVector genLepton;
+  //~ if(a.genLepton() != NULL){
+      //~ genLepton.SetPxPyPzE(a.genLepton()->px(),a.genLepton()->py(),a.genLepton()->pz(),a.genLepton()->energy());
+  //~ }
+//~ 
+  //~ *(tLorentzVectorBranches_[treeName]["gen"+leptonFlavorNumber]) = genLepton;
+//~ }
 
 template <class aT, class bT> void 
-DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b,const std::vector<reco::PFCandidate>&pfCands, const std::vector<reco::GenParticle>&genParticles, const pat::MET &patMet, const TLorentzVector &MHT)
+SingleLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b,const std::vector<reco::PFCandidate>&pfCands, const pat::MET &patMet, const TLorentzVector &MHT)
 {
   if(debug) std::cout << treeName << "- pts:"<< a.pt() << " " << b.pt();
   TLorentzVector aVec = getMomentum(a);//( a.px(), a.py(), a.pz(), a.energy() );
@@ -1041,7 +814,6 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b,c
   std::pair<double, double> pZeta = calcPZeta(a.p(), b.p(), met);
   *(floatBranches_[treeName]["chargeProduct"]) = a.charge()*b.charge();
   *(tLorentzVectorBranches_[treeName]["p4"]) = comb;
-  *(floatBranches_[treeName]["inv"]) = comb.M();
   *(tLorentzVectorBranches_[treeName]["lepton1"]) = aVec;
   *(tLorentzVectorBranches_[treeName]["lepton2"]) = bVec;
   *(floatBranches_[treeName]["mht"]) = MHT2.Pt();
@@ -1086,6 +858,7 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b,c
   int pdgId2 = 0;
   int aMother = -99999;
   int bMother = -99999;
+
   pdgId1 = getPdgId_.operator()<aT>(a);
   pdgId2 = getPdgId_.operator()<bT>(b);
 
@@ -1122,31 +895,11 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b,c
   if(debug) std::cout << ", matched = "<<matched<<", motherId = "<<aMother;
   if(debug) std::cout<<", M = "<< comb.M() <<", chargeProduct = "<< a.charge()*b.charge() <<std::endl;
   
-  
-  //ETH style genMatching
-  *(intBranches_[treeName]["pdgIdETH1"]) = -9999;
-  *(intBranches_[treeName]["pdgIdETH2"]) = -9999;  
-  *(intBranches_[treeName]["motherPdgIdETH1"]) =-9999;
-  *(intBranches_[treeName]["motherPdgIdETH2"]) =-9999;  
-  *(intBranches_[treeName]["grandMotherPdgIdETH1"]) = -9999;
-  *(intBranches_[treeName]["grandMotherPdgIdETH2"]) = -9999;   
-  if (genParticles.size() > 0){
-
-	std::vector<int> pdgIds1 = getGenMatches(a,genParticles); 
-	std::vector<int> pdgIds2 = getGenMatches(b,genParticles); 	
-	*(intBranches_[treeName]["pdgIdETH1"]) = pdgIds1[0];
-	*(intBranches_[treeName]["pdgIdETH2"]) = pdgIds2[0];  
-	*(intBranches_[treeName]["motherPdgIdETH1"]) = pdgIds1[1];
-	*(intBranches_[treeName]["motherPdgIdETH2"]) = pdgIds2[1];  
-	*(intBranches_[treeName]["grandMotherPdgIdETH1"]) = pdgIds1[2];
-	*(intBranches_[treeName]["grandMotherPdgIdETH2"]) = pdgIds2[2]; 
-  }  
- 
   trees_[treeName]->Fill();
 }
 
 int 
-DiLeptonTrees::getMotherPdgId( const reco::GenParticle &p)
+SingleLeptonTrees::getMotherPdgId( const reco::GenParticle &p)
 {
   int result = -9999;
   if(p.mother() != NULL){
@@ -1154,168 +907,28 @@ DiLeptonTrees::getMotherPdgId( const reco::GenParticle &p)
       result = p.mother()->pdgId();
     else if(p.mother()->mother() != NULL)
       result = p.mother()->mother()->pdgId();
-	if(abs(result) == 11 || abs(result) == 13 || abs(result) == 12 || abs(result) == 14){
-
-	if (p.mother()->mother()->mother() != NULL){
-			result = p.mother()->mother()->mother()->pdgId(); 
-			    
-			if(abs(result) == 11 || abs(result) == 13 || abs(result) == 12 || abs(result) == 14){
-				if (p.mother()->mother()->mother()->mother() != NULL){
-					result = p.mother()->mother()->mother()->mother()->pdgId();
-					if(abs(result) == 11 || abs(result) == 13 || abs(result) == 12 || abs(result) == 14){
-						if (p.mother()->mother()->mother()->mother()->mother() != NULL){
-							result = p.mother()->mother()->mother()->mother()->mother()->pdgId();
-						}
-					}						
-				}
-			}		
-		}			 	 
-
-	}
-			
-	
   }
   return result;
 }
 
 int 
-DiLeptonTrees::getLeptonPdgId( const reco::GenParticle &p)
+SingleLeptonTrees::getLeptonPdgId( const reco::GenParticle &p)
 {
   int result = -9999;
   if(p.status() == 3)
      result = p.pdgId();
    else if(p.mother() != NULL){
       if(abs(p.mother()->pdgId()) == 11 || abs(p.mother()->pdgId()) == 13 || abs(p.mother()->pdgId()) == 15)
-		result = p.mother()->pdgId();
+        result = p.mother()->pdgId();
       else
         result = p.pdgId();
    }
   return result;
 }
 
-
-template <class aT> std::vector<int>  
-DiLeptonTrees::getGenMatches(const aT  &l, const std::vector<reco::GenParticle>&genParticles)
-{
-	double minDR = 999.;
-	double deltaR = 0.;
-	const reco::GenParticle * matchedGenPart = new reco::GenParticle();
-	const reco::GenParticle * matchedGenPartMother = new reco::GenParticle();
-	const reco::GenParticle * matchedGenPartGrandMother = new reco::GenParticle();	
-	bool matched = false;
-
-	int pdgId = -9999;
-	int motherPdgId = -9999;
-	int grandMotherPdgId = -9999;
-	
-	 std::vector<int> res;
-	
-	for (std::vector<reco::GenParticle>::const_iterator itGenParticle = genParticles.begin(); itGenParticle != genParticles.end(); itGenParticle++) {
-	    
-	    if (itGenParticle->status() != 1) continue;
-	  
-	    deltaR = reco::deltaR(l.eta(),l.phi(), itGenParticle->eta(), itGenParticle->phi());
-	    if (deltaR > 0.1) continue;
-	    
-	    double ndpt = fabs(l.pt() - itGenParticle->pt())/itGenParticle->pt();
-	    if(ndpt > 2.) continue;
-	    
-	    if(deltaR > minDR) continue;
-	    
-	    minDR = deltaR;
-	    
-	    matched = true;
-	    matchedGenPart = &(*itGenParticle);
-	    
-
-	}
-	if (matched == true){
-	    
-	  pdgId = matchedGenPart->pdgId();
-	  
-	  if (!matchedGenPart->mother()){
-	      motherPdgId = -9999;
-	      grandMotherPdgId = -9999;
-	  }
-	  else{
-	      matchedGenPartMother = static_cast<const reco::GenParticle*> (matchedGenPart->mother());
-	      
-	      if (matchedGenPartMother->pdgId() != pdgId){
-		motherPdgId = matchedGenPartMother->pdgId();
-	      }
-	      else{
-		
-
-		int tempid = matchedGenPartMother->pdgId();
-		int loop_counter = 0;
-		while(tempid == pdgId){
-		  loop_counter++;
-		  if(loop_counter>=10){
-		    matchedGenPartMother = static_cast<const reco::GenParticle*>(matchedGenPart->mother());
-		    break;
-		  }
-		  matchedGenPart = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());
-		  matchedGenPartMother = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());		  
-		  tempid = matchedGenPartMother->pdgId();
-		}
-		
-	      }
-	      motherPdgId = matchedGenPartMother->pdgId();
-		
-	  }
-	  if (!matchedGenPartMother->mother()){
-	      grandMotherPdgId = -9999;
-	  }	  
-	  else{
-	      matchedGenPartGrandMother = static_cast<const reco::GenParticle*> (matchedGenPartMother->mother());
-	      
-	      if (matchedGenPartGrandMother->pdgId() != motherPdgId){
-		grandMotherPdgId = matchedGenPartGrandMother->pdgId();
-	      }
-	      else{
-		
-
-		int tempid = matchedGenPartGrandMother->pdgId();
-		int loop_counter = 0;
-		while(tempid == motherPdgId){
-		  loop_counter++;
-		  if(loop_counter>=10){
-		    matchedGenPartGrandMother = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());
-		    break;
-		  }
-
-		  matchedGenPartMother = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());
-		  matchedGenPartGrandMother = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());		  
-		  tempid = matchedGenPartGrandMother->pdgId();
-		}
-		
-	      }
-	      grandMotherPdgId = matchedGenPartGrandMother->pdgId();
-	  }	      
-	}
-	res.push_back(pdgId);
-	res.push_back(motherPdgId);
-	res.push_back(grandMotherPdgId);
-
-	return res;
-
-}
-	  
-	  
-	  
-	  
-	  
-  
-  
-  
-
-
-
-
-
 //from DQM/Physics/src/EwkTauDQM.cc
 std::pair<double, double>
-DiLeptonTrees::calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, const TLorentzVector& met)
+SingleLeptonTrees::calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, const TLorentzVector& met)
 {
 	double cosPhi1 = cos(p1.Phi());
 	double sinPhi1 = sin(p1.Phi());
@@ -1340,12 +953,7 @@ DiLeptonTrees::calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, cons
 	return std::pair<double, double>(pZeta, pZetaVis);
 }
 
-
-
-
-
-
-void DiLeptonTrees::fillPdfUncert(const edm::Handle< std::vector<double> >& weightHandle, const std::string& pdfIdentifier, const std::string& treeName){
+void SingleLeptonTrees::fillPdfUncert(const edm::Handle< std::vector<double> >& weightHandle, const std::string& pdfIdentifier, const std::string& treeName){
      std::string up = "Up";
      std::string down = "Down";
      bool nnpdfFlag = (pdfIdentifier.substr(0,5)=="NNPDF");
@@ -1400,7 +1008,7 @@ void DiLeptonTrees::fillPdfUncert(const edm::Handle< std::vector<double> >& weig
     *(floatBranches_[treeName][pdfIdentifier+up]) = float(wplus);
 }
 
-const TLorentzVector DiLeptonTrees::getMomentum(const  pat::Electron &e)
+const TLorentzVector SingleLeptonTrees::getMomentum(const  pat::Electron &e)
 {
   double corr = 1.;
   double lowEdge = 0.;
@@ -1417,19 +1025,19 @@ const TLorentzVector DiLeptonTrees::getMomentum(const  pat::Electron &e)
   return result;
 }
 
-const TLorentzVector DiLeptonTrees::getMomentum(const  pat::Muon &mu)
+const TLorentzVector SingleLeptonTrees::getMomentum(const  pat::Muon &mu)
 {
   const TLorentzVector result = TLorentzVector(mu.px(), mu.py(), mu.pz(), mu.energy());
   return result;
 }
 
-const TLorentzVector DiLeptonTrees::getMomentum(const  pat::Tau &tau)
+const TLorentzVector SingleLeptonTrees::getMomentum(const  pat::Tau &tau)
 {
   const TLorentzVector result = TLorentzVector(tau.px(), tau.py(), tau.pz(), tau.energy());
   return result;
 }
 
-float DiLeptonTrees::getId(const  pat::Electron &e)
+float SingleLeptonTrees::getId(const  pat::Electron &e)
 {
   //  if (e.isEE())
   //  return (e.dr03HcalTowerSumEt() + e.dr03EcalRecHitSumEt() + e.dr03TkSumPt())/e.pt();
@@ -1442,7 +1050,7 @@ float DiLeptonTrees::getId(const  pat::Electron &e)
   return fctIsolation_(e)* 1./e.pt();
 }
 
-float DiLeptonTrees::getId(const  pat::Muon &mu)
+float SingleLeptonTrees::getId(const  pat::Muon &mu)
 {
   //  std::cout<<"muon " << (lepton.trackIso()+lepton.ecalIso()+lepton.hcalIso())/lepton.pt() << std::endl;
   //  return (mu.isolationR03().hadEt + mu.isolationR03().emEt + mu.isolationR03().sumPt) / mu.pt();
@@ -1450,7 +1058,7 @@ float DiLeptonTrees::getId(const  pat::Muon &mu)
   return fctIsolation_(mu)* 1./mu.pt();
 }
 
-float DiLeptonTrees::getId(const  pat::Tau &tau)
+float SingleLeptonTrees::getId(const  pat::Tau &tau)
 {
   float result = fctIsolation_(tau);
   if(tau.tauID(tauId_) < 0.5)
@@ -1459,7 +1067,7 @@ float DiLeptonTrees::getId(const  pat::Tau &tau)
 }
 
 
-float DiLeptonTrees::getPhiAtECAL(const  pat::Tau &tau, const std::vector<reco::PFCandidate>&pfCands)
+float SingleLeptonTrees::getPhiAtECAL(const  pat::Tau &tau, const std::vector<reco::PFCandidate>&pfCands)
 {
 
   float result = -99.0;
@@ -1467,7 +1075,7 @@ float DiLeptonTrees::getPhiAtECAL(const  pat::Tau &tau, const std::vector<reco::
 }
 
 
-float DiLeptonTrees::getPhiAtECAL(const  pat::Muon &mu, const std::vector<reco::PFCandidate>&pfCands)
+float SingleLeptonTrees::getPhiAtECAL(const  pat::Muon &mu, const std::vector<reco::PFCandidate>&pfCands)
 {
   float minDist = 0.5; 
   float deltaR = 0.;
@@ -1485,7 +1093,7 @@ float DiLeptonTrees::getPhiAtECAL(const  pat::Muon &mu, const std::vector<reco::
   return result;
 }
 
-float DiLeptonTrees::getPhiAtECAL(const  pat::Electron &e, const std::vector<reco::PFCandidate>&pfCands)
+float SingleLeptonTrees::getPhiAtECAL(const  pat::Electron &e, const std::vector<reco::PFCandidate>&pfCands)
 {
   float minDist = 0.5; 
   float deltaR = 0.;
@@ -1505,7 +1113,7 @@ float DiLeptonTrees::getPhiAtECAL(const  pat::Electron &e, const std::vector<rec
 }
 
 
-float DiLeptonTrees::topPtWeightBen(double topPt){
+float SingleLeptonTrees::topPtWeightBen(double topPt){
   if( topPt<0 ) return 1;
 
   float p0 = 1.18246e+00;
@@ -1518,7 +1126,7 @@ float DiLeptonTrees::topPtWeightBen(double topPt){
   return result;
 }
 
-float DiLeptonTrees::topPtWeightTOP(double topPt){
+float SingleLeptonTrees::topPtWeightTOP(double topPt){
   if( topPt<0 ) return 1;
 
   float p0 = 0.156;
@@ -1529,26 +1137,26 @@ float DiLeptonTrees::topPtWeightTOP(double topPt){
 }
 
 
-float DiLeptonTrees::getDeltaB(const  pat::Electron &e)
+float SingleLeptonTrees::getDeltaB(const  pat::Electron &e)
 {
   float result = e.dB(pat::Electron::PV3D);
   return result;
 }
 
-float DiLeptonTrees::getDeltaB(const  pat::Muon &mu)
+float SingleLeptonTrees::getDeltaB(const  pat::Muon &mu)
 {
   float result = mu.dB(pat::Muon::PV3D);
   return result;
 }
 
-float DiLeptonTrees::getDeltaB(const  pat::Tau &tau)
+float SingleLeptonTrees::getDeltaB(const  pat::Tau &tau)
 {
   float result = -1; // not available for pat::Tau could use ip of leading ch. Hadr if needed.
   return result;
 }
 
 
-float DiLeptonTrees::transverseMass(const TLorentzVector& p, const TLorentzVector& met)
+float SingleLeptonTrees::transverseMass(const TLorentzVector& p, const TLorentzVector& met)
 {
   reco::Candidate::LorentzVector otherMet(met.Px(),met.Py(),met.Pz(),met.E());
   reco::Candidate::LorentzVector leptonT(p.Px(),p.Py(),0.,p.E()*sin(p.Theta()));
@@ -1557,7 +1165,7 @@ float DiLeptonTrees::transverseMass(const TLorentzVector& p, const TLorentzVecto
   return std::sqrt(sumT.M2());
 }
 
-std::string DiLeptonTrees::convertInputTag(const edm::InputTag tag)
+std::string SingleLeptonTrees::convertInputTag(const edm::InputTag tag)
 {
   std::string result = tag.label();
   if(tag.instance().length() > 0)
@@ -1568,16 +1176,16 @@ std::string DiLeptonTrees::convertInputTag(const edm::InputTag tag)
 
 // ------------ Method called once each job just before starting event loop  ------------
 void 
-DiLeptonTrees::beginJob()
+SingleLeptonTrees::beginJob()
 {
   
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
-DiLeptonTrees::endJob() 
+SingleLeptonTrees::endJob() 
 {
 }
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(DiLeptonTrees);
+DEFINE_FWK_MODULE(SingleLeptonTrees);
