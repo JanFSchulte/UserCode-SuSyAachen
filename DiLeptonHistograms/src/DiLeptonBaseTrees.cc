@@ -1143,7 +1143,7 @@ void DiLeptonBaseTrees::fillLeptonIDs(const std::string &treeName, const  pat::E
   *(floatBranches_[treeName]["sigmaIetaIeta1"]) = ele1.sigmaIetaIeta();
   *(floatBranches_[treeName]["hadronicOverEm1"]) = ele1.hadronicOverEm();
   *(floatBranches_[treeName]["eOverP1"]) = abs(1.0/ele1.ecalEnergy() - ele1.eSuperClusterOverP()/ele1.ecalEnergy());
-  *(floatBranches_[treeName]["missingHits1"]) = ele1.gsfTrack()->trackerExpectedHitsInner().numberOfHits();
+  *(floatBranches_[treeName]["missingHits1"]) = ele1.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS);
   *(floatBranches_[treeName]["effectiveArea1"]) = getAEff(ele1.eta());
   *(floatBranches_[treeName]["passConversion1"]) = ele1.passConversionVeto();
   *(floatBranches_[treeName]["d01"]) = ele1.gsfTrack()->dxy(vertices->at(0).position());
@@ -1167,7 +1167,7 @@ void DiLeptonBaseTrees::fillLeptonIDs(const std::string &treeName, const  pat::E
   *(floatBranches_[treeName]["sigmaIetaIeta2"]) = ele2.sigmaIetaIeta();
   *(floatBranches_[treeName]["hadronicOverEm2"]) = ele2.hadronicOverEm();
   *(floatBranches_[treeName]["eOverP2"]) = abs(1.0/ele2.ecalEnergy() - ele2.eSuperClusterOverP()/ele2.ecalEnergy());
-  *(floatBranches_[treeName]["missingHits2"]) = ele2.gsfTrack()->trackerExpectedHitsInner().numberOfHits();
+  *(floatBranches_[treeName]["missingHits2"]) = ele2.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS);
   *(floatBranches_[treeName]["effectiveArea2"]) = getAEff(ele2.eta());
   *(floatBranches_[treeName]["passConversion2"]) = ele2.passConversionVeto();
   *(floatBranches_[treeName]["d02"]) = ele2.gsfTrack()->dxy(vertices->at(0).position());
@@ -1202,7 +1202,7 @@ void DiLeptonBaseTrees::fillLeptonIDs(const std::string &treeName, const  pat::E
   *(floatBranches_[treeName]["sigmaIetaIeta1"]) = ele1.sigmaIetaIeta();
   *(floatBranches_[treeName]["hadronicOverEm1"]) = ele1.hadronicOverEm();
   *(floatBranches_[treeName]["eOverP1"]) = abs(1.0/ele1.ecalEnergy() - ele1.eSuperClusterOverP()/ele1.ecalEnergy());
-  *(floatBranches_[treeName]["missingHits1"]) = ele1.gsfTrack()->trackerExpectedHitsInner().numberOfHits();
+  *(floatBranches_[treeName]["missingHits1"]) = ele1.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS);
   *(floatBranches_[treeName]["effectiveArea1"]) = getAEff(ele1.eta());
   *(floatBranches_[treeName]["passConversion1"]) = ele1.passConversionVeto();
   *(floatBranches_[treeName]["d01"]) = ele1.gsfTrack()->dxy(vertices->at(0).position());
@@ -1322,7 +1322,7 @@ void DiLeptonBaseTrees::fillLeptonIDs(const std::string &treeName, const  pat::E
   *(floatBranches_[treeName]["sigmaIetaIeta1"]) = ele1.sigmaIetaIeta();
   *(floatBranches_[treeName]["hadronicOverEm1"]) = ele1.hadronicOverEm();
   *(floatBranches_[treeName]["eOverP1"]) = abs(1.0/ele1.ecalEnergy() - ele1.eSuperClusterOverP()/ele1.ecalEnergy());
-  *(floatBranches_[treeName]["missingHits1"]) = ele1.gsfTrack()->trackerExpectedHitsInner().numberOfHits();
+  *(floatBranches_[treeName]["missingHits1"]) = ele1.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS);
   *(floatBranches_[treeName]["effectiveArea1"]) = getAEff(ele1.eta());
   *(floatBranches_[treeName]["passConversion1"]) = ele1.passConversionVeto();
   *(floatBranches_[treeName]["d01"]) = ele1.gsfTrack()->dxy(vertices->at(0).position());
