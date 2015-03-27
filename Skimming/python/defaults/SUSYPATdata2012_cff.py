@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 def SUSYPATdata2012(process):  
-    from PhysicsTools.Configuration.SUSY_pattuple_cff import addDefaultSUSYPAT, getSUSY_pattuple_outputCommands, removeMCDependence
+    from SuSyAachen.SUSYPAT.SUSY_pattuple_cff import addDefaultSUSYPAT, getSUSY_pattuple_outputCommands, removeMCDependence
     process.out = cms.OutputModule("PoolOutputModule",
       fileName = cms.untracked.string('dummy.root'),
       outputCommands = cms.untracked.vstring( 'drop *')

@@ -15,7 +15,7 @@ def SUSYPAT(process):
     doExtensiveMatching = False
     doSusyTopProjection = True
 
-    from PhysicsTools.Configuration.SUSY_pattuple_cff import addDefaultSUSYPAT, getSUSY_pattuple_outputCommands
+    from SuSyAachen.SUSYPAT.SUSY_pattuple_cff import addDefaultSUSYPAT, getSUSY_pattuple_outputCommands
     #Apply SUSYPAT
     addDefaultSUSYPAT(process,mcInfo,hltName,jetCorrections, mcVersion, jetTypes, doValidation, doExtensiveMatching, doSusyTopProjection)
     SUSY_pattuple_outputCommands = getSUSY_pattuple_outputCommands( process )
