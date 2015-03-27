@@ -3,7 +3,6 @@
 WeightFunctorFastSimDifferentLeptons::WeightFunctorFastSimDifferentLeptons()
 {
 	initialized_ = false;
-	bool looseNotTight_ = false;
 }
 
 void

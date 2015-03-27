@@ -164,7 +164,7 @@ IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig):
   fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
 {
 	//now do what ever initialization is needed
-        debug_ = true;
+        debug_ = false;
         eventFootprintExtensionsActive_ = true;
 	tauExtensionsActive_ = false;
 	secondLeptonExtensionsActive_ = false;
@@ -294,9 +294,10 @@ void IsoTreeWriter<T>::fillExtraVars(const pat::Electron& lepton, const edm::Eve
 		    << "d0 " << lepton.gsfTrack()->dxy(vertices->at(0).position()) << std::endl << "\t\t"
 		    << "dZ " << fabs(lepton.gsfTrack()->dz(vertices->at(0).position())) << std::endl << "\t\t"
 		    << " passes Conversion " << lepton.passConversionVeto()  << std::endl << "\t\t"
+		    << " missing hits " << lepton.gsfTrack()->trackerExpectedHitsInner().numberOfHits()  << std::endl << "\t\t"
 		    << " iso " << fctIsolation_(lepton)/lepton.pt() 
 	  	    << std::endl << "\t\t"	
-	    //		  << std::endl << "\t\t"
+	    //		  << std::endl << "\t\t"gsfTrack().trackerExpectedHitsInner().numberOfHits
 	    //		  << " ch "<<lepton.pfIsolationR03().sumChargedHadronPt <<" neut "<< lepton.pfIsolationR03().sumNeutralHadronEt <<" photo "<<  lepton.pfIsolationR03().sumPhotonEt << " pu " <<lepton.pfIsolationR03().sumPUPt       
 		    <<std::endl;  
 	}
@@ -318,12 +319,19 @@ void IsoTreeWriter<T>::fillExtraVars(const pat::Muon& lepton, const edm::Event& 
 	      << std::endl << "\t\t"
 
 	      << "relIso "<< (lepton.pfIsolationR03().sumChargedHadronPt + std::max(0.,lepton.pfIsolationR03().sumNeutralHadronEt + lepton.pfIsolationR03().sumPhotonEt - 0.5 * lepton.pfIsolationR03().sumPUPt)) * 1. / lepton.pt()
-	      << std::endl << "\t\t"
-	      << "Chi^2 " << lepton.globalTrack()->normalizedChi2() << std::endl << "\t\t"
-	      << "NumberOfValidMuonHits " << lepton.globalTrack()->hitPattern().numberOfValidMuonHits() << std::endl << "\t\t"
-	      << "MatchedStations " << lepton.numberOfMatchedStations() << std::endl << "\t\t"
-	      << "ValidPixelHits " << lepton.innerTrack()->hitPattern().numberOfValidPixelHits() << std::endl << "\t\t"
-	      << "NLayers " << lepton.track()->hitPattern().trackerLayersWithMeasurement() << std::endl << "\t\t"
+	      << std::endl << "\t\t";
+  	     if (lepton.isGlobalMuon()){
+	     	 std::cout << "Chi^2 " << lepton.globalTrack()->normalizedChi2() << std::endl << "\t\t"
+	      	<< "NumberOfValidMuonHits " << lepton.globalTrack()->hitPattern().numberOfValidMuonHits() << std::endl << "\t\t";
+	     }
+	     else{std::cout  << "Not Global! " << std::endl << "\t\t"; } 
+	    std::cout	
+	     << "MatchedStations " << lepton.numberOfMatchedStations() << std::endl << "\t\t";
+	     if (lepton.isTrackerMuon()){
+	     	std::cout << "ValidPixelHits " << lepton.innerTrack()->hitPattern().numberOfValidPixelHits() << std::endl << "\t\t"
+			  << "NLayers " << lepton.track()->hitPattern().trackerLayersWithMeasurement() << std::endl << "\t\t";}
+	     else{std::cout << "Not Tracker Muon!" << std::endl << "\t\t";}
+	     std::cout << "Is PF " << lepton.isPFMuon() << std::endl << "\t\t"
 	      << "d0 " << lepton.dB() << std::endl << "\t\t"
 	      << "dZ " << fabs(lepton.muonBestTrack()->dz(vertices->at(0).position())) << std::endl << "\t\t"
 	      << " ch "<<lepton.pfIsolationR03().sumChargedHadronPt <<" neut "<< lepton.pfIsolationR03().sumNeutralHadronEt <<" photo "<<  lepton.pfIsolationR03().sumPhotonEt << " pu " <<lepton.pfIsolationR03().sumPUPt

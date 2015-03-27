@@ -85,9 +85,9 @@ private:
   void initFloatBranch( const std::string &name);
   void initIntBranch( const std::string &name);
   void initTLorentzVectorBranch( const std::string &name);
-  template <class aT, class bT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT >&b, const std::vector<reco::PFCandidate>&pfCands, const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
-  template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a , const std::vector<reco::PFCandidate>&pfCands,  const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
-  template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<reco::PFCandidate>&pfCands, const pat::MET &patMet, const TLorentzVector &MHT);
+  template <class aT, class bT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT >&b, const std::vector<reco::PFCandidate>&pfCands, const std::vector<reco::GenParticle>&genParticles, const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
+  template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a , const std::vector<reco::PFCandidate>&pfCands, const std::vector<reco::GenParticle>&genParticles,  const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
+  template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<reco::PFCandidate>&pfCands, const std::vector<reco::GenParticle>&genParticles, const pat::MET &patMet, const TLorentzVector &MHT);
   int getLeptonPdgId( const reco::GenParticle &p);
   int getMotherPdgId( const reco::GenParticle &p);
   std::pair<double, double> calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, const TLorentzVector& met);
@@ -99,6 +99,7 @@ private:
   float getPhiAtECAL(const  pat::Electron &e, const std::vector<reco::PFCandidate>&pfCands);
   float getPhiAtECAL(const  pat::Muon &mu, const std::vector<reco::PFCandidate>&pfCands);
   float getPhiAtECAL(const  pat::Tau &tau, const std::vector<reco::PFCandidate>&pfCands);
+  template <class aT> std::vector<int>  getGenMatches(const aT &l, const std::vector<reco::GenParticle>&genParticles);  
   float topPtWeightBen(double topPt);
   float topPtWeightTOP(double topPt);
   float getId(const  pat::Electron &e);
@@ -338,6 +339,12 @@ DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
   initIntBranch( "matched" );
   initIntBranch( "motherPdgId1" );
   initIntBranch( "motherPdgId2" );
+  initIntBranch( "pdgIdETH1" );
+  initIntBranch( "pdgIdETH2" );
+  initIntBranch( "motherPdgIdETH1" );
+  initIntBranch( "motherPdgIdETH2" ); 
+  initIntBranch( "grandMotherPdgIdETH1" );
+  initIntBranch( "grandMotherPdgIdETH2" );   
   if(useJets2_) {
     initFloatBranch( "ht2" );
     initIntBranch( "nJets2" );    
@@ -855,13 +862,13 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
   }
 
-  makeCombinations< pat::Electron >("EE", *electrons,*pfCands, iEvent, met,MHT, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
-  makeCombinations< pat::Electron, pat::Muon >("EMu", *electrons, *muons,*pfCands, iEvent, met,MHT, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
-  makeCombinations< pat::Muon >("MuMu", *muons,*pfCands, iEvent, met,MHT, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
+  makeCombinations< pat::Electron >("EE", *electrons,*pfCands,*genParticles, iEvent, met,MHT, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
+  makeCombinations< pat::Electron, pat::Muon >("EMu", *electrons, *muons,*pfCands,*genParticles, iEvent, met,MHT, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
+  makeCombinations< pat::Muon >("MuMu", *muons,*pfCands,*genParticles, iEvent, met,MHT, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
   if(useTaus_){
-    makeCombinations< pat::Electron, pat::Tau >("ETau", *electrons, *taus,*pfCands, iEvent, met,MHT, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
-    makeCombinations< pat::Muon, pat::Tau>("MuTau", *muons, *taus,*pfCands, iEvent, met,MHT, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
-    makeCombinations< pat::Tau >("TauTau", *taus,*pfCands, iEvent, met,MHT, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
+    makeCombinations< pat::Electron, pat::Tau >("ETau", *electrons, *taus,*pfCands,*genParticles, iEvent, met,MHT, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
+    makeCombinations< pat::Muon, pat::Tau>("MuTau", *muons, *taus,*pfCands,*genParticles, iEvent, met,MHT, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
+    makeCombinations< pat::Tau >("TauTau", *taus,*pfCands,*genParticles, iEvent, met,MHT, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
   }
   //  if( nMu != 2) std::cout << "-------! "<<nMu<<std::endl;
 
@@ -873,7 +880,7 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 }
 
 template <class aT, class bT> void 
-DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT> &b,const std::vector<reco::PFCandidate>&pfCands, const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties)
+DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT> &b,const std::vector<reco::PFCandidate>&pfCands, const std::vector<reco::GenParticle>&genParticles, const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties)
 {
   TLorentzVector met(patMet.px(), patMet.py(), patMet.pz(), patMet.energy());
   TLorentzVector uncorrectedMet;
@@ -914,13 +921,13 @@ DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector
     for( typename std::vector<bT>::const_iterator itB = b.begin(); itB != b.end(); ++itB){
 //      std::cout << treeName <<": "<< fakeRates_(*itA) << std::endl;
 //      weight *= fakeRates_();
-      fillTree<aT,bT>( treeName, *itA, *itB,pfCands, patMet,MHT); 
+      fillTree<aT,bT>( treeName, *itA, *itB,pfCands,genParticles, patMet,MHT); 
     }
   }
 }
 
 template <class aT> void 
-DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a,const std::vector<reco::PFCandidate>&pfCands, const edm::Event &ev, const pat::MET &patMet , const TLorentzVector &MHT, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties)
+DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector<aT> &a,const std::vector<reco::PFCandidate>&pfCands, const std::vector<reco::GenParticle>&genParticles, const edm::Event &ev, const pat::MET &patMet , const TLorentzVector &MHT, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties)
 {
   TLorentzVector met(patMet.px(), patMet.py(), patMet.pz(), patMet.energy());
   TLorentzVector uncorrectedMet;
@@ -960,13 +967,13 @@ DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector
     for( typename std::vector<aT>::const_iterator itB = a.begin(); itB != itA; ++itB){
       //std::cout << treeName<<"("<<(*itA).pt()<<", "<<(*itA).eta() <<"): "<< fakeRates_(*itA) << std::endl;
 //      weight *= fakeRates_();
-      fillTree<aT, aT>( treeName, *itA, *itB,pfCands, patMet,MHT); 
+      fillTree<aT, aT>( treeName, *itA, *itB,pfCands, genParticles, patMet,MHT); 
     }
   }
 }
 
 template <class aT, class bT> void 
-DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b,const std::vector<reco::PFCandidate>&pfCands, const pat::MET &patMet, const TLorentzVector &MHT)
+DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b,const std::vector<reco::PFCandidate>&pfCands, const std::vector<reco::GenParticle>&genParticles, const pat::MET &patMet, const TLorentzVector &MHT)
 {
   if(debug) std::cout << treeName << "- pts:"<< a.pt() << " " << b.pt();
   TLorentzVector aVec = getMomentum(a);//( a.px(), a.py(), a.pz(), a.energy() );
@@ -1032,7 +1039,6 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b,c
   int pdgId2 = 0;
   int aMother = -99999;
   int bMother = -99999;
-
   pdgId1 = getPdgId_.operator()<aT>(a);
   pdgId2 = getPdgId_.operator()<bT>(b);
 
@@ -1069,6 +1075,26 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b,c
   if(debug) std::cout << ", matched = "<<matched<<", motherId = "<<aMother;
   if(debug) std::cout<<", M = "<< comb.M() <<", chargeProduct = "<< a.charge()*b.charge() <<std::endl;
   
+  
+  //ETH style genMatching
+  *(intBranches_[treeName]["pdgIdETH1"]) = -9999;
+  *(intBranches_[treeName]["pdgIdETH2"]) = -9999;  
+  *(intBranches_[treeName]["motherPdgIdETH1"]) =-9999;
+  *(intBranches_[treeName]["motherPdgIdETH2"]) =-9999;  
+  *(intBranches_[treeName]["grandMotherPdgIdETH1"]) = -9999;
+  *(intBranches_[treeName]["grandMotherPdgIdETH2"]) = -9999;   
+  if (genParticles.size() > 0){
+
+	std::vector<int> pdgIds1 = getGenMatches(a,genParticles); 
+	std::vector<int> pdgIds2 = getGenMatches(b,genParticles); 	
+	*(intBranches_[treeName]["pdgIdETH1"]) = pdgIds1[0];
+	*(intBranches_[treeName]["pdgIdETH2"]) = pdgIds2[0];  
+	*(intBranches_[treeName]["motherPdgIdETH1"]) = pdgIds1[1];
+	*(intBranches_[treeName]["motherPdgIdETH2"]) = pdgIds2[1];  
+	*(intBranches_[treeName]["grandMotherPdgIdETH1"]) = pdgIds1[2];
+	*(intBranches_[treeName]["grandMotherPdgIdETH2"]) = pdgIds2[2]; 
+  }  
+ 
   trees_[treeName]->Fill();
 }
 
@@ -1081,6 +1107,26 @@ DiLeptonTrees::getMotherPdgId( const reco::GenParticle &p)
       result = p.mother()->pdgId();
     else if(p.mother()->mother() != NULL)
       result = p.mother()->mother()->pdgId();
+	if(abs(result) == 11 || abs(result) == 13 || abs(result) == 12 || abs(result) == 14){
+
+	if (p.mother()->mother()->mother() != NULL){
+			result = p.mother()->mother()->mother()->pdgId(); 
+			    
+			if(abs(result) == 11 || abs(result) == 13 || abs(result) == 12 || abs(result) == 14){
+				if (p.mother()->mother()->mother()->mother() != NULL){
+					result = p.mother()->mother()->mother()->mother()->pdgId();
+					if(abs(result) == 11 || abs(result) == 13 || abs(result) == 12 || abs(result) == 14){
+						if (p.mother()->mother()->mother()->mother()->mother() != NULL){
+							result = p.mother()->mother()->mother()->mother()->mother()->pdgId();
+						}
+					}						
+				}
+			}		
+		}			 	 
+
+	}
+			
+	
   }
   return result;
 }
@@ -1093,12 +1139,132 @@ DiLeptonTrees::getLeptonPdgId( const reco::GenParticle &p)
      result = p.pdgId();
    else if(p.mother() != NULL){
       if(abs(p.mother()->pdgId()) == 11 || abs(p.mother()->pdgId()) == 13 || abs(p.mother()->pdgId()) == 15)
-        result = p.mother()->pdgId();
+		result = p.mother()->pdgId();
       else
         result = p.pdgId();
    }
   return result;
 }
+
+
+template <class aT> std::vector<int>  
+DiLeptonTrees::getGenMatches(const aT  &l, const std::vector<reco::GenParticle>&genParticles)
+{
+	double minDR = 999.;
+	double deltaR = 0.;
+	const reco::GenParticle * matchedGenPart = new reco::GenParticle();
+	const reco::GenParticle * matchedGenPartMother = new reco::GenParticle();
+	const reco::GenParticle * matchedGenPartGrandMother = new reco::GenParticle();	
+	bool matched = false;
+
+	int pdgId = -9999;
+	int motherPdgId = -9999;
+	int grandMotherPdgId = -9999;
+	
+	 std::vector<int> res;
+	
+	for (std::vector<reco::GenParticle>::const_iterator itGenParticle = genParticles.begin(); itGenParticle != genParticles.end(); itGenParticle++) {
+	    
+	    if (itGenParticle->status() != 1) continue;
+	  
+	    deltaR = reco::deltaR(l.eta(),l.phi(), itGenParticle->eta(), itGenParticle->phi());
+	    if (deltaR > 0.1) continue;
+	    
+	    double ndpt = fabs(l.pt() - itGenParticle->pt())/itGenParticle->pt();
+	    if(ndpt > 2.) continue;
+	    
+	    if(deltaR > minDR) continue;
+	    
+	    minDR = deltaR;
+	    
+	    matched = true;
+	    matchedGenPart = &(*itGenParticle);
+	    
+
+	}
+	if (matched == true){
+	    
+	  pdgId = matchedGenPart->pdgId();
+	  
+	  if (!matchedGenPart->mother()){
+	      motherPdgId = -9999;
+	      grandMotherPdgId = -9999;
+	  }
+	  else{
+	      matchedGenPartMother = static_cast<const reco::GenParticle*> (matchedGenPart->mother());
+	      
+	      if (matchedGenPartMother->pdgId() != pdgId){
+		motherPdgId = matchedGenPartMother->pdgId();
+	      }
+	      else{
+		
+
+		int tempid = matchedGenPartMother->pdgId();
+		int loop_counter = 0;
+		while(tempid == pdgId){
+		  loop_counter++;
+		  if(loop_counter>=10){
+		    matchedGenPartMother = static_cast<const reco::GenParticle*>(matchedGenPart->mother());
+		    break;
+		  }
+		  matchedGenPart = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());
+		  matchedGenPartMother = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());		  
+		  tempid = matchedGenPartMother->pdgId();
+		}
+		
+	      }
+	      motherPdgId = matchedGenPartMother->pdgId();
+		
+	  }
+	  if (!matchedGenPartMother->mother()){
+	      grandMotherPdgId = -9999;
+	  }	  
+	  else{
+	      matchedGenPartGrandMother = static_cast<const reco::GenParticle*> (matchedGenPartMother->mother());
+	      
+	      if (matchedGenPartGrandMother->pdgId() != motherPdgId){
+		grandMotherPdgId = matchedGenPartGrandMother->pdgId();
+	      }
+	      else{
+		
+
+		int tempid = matchedGenPartGrandMother->pdgId();
+		int loop_counter = 0;
+		while(tempid == motherPdgId){
+		  loop_counter++;
+		  if(loop_counter>=10){
+		    matchedGenPartGrandMother = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());
+		    break;
+		  }
+
+		  matchedGenPartMother = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());
+		  matchedGenPartGrandMother = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());		  
+		  tempid = matchedGenPartGrandMother->pdgId();
+		}
+		
+	      }
+	      grandMotherPdgId = matchedGenPartGrandMother->pdgId();
+	  }	      
+	}
+	res.push_back(pdgId);
+	res.push_back(motherPdgId);
+	res.push_back(grandMotherPdgId);
+
+	return res;
+
+}
+	  
+	  
+	  
+	  
+	  
+  
+  
+  
+
+
+
+
 
 //from DQM/Physics/src/EwkTauDQM.cc
 std::pair<double, double>
@@ -1126,6 +1292,11 @@ DiLeptonTrees::calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, cons
 
 	return std::pair<double, double>(pZeta, pZetaVis);
 }
+
+
+
+
+
 
 void DiLeptonTrees::fillPdfUncert(const edm::Handle< std::vector<double> >& weightHandle, const std::string& pdfIdentifier, const std::string& treeName){
      std::string up = "Up";

@@ -3,7 +3,6 @@
 WeightFunctorAbsEta::WeightFunctorAbsEta()
 {
 	initialized_ = false;
-	bool looseNotTight_ = false;
 }
 
 void

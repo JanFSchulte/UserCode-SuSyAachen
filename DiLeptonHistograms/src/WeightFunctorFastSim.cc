@@ -3,7 +3,6 @@
 WeightFunctorFastSim::WeightFunctorFastSim()
 {
 	initialized_ = false;
-	bool looseNotTight_ = false;
 }
 
 void

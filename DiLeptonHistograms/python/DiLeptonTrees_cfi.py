@@ -22,7 +22,7 @@ DiLeptonTreesNoTaus = cms.EDAnalyzer("DiLeptonTrees",
    met = cms.InputTag("patMETsPF"),  	   
    tcmet = cms.InputTag("patMETsTC"), 
    type1met = cms.InputTag("pfType1CorrectedMet"),
-   caloMet = cms.InputTag("patMETsTC"),
+   caloMet = cms.InputTag("patMETsAK5Calo"),
    genMetTrue = cms.InputTag("genMetTrue"),	   	   
    vertices = cms.InputTag("offlinePrimaryVertices"),
    tauId = cms.string("byTaNCfrHalfPercent"),
@@ -30,9 +30,9 @@ DiLeptonTreesNoTaus = cms.EDAnalyzer("DiLeptonTrees",
    genParticles = cms.InputTag("genParticles"),
    rho = cms.InputTag("kt6PFJetsForIsolation", "rho"),	   
    susyVars = cms.VPSet(),
-   pdfWeightTags = cms.VInputTag("susyScanPdfWeights:CT10","susyScanPdfWeights:MSTW2008nlo68cl","susyScanPdfWeights:NNPDF10"),
+   pdfWeightTags = cms.VInputTag(),
    pdfInfo = cms.InputTag("generator"),		   
-   metUncertaintyInputs = cms.VInputTag(cms.InputTag("patPFMet"),cms.InputTag("patPFMetElectronEnDown"),cms.InputTag("patPFMetElectronEnUp"),cms.InputTag("patPFMetJetEnDown"),cms.InputTag("patPFMetJetEnUp"),cms.InputTag("patPFMetJetResDown"),cms.InputTag("patPFMetJetResUp"),cms.InputTag("patPFMetMuonEnDown"),cms.InputTag("patPFMetMuonEnUp"),cms.InputTag("patPFMetTauEnDown"),cms.InputTag("patPFMetTauEnUp"),cms.InputTag("patPFMetUnclusteredEnDown"),cms.InputTag("patPFMetUnclusteredEnUp")),	   
+   metUncertaintyInputs = cms.VInputTag(),	   
    vertexWeights = vertexWeightPars,
    vertexWeightsBlockA = vertexWeightParsBlockA,
    vertexWeightsBlockB = vertexWeightParsBlockB,
@@ -111,9 +111,6 @@ DiLeptonTreesForLMPoints = DiLeptonTrees.clone(
 #            "susyScanPdfWeights:cteq66",
 #            "susyScanPdfWeights:MSTW2008nlo68cl",
 #            "susyScanPdfWeights:NNPDF20"
-            "susyScanPdfWeights:cteq66",
-            "susyScanPdfWeights:MRST2006nnlo",
-            "susyScanPdfWeights:NNPDF10"
             )
           )
 
