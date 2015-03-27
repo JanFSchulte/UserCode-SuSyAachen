@@ -20,8 +20,8 @@ def reduceEventsize(process):
     # for later
     #    process.cleanPatTaus.preselection = 'pt > 10 & tauID("againstMuon") > 0.5 & tauID("againstElectron") > 0.5 & tauID("byTaNCfrOnePercent") > 0.5'
     #---- jets
-    process.patJetsAK5PF.embedGenJetMatch = True
-    process.patJetsAK5PF.embedPFCandidates = False
+    process.patJetsAK4PF.embedGenJetMatch = True
+    process.patJetsAK4PF.embedPFCandidates = False
     process.patJetsPF.embedGenJetMatch = True
     process.patJetsPF.embedPFCandidates = False
     process.patJets.embedGenJetMatch = True

@@ -1,14 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 from SuSyAachen.DiLeptonHistograms.pdgIdDefinition_cff import defaultPdgIdDefinition
 from SuSyAachen.DiLeptonHistograms.vertexWeights_cfi import vertexWeights as vertexWeightPars
-from SuSyAachen.DiLeptonHistograms.vertexWeightsBlockA_cfi import vertexWeightsBlockA as vertexWeightParsBlockA
-from SuSyAachen.DiLeptonHistograms.vertexWeightsBlockB_cfi import vertexWeightsBlockB as vertexWeightParsBlockB
 from SuSyAachen.DiLeptonHistograms.vertexWeightsUp_cfi import vertexWeightsUp as vertexWeightParsUp
-from SuSyAachen.DiLeptonHistograms.vertexWeightsBlockAUp_cfi import vertexWeightsBlockAUp as vertexWeightParsBlockAUp
-from SuSyAachen.DiLeptonHistograms.vertexWeightsBlockBUp_cfi import vertexWeightsBlockBUp as vertexWeightParsBlockBUp
 from SuSyAachen.DiLeptonHistograms.vertexWeightsDown_cfi import vertexWeightsDown as vertexWeightParsDown
-from SuSyAachen.DiLeptonHistograms.vertexWeightsBlockADown_cfi import vertexWeightsBlockADown as vertexWeightParsBlockADown
-from SuSyAachen.DiLeptonHistograms.vertexWeightsBlockBDown_cfi import vertexWeightsBlockBDown as vertexWeightParsBlockBDown
 from SuSyAachen.DiLeptonHistograms.efficiencies.electronEffPSet_cff import electronCenterEfficiencies as electronEfficiency
 from SuSyAachen.DiLeptonHistograms.efficiencies.muonEffPSet_cff import muonCenterEfficiencies as muonEfficiency
 from SuSyAachen.TagAndProbeTreeWriter.isolationFunctor_cfi import isolationDefinitions
@@ -20,10 +14,10 @@ DiLeptonTreesNoTaus = cms.EDAnalyzer("DiLeptonTrees",
    jets = cms.InputTag("triggerMatchedPatJetsPF"),	   	   
    bJets = cms.InputTag("triggerMatchedPatJetsPF"),
    met = cms.InputTag("patMETsPF"),  	   
-   tcmet = cms.InputTag("patMETsTC"), 
-   type1met = cms.InputTag("pfType1CorrectedMet"),
-   caloMet = cms.InputTag("patMETsAK5Calo"),
-   genMetTrue = cms.InputTag("genMetTrue"),	   	   
+   #~ tcmet = cms.InputTag("patMETsTC"), 
+   #~ type1met = cms.InputTag("pfType1CorrectedMet"),
+   #~ caloMet = cms.InputTag("patMETsAK4Calo"),
+   #~ genMetTrue = cms.InputTag("genMetTrue"),	   	   
    vertices = cms.InputTag("offlinePrimaryVertices"),
    tauId = cms.string("byTaNCfrHalfPercent"),
    pfCands = cms.InputTag("particleFlow"),
@@ -32,14 +26,8 @@ DiLeptonTreesNoTaus = cms.EDAnalyzer("DiLeptonTrees",
    susyVars = cms.VPSet(),
    pdfWeightTags = cms.VInputTag(),
    vertexWeights = vertexWeightPars,
-   vertexWeightsBlockA = vertexWeightParsBlockA,
-   vertexWeightsBlockB = vertexWeightParsBlockB,
    vertexWeightsUp = vertexWeightParsUp,
-   vertexWeightsBlockAUp = vertexWeightParsBlockAUp,
-   vertexWeightsBlockBUp = vertexWeightParsBlockBUp,
-   vertexWeightsDown = vertexWeightParsDown,
-   vertexWeightsBlockADown = vertexWeightParsBlockADown,
-   vertexWeightsBlockBDown = vertexWeightParsBlockBDown,	   	   	   	   
+   vertexWeightsDown = vertexWeightParsDown,  	   	   	   
    pdgIdDefinition = defaultPdgIdDefinition,
    isolationDefinitions = isolationDefinitions,
    NOelectronCorrections = cms.VPSet(

@@ -10,11 +10,11 @@ def SUSYPATmc(process):
     hltName = 'HLT'
     jetCorrections = ['L1FastJet', "L2Relative", "L3Absolute"]
     mcVersion = ''
-    jetTypes = ['AK5PF']
+    jetTypes = ['AK4PF']
     doValidation = False
     doExtensiveMatching = False
     doSusyTopProjection = False
-    doType1MetCorrection=False
+    doType1MetCorrection=True
 
     #Apply SUSYPAT
     addDefaultSUSYPAT(process,mcInfo,hltName,jetCorrections, mcVersion, jetTypes, doValidation, doExtensiveMatching, doSusyTopProjection,doType1MetCorrection)

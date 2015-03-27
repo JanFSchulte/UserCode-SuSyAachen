@@ -29,7 +29,7 @@ patJetFlagSelector =  patJetFlagFilter.clone(
 from SuSyAachen.Skimming.jetSelectors_cfi import patPFJetIDFilter
 patPFJetIDSelector =  patPFJetIDFilter.clone(
            filter = cms.bool(True),
-           src = cms.InputTag("cleanLayer1JetsAK5"),
+           src = cms.InputTag("cleanLayer1JetsAK4"),
            version = cms.string('FIRSTDATA'),
            quality = cms.string('LOOSE')
 )
@@ -37,7 +37,7 @@ patPFJetIDSelector =  patPFJetIDFilter.clone(
 from SuSyAachen.Skimming.jetSelectors_cfi import patJetIDFilter
 patJetIDSelector =  patJetIDFilter.clone(
            filter = cms.bool(True),
-           src = cms.InputTag("cleanLayer1JetsAK5"),
+           src = cms.InputTag("cleanLayer1JetsAK4"),
            version = cms.string('PURE09'),
            quality = cms.string('LOOSE')
 )
@@ -46,7 +46,7 @@ patJetIDSelector =  patJetIDFilter.clone(
 from SuSyAachen.Skimming.jetSelectors_cfi import candViewCountFilter 
 genJetCountSelector = candViewCountFilter.clone(
            filter = cms.bool(True),
-           src = cms.InputTag("ak5GenJets"),
+           src = cms.InputTag("ak4GenJets"),
            minNumber = 1
 )
 

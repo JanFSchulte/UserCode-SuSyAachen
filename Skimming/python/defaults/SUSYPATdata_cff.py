@@ -14,7 +14,7 @@ def SUSYPATdata(process):
     doValidation = False
     doExtensiveMatching = False
     doSusyTopProjection = False
-    doType1MetCorrection=False
+    doType1MetCorrection=True
 
     #Apply SUSYPAT
     addDefaultSUSYPAT(process,mcInfo,hltName,jetCorrections, mcVersion, jetTypes, doValidation, doExtensiveMatching, doSusyTopProjection,doType1MetCorrection)

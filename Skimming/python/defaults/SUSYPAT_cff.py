@@ -10,7 +10,7 @@ def SUSYPAT(process):
     hltName = 'HLT'
     jetCorrections = ['L1FastJet', "L2Relative", "L3Absolute"]
     mcVersion = ''
-    jetTypes = ['AK5PF']
+    jetTypes = ['AK4PF']
     doValidation = False
     doExtensiveMatching = False
     doSusyTopProjection = True
