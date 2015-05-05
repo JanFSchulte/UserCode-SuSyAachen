@@ -88,6 +88,91 @@ private:
     return value;
   }
 
+template<class T>
+int GetMiniIsolation(const T& lepton, const std::string& method)
+{
+  
+  if (lepton.pt()<5.) return 99999.;
+
+  double r_iso_min = 0.05;
+  double r_iso_max = 0.2;
+  double kt_scale = 10;
+
+  double deadcone_nh(0.), deadcone_ch(0.), deadcone_ph(0.), deadcone_pu(0.);
+  if (fabs(e.eta())>1.479) {deadcone_ch = 0.015; deadcone_pu = 0.015; deadcone_ph = 0.08;}
+  else {
+      //deadcone_ch = 0.0001; deadcone_pu = 0.01; deadcone_ph = 0.01;deadcone_nh = 0.01; // maybe use muon cones??
+  }
+
+  double iso_nh(0.); double iso_ch(0.); 
+  double iso_ph(0.); double iso_pu(0.);
+  double ptThresh = 0;
+  double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/lepton.pt()));
+  for (std::vector<pat::PackedCandidate>::const_iterator itPFC = pfCands.begin(); itPFC != pfCands.end(); itPFC++) {
+    if (abs((*itPFC).pdgId())<7) continue;
+
+    double dr = deltaR((*itPFC), lepton);
+    if (dr > r_iso) continue;
+      
+      //////////////////  NEUTRALS  /////////////////////////
+    if ((*itPFC).charge()==0){
+      if ((*itPFC).pt()>ptThresh) {
+        double wpf(1.);
+        if (method == "pfWeight"){
+          double wpv(1.), wpu(1.);
+          for (std::vector<pat::PackedCandidate>::const_iterator itJPFC = pfCands.begin(); itJPFC != pfCands.end(); itJPFC++) {
+            double jdr = deltaR2((*itPFC), (*itJPFC));
+            if ((*itPFC).charge()!=0 || jdr<0.00001) continue;
+            double jpt = (*itJPFC).pt();
+            double weight = jpt*jpt/jdr;
+            if ((*itJPFC).fromPV()>1 and abs((*itJPFC).charge())>0 and weight>1) wpv *= weight;
+            else if (weight>1) wpu *= weight;
+          }
+          wpv = 0.5*log(wpv);
+          wpu = 0.5*log(wpu);
+          wpf = wpv/(wpv+wpu);
+        }
+          /////////// PHOTONS ////////////
+        if (abs((*itPFC).pdgId())==22) {
+          if(dr < deadcone_ph) continue;
+          iso_ph += wpf*(*itPFC).pt();
+	    /////////// NEUTRAL HADRONS ////////////
+        } else if (abs((*itPFC).pdgId())==130) {
+          if(dr < deadcone_nh) continue;
+          iso_nh += wpf*(*itPFC).pt();
+        }
+      }
+        //////////////////  CHARGED from PV  /////////////////////////
+    } else if ((*itPFC).fromPV()>1){
+      if (abs((*itPFC).pdgId())==211) {
+        if(dr < deadcone_ch) continue;
+        iso_ch += (*itPFC).pt();
+      }
+        //////////////////  CHARGED from PU  /////////////////////////
+    } else {
+      if ((*itPFC).pt()>ptThresh){
+        if(dr < deadcone_pu) continue;
+        iso_pu += (*itPFC).pt();
+      }
+    }
+  }
+    
+  float iso = 0.;
+  iso = iso_ph + iso_nh;
+  if (method == "deltaBeta"){
+	  iso -= 0.5*iso_pu;
+	  }
+  if (method == "effectiveArea"){
+	iso -= getAEffEle(e.eta()) * rho;
+	}
+  if (iso>0) iso += iso_ch;
+  else iso = iso_ch;
+  iso = iso*1./lepton.pt();
+  return iso;
+ } 
+
+
+
   const virtual double GetIsolation(const reco::Candidate& lepton, const std::string& method){return -1.;}
   
   const double GetAEffEle(double eta)
