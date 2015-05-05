@@ -88,8 +88,6 @@ private:
   template <class aT, class bT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT >&b, const std::vector<reco::PFCandidate>&pfCands, const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties,const edm::Handle<trigger::TriggerEvent> triggerEvent);
   template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a , const std::vector<reco::PFCandidate>&pfCands,  const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties,const edm::Handle<trigger::TriggerEvent> triggerEvent);
   template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<reco::PFCandidate>&pfCands, const pat::MET &patMet, const TLorentzVector &MHT,const edm::Handle<trigger::TriggerEvent> triggerEvent);
-  int getLeptonPdgId( const reco::GenParticle &p);
-  int getMotherPdgId( const reco::GenParticle &p);
   std::pair<double, double> calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, const TLorentzVector& met);
   void fillPdfUncert(const edm::Handle< std::vector<double> >& weightHandle, const std::string& pdfIdentifier, const std::string& treeName);
 
@@ -274,6 +272,8 @@ DiLeptonTriggerTrees::DiLeptonTriggerTrees(const edm::ParameterSet& iConfig):
   initIntBranch( "matched" );
   initIntBranch( "motherPdgId1" );
   initIntBranch( "motherPdgId2" );
+  initIntBranch( "grandMotherPdgId1" );
+  initIntBranch( "grandMotherPdgId2" );    
   if(useJets2_) {
     initFloatBranch( "ht2" );
     initIntBranch( "nJets2" );    
@@ -928,24 +928,31 @@ DiLeptonTriggerTrees::fillTree( const std::string &treeName, const aT& a, const 
 
 
   int matched = 0;
-  int pdgId1 = 0;
-  int pdgId2 = 0;
-  int aMother = -99999;
-  int bMother = -99999;
+  //ETH style genMatching
+  *(intBranches_[treeName]["pdgId1"]) = -9999;
+  *(intBranches_[treeName]["pdgId2"]) = -9999;  
+  *(intBranches_[treeName]["motherPdgId1"]) =-9999;
+  *(intBranches_[treeName]["motherPdgId2"]) =-9999;  
+  *(intBranches_[treeName]["grandMotherPdgId1"]) = -9999;
+  *(intBranches_[treeName]["grandMotherPdgId2"]) = -9999;   
 
-  pdgId1 = getPdgId_.operator()<aT>(a);
-  pdgId2 = getPdgId_.operator()<bT>(b);
+  std::vector<int> pdgIds1 = getPdgId_.operator()<aT>(a); 
+  std::vector<int> pdgIds2 = getPdgId_.operator()<bT>(b); 	
+	
+  *(intBranches_[treeName]["pdgId1"]) = pdgIds1[0];
+  *(intBranches_[treeName]["pdgId2"]) = pdgIds2[0];  
+  *(intBranches_[treeName]["motherPdgId1"]) = pdgIds1[1];
+  *(intBranches_[treeName]["motherPdgId2"]) = pdgIds2[1];  
+  *(intBranches_[treeName]["grandMotherPdgId1"]) = pdgIds1[2];
+  *(intBranches_[treeName]["grandMotherPdgId2"]) = pdgIds2[2]; 
+
 
   TLorentzVector genVec( 0., 0., 0., 0. );
   if(a.genLepton() != NULL){
     matched |= 1;
- // getLeptonPdgId(*(a.genLepton()));
-    aMother = getMotherPdgId(*(a.genLepton()));
   }
   if(b.genLepton() != NULL){
     matched |= 2;
-//getLeptonPdgId(*(b.genLepton()));
-    bMother = getMotherPdgId(*(b.genLepton()));
   }
   TLorentzVector genLepton1;
   TLorentzVector genLepton2;
@@ -955,48 +962,20 @@ DiLeptonTriggerTrees::fillTree( const std::string &treeName, const aT& a, const 
 
       genVec.SetPxPyPzE(a.genLepton()->px()+b.genLepton()->px(),a.genLepton()->py()+b.genLepton()->py(),a.genLepton()->pz()+b.genLepton()->pz(),a.genLepton()->energy()+b.genLepton()->energy());
   }
-  if( matched == 3 && aMother == bMother ) {
+  if( matched == 3 && pdgIds1[1] == pdgIds2[1] ) {
     matched |= 4;
   }
-  *(intBranches_[treeName]["pdgId1"]) = pdgId1;
-  *(intBranches_[treeName]["pdgId2"]) = pdgId2;
-  *(intBranches_[treeName]["matched"]) = matched;
-  *(intBranches_[treeName]["motherPdgId1"]) = aMother;
-  *(intBranches_[treeName]["motherPdgId2"]) = bMother;
+
   *(tLorentzVectorBranches_[treeName]["p4Gen"]) = genVec;
-  if(debug) std::cout << ", matched = "<<matched<<", motherId = "<<aMother;
+  *(tLorentzVectorBranches_[treeName]["genLepton1"]) = genLepton1;
+  *(tLorentzVectorBranches_[treeName]["genLepton2"]) = genLepton2;
+  if(debug) std::cout << ", matched = "<<matched<<", motherId = "<<pdgIds1[1];
   if(debug) std::cout<<", M = "<< comb.M() <<", chargeProduct = "<< a.charge()*b.charge() <<std::endl;
   
   trees_[treeName]->Fill();
 }
 
-int 
-DiLeptonTriggerTrees::getMotherPdgId( const reco::GenParticle &p)
-{
-  int result = -9999;
-  if(p.mother() != NULL){
-    if(p.status() == 3)
-      result = p.mother()->pdgId();
-    else if(p.mother()->mother() != NULL)
-      result = p.mother()->mother()->pdgId();
-  }
-  return result;
-}
 
-int 
-DiLeptonTriggerTrees::getLeptonPdgId( const reco::GenParticle &p)
-{
-  int result = -9999;
-  if(p.status() == 3)
-     result = p.pdgId();
-   else if(p.mother() != NULL){
-      if(abs(p.mother()->pdgId()) == 11 || abs(p.mother()->pdgId()) == 13 || abs(p.mother()->pdgId()) == 15)
-        result = p.mother()->pdgId();
-      else
-        result = p.pdgId();
-   }
-  return result;
-}
 
 //from DQM/Physics/src/EwkTauDQM.cc
 std::pair<double, double>

@@ -25,7 +25,10 @@ DiLeptonTriggerTreesNoTaus = cms.EDAnalyzer("DiLeptonTriggerTrees",
    susyVars = cms.VPSet(),
    pdfWeightTags = cms.VInputTag(),
    vertexWeights = vertexWeightPars,
-   pdgIdDefinition = defaultPdgIdDefinition,
+   pdgIdDefinition = cms.PSet(
+    deltaR = cms.double(0.5),
+    genSrc = cms.InputTag("genParticles")
+),
    isolationDefinitions = isolationDefinitions,
    NOelectronCorrections = cms.VPSet(
     cms.PSet(

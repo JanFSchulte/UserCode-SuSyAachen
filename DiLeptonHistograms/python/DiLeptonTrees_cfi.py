@@ -28,7 +28,10 @@ DiLeptonTreesNoTaus = cms.EDAnalyzer("DiLeptonTrees",
    vertexWeights = vertexWeightPars,
    vertexWeightsUp = vertexWeightParsUp,
    vertexWeightsDown = vertexWeightParsDown,  	   	   	   
-   pdgIdDefinition = defaultPdgIdDefinition,
+   pdgIdDefinition = cms.PSet(
+    deltaR = cms.double(0.5),
+    genSrc = cms.InputTag("genParticles")
+),
    isolationDefinitions = isolationDefinitions,
    NOelectronCorrections = cms.VPSet(
     cms.PSet(
