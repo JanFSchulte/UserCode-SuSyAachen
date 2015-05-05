@@ -790,16 +790,21 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   *(floatBranches_[treeName]["charge2"]) = b.charge();
   *(floatBranches_[treeName]["eta1"]) = aVec.Eta();
   *(floatBranches_[treeName]["eta2"]) = bVec.Eta();
+  std::cout << "before EA" << std::endl;
   *(floatBranches_[treeName]["isoEffArea1"]) = getIso(a,"effectiveArea");
   *(floatBranches_[treeName]["isoEffArea2"]) = getIso(b,"effectiveArea");
+  std::cout << "before DB" << std::endl;  
   *(floatBranches_[treeName]["isoDeltaBeta1"]) = getIso(a,"deltaBeta");
   *(floatBranches_[treeName]["isoDeltaBeta2"]) = getIso(b,"deltaBeta");
-  *(floatBranches_[treeName]["miniIsoEffArea1"]) = getMiniIso(a,pfCands,"effectiveArea",rho);
-  *(floatBranches_[treeName]["miniIsoEffArea2"]) = getMiniIso(b,pfCands,"effectiveArea",rho);
-  *(floatBranches_[treeName]["miniIsoDeltaBeta1"]) = getMiniIso(a,pfCands,"deltaBeta",rho);
-  *(floatBranches_[treeName]["miniIsoDeltaBeta2"]) = getMiniIso(b,pfCands,"deltaBeta",rho);
-  *(floatBranches_[treeName]["miniIsoPF1"]) = getMiniIso(a,pfCands,"pfWeight",rho);
-  *(floatBranches_[treeName]["miniIsoPF2"]) = getMiniIso(b,pfCands,"pfWeight",rho);
+  std::cout << "before miniIso EA" << std::endl;  
+  *(floatBranches_[treeName]["miniIsoEffArea1"]) = getIso(a,"miniIsoEA");
+  *(floatBranches_[treeName]["miniIsoEffArea2"]) = getIso(b,"miniIsoEA");
+  std::cout << "before miniISO DB" << std::endl;  
+  *(floatBranches_[treeName]["miniIsoDeltaBeta1"]) = getIso(a,"miniIsoDB");
+  *(floatBranches_[treeName]["miniIsoDeltaBeta2"]) = getIso(b,"miniIsoDB");
+  std::cout << "before miniIso weights" << std::endl;  
+  *(floatBranches_[treeName]["miniIsoPF1"]) = getIso(a,"miniIsoPFWeight");
+  *(floatBranches_[treeName]["miniIsoPF2"]) = getIso(b,"miniIsoPFWeight");
   *(floatBranches_[treeName]["dB1"]) = getDeltaB(a);
   *(floatBranches_[treeName]["dB2"]) = getDeltaB(b);
   *(floatBranches_[treeName]["mt1"]) = transverseMass(aVec, met);
@@ -1015,173 +1020,6 @@ float DiLeptonTreesFromMiniAOD::getIso(const  pat::Tau &tau, const std::string &
   return result;
 }
 
-float DiLeptonTreesFromMiniAOD::getMiniIso(const pat::Electron &e, const std::vector<pat::PackedCandidate> &pfCands, const std::string &method, const float &rho)
-{
-  if (e.pt()<5.) return 99999.;
-
-  double r_iso_min = 0.05;
-  double r_iso_max = 0.2;
-  double kt_scale = 10;
-
-  double deadcone_nh(0.), deadcone_ch(0.), deadcone_ph(0.), deadcone_pu(0.);
-  if (fabs(e.eta())>1.479) {deadcone_ch = 0.015; deadcone_pu = 0.015; deadcone_ph = 0.08;}
-  else {
-      //deadcone_ch = 0.0001; deadcone_pu = 0.01; deadcone_ph = 0.01;deadcone_nh = 0.01; // maybe use muon cones??
-  }
-
-  double iso_nh(0.); double iso_ch(0.); 
-  double iso_ph(0.); double iso_pu(0.);
-  double ptThresh = 0;
-  double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/e.pt()));
-  for (std::vector<pat::PackedCandidate>::const_iterator itPFC = pfCands.begin(); itPFC != pfCands.end(); itPFC++) {
-    if (abs((*itPFC).pdgId())<7) continue;
-
-    double dr = deltaR((*itPFC), e);
-    if (dr > r_iso) continue;
-      
-      //////////////////  NEUTRALS  /////////////////////////
-    if ((*itPFC).charge()==0){
-      if ((*itPFC).pt()>ptThresh) {
-        double wpf(1.);
-        if (method == "pfWeight"){
-          double wpv(1.), wpu(1.);
-          for (std::vector<pat::PackedCandidate>::const_iterator itJPFC = pfCands.begin(); itJPFC != pfCands.end(); itJPFC++) {
-            double jdr = deltaR2((*itPFC), (*itJPFC));
-            if ((*itPFC).charge()!=0 || jdr<0.00001) continue;
-            double jpt = (*itJPFC).pt();
-            double weight = jpt*jpt/jdr;
-            if ((*itJPFC).fromPV()>1 and abs((*itJPFC).charge())>0 and weight>1) wpv *= weight;
-            else if (weight>1) wpu *= weight;
-          }
-          wpv = 0.5*log(wpv);
-          wpu = 0.5*log(wpu);
-          wpf = wpv/(wpv+wpu);
-        }
-          /////////// PHOTONS ////////////
-        if (abs((*itPFC).pdgId())==22) {
-          if(dr < deadcone_ph) continue;
-          iso_ph += wpf*(*itPFC).pt();
-	    /////////// NEUTRAL HADRONS ////////////
-        } else if (abs((*itPFC).pdgId())==130) {
-          if(dr < deadcone_nh) continue;
-          iso_nh += wpf*(*itPFC).pt();
-        }
-      }
-        //////////////////  CHARGED from PV  /////////////////////////
-    } else if ((*itPFC).fromPV()>1){
-      if (abs((*itPFC).pdgId())==211) {
-        if(dr < deadcone_ch) continue;
-        iso_ch += (*itPFC).pt();
-      }
-        //////////////////  CHARGED from PU  /////////////////////////
-    } else {
-      if ((*itPFC).pt()>ptThresh){
-        if(dr < deadcone_pu) continue;
-        iso_pu += (*itPFC).pt();
-      }
-    }
-  }
-    
-  float iso = 0.;
-  iso = iso_ph + iso_nh;
-  if (method == "deltaBeta"){
-	  iso -= 0.5*iso_pu;
-	  }
-  if (method == "effectiveArea"){
-	iso -= getAEffEle(e.eta()) * rho;
-	}
-  if (iso>0) iso += iso_ch;
-  else iso = iso_ch;
-  iso = iso*1./e.pt();
-  return iso;
-
-}
-
-float DiLeptonTreesFromMiniAOD::getMiniIso(const pat::Muon &mu, const std::vector<pat::PackedCandidate> &pfCands, const std::string &method, const float &rho)
-{
-  if (mu.pt()<5.) return 99999.;
-  
-    
-  double r_iso_min = 0.05;
-  double r_iso_max = 0.2;
-  double kt_scale = 10;
-
-  double deadcone_nh(0.), deadcone_ch(0.), deadcone_ph(0.), deadcone_pu(0.);
-  deadcone_ch = 0.0001; deadcone_pu = 0.01; deadcone_ph = 0.01;deadcone_nh = 0.01;  
-
-  double iso_nh(0.); double iso_ch(0.); 
-  double iso_ph(0.); double iso_pu(0.);
-  double ptThresh(0.5);
-  double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/mu.pt()));
-  for (std::vector<pat::PackedCandidate>::const_iterator itPFC = pfCands.begin(); itPFC != pfCands.end(); itPFC++) {
-    if (abs((*itPFC).pdgId())<7) continue;
-
-    double dr = deltaR((*itPFC), mu);
-    if (dr > r_iso) continue;
-      
-    //////////////////  NEUTRALS  /////////////////////////
-    if ((*itPFC).charge()==0){
-      if ((*itPFC).pt()>ptThresh) {
-        double wpf(1.);
-        if (method == "pfWeight"){
-          double wpv(1.), wpu(1.);
-          for (std::vector<pat::PackedCandidate>::const_iterator itJPFC = pfCands.begin(); itJPFC != pfCands.end(); itJPFC++) {
-            double jdr = deltaR2((*itPFC), (*itJPFC));
-            if ((*itPFC).charge()!=0 || jdr<0.00001) continue;
-            double jpt = (*itJPFC).pt();
-            double weight = jpt*jpt/jdr;
-            if ((*itJPFC).fromPV()>1 and abs((*itJPFC).charge())>0 and weight>1) wpv *= weight;
-            else if (weight>1) wpu *= weight;
-          }
-          wpv = 0.5*log(wpv);
-          wpu = 0.5*log(wpu);
-          wpf = wpv/(wpv+wpu);
-        }
-        /////////// PHOTONS ////////////
-        if (abs((*itPFC).pdgId())==22) {
-          if(dr < deadcone_ph) continue;
-          iso_ph += wpf*(*itPFC).pt();
-	  /////////// NEUTRAL HADRONS ////////////
-        } else if (abs((*itPFC).pdgId())==130) {
-          if(dr < deadcone_nh) continue;
-          iso_nh += wpf*(*itPFC).pt();
-        }
-      }
-      //////////////////  CHARGED from PV  /////////////////////////
-    } else if ((*itPFC).fromPV()>1){
-      if (abs((*itPFC).pdgId())==211) {
-        if(dr < deadcone_ch) continue;
-        iso_ch += (*itPFC).pt();
-      }
-      //////////////////  CHARGED from PU  /////////////////////////
-    } else {
-      if ((*itPFC).pt()>ptThresh){
-        if(dr < deadcone_pu) continue;
-        iso_pu += (*itPFC).pt();
-      }
-    }
-  }
-  float iso = 0.;
-  iso = iso_ph + iso_nh;
-  if (method == "deltaBeta"){
-	  iso -= 0.5*iso_pu;
-	  }
-  if (method == "effectiveArea"){
-	iso -=  getAEffMu(mu.eta()) * rho;
-	}
-  if (iso>0) iso += iso_ch;
-  else iso = iso_ch;
-  iso = iso * 1. / mu.pt();    
-  return iso;
-}
-
-float DiLeptonTreesFromMiniAOD::getMiniIso(const  pat::Tau &tau, const std::vector<pat::PackedCandidate> &pfCands, const std::string &method,const float &rho)
-{
-  float result = fctIsolation_(tau,method);
-  if(tau.tauID(tauId_) < 0.5)
-    result *= -1.0;
-  return result;
-}
 
 void DiLeptonTreesFromMiniAOD::fillLeptonIDs(const std::string &treeName, const  pat::Electron &ele1, const  pat::Electron &ele2, const edm::Handle<reco::VertexCollection> &vertices)
 {

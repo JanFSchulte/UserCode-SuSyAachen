@@ -20,6 +20,7 @@
 
 #include <iostream>
 
+using namespace std;
 
 // base functor class
 //====================
@@ -28,13 +29,17 @@ class IsolationFunctor
 public:
   IsolationFunctor(const edm::ParameterSet & cfg):
     rhoSrc_( cfg.getParameter<edm::InputTag>( "rhoSource" ) ),
+    candidateSrc_( cfg.getParameter<edm::InputTag>( "candSource" ) ),    
     rhoIso_(0.) {}
 
   const void init(const edm::Event &ev )
   {
     edm::Handle<double> rhoIso_h;
+    edm::Handle< std::vector<pat::PackedCandidate>  > pfCands_;
     ev.getByLabel(rhoSrc_, rhoIso_h);
+    ev.getByLabel(candidateSrc_, pfCands_);        
     rhoIso_ = *(rhoIso_h.product());
+    pfCands = *(pfCands_.product());
   }
 
   template<class T> const double operator()(const T& lepton, const std::string& method)
@@ -47,17 +52,38 @@ private:
     caloIso +=  lepton.pfIsolationVariables().sumNeutralHadronEt;
     caloIso += lepton.pfIsolationVariables().sumPhotonEt;
     if (method == "effectiveArea"){
-		caloIso -= GetAEffEle(lepton.eta()) * rhoIso_;
+		caloIso -= GetAEff(lepton) * rhoIso_;
 	}
 	else if (method == "deltaBeta"){
 		caloIso -= 0.5* lepton.pfIsolationVariables().sumPUPt;
 	}
+	
+  cout << pfCands->size() << endl;
 
     double iso = 0.;
     iso += lepton.pfIsolationVariables().sumChargedHadronPt;
 
     if (caloIso > 0)
       iso += caloIso;
+
+	if (method == "miniIsoEA"){
+		
+		iso = GetMiniIsolation(lepton, *pfCands, "effectiveArea", rhoIso_);
+	
+	}
+
+	else if (method == "miniIsoDB"){
+		
+		iso = GetMiniIsolation(lepton, *pfCands, "deltaBeta", rhoIso_);
+	
+	}
+	
+	else if (method == "miniIsoPFWeight"){
+		
+		iso = GetMiniIsolation(lepton, *pfCands, "pfWeight", rhoIso_);
+	
+	}	
+
 
     return iso;
   }
@@ -68,7 +94,7 @@ private:
     caloIso += lepton.pfIsolationR03().sumNeutralHadronEt;
     caloIso += lepton.pfIsolationR03().sumPhotonEt;
     if (method == "effectiveArea"){
-		caloIso -= GetAEffMu(lepton.eta()) * rhoIso_;
+		caloIso -= GetAEff(lepton) * rhoIso_;
 	}
 	else if (method == "deltaBeta"){
 		caloIso -= 0.5* lepton.pfIsolationR03().sumPUPt;
@@ -78,6 +104,27 @@ private:
     iso += lepton.pfIsolationR03().sumChargedHadronPt;
     if(caloIso > 0)
       iso+=caloIso;
+
+
+	if (method == "miniIsoEA"){
+		
+		iso = GetMiniIsolation(lepton, *pfCands, "effectiveArea", rhoIso_);
+	
+	}
+
+	else if (method == "miniIsoDB"){
+		
+		iso = GetMiniIsolation(lepton, *pfCands, "deltaBeta", rhoIso_);
+	
+	}
+	
+	else if (method == "miniIsoPFWeight"){
+		
+		iso = GetMiniIsolation(lepton, *pfCands, "pfWeight", rhoIso_);
+	
+	}
+
+
 
     return iso;
   }
@@ -89,9 +136,9 @@ private:
   }
 
 template<class T>
-int GetMiniIsolation(const T& lepton, const std::string& method)
+double GetMiniIsolation(const T& lepton, const std::vector<pat::PackedCandidate> &pfCands, const std::string &method, const double &rho)
 {
-  
+    std::cout << "start" << std::endl;
   if (lepton.pt()<5.) return 99999.;
 
   double r_iso_min = 0.05;
@@ -99,18 +146,20 @@ int GetMiniIsolation(const T& lepton, const std::string& method)
   double kt_scale = 10;
 
   double deadcone_nh(0.), deadcone_ch(0.), deadcone_ph(0.), deadcone_pu(0.);
-  if (fabs(e.eta())>1.479) {deadcone_ch = 0.015; deadcone_pu = 0.015; deadcone_ph = 0.08;}
+  if (fabs(lepton.eta())>1.479) {deadcone_ch = 0.015; deadcone_pu = 0.015; deadcone_ph = 0.08;}
   else {
       //deadcone_ch = 0.0001; deadcone_pu = 0.01; deadcone_ph = 0.01;deadcone_nh = 0.01; // maybe use muon cones??
   }
-
+  std::cout << "before EA" << std::endl;
   double iso_nh(0.); double iso_ch(0.); 
   double iso_ph(0.); double iso_pu(0.);
   double ptThresh = 0;
   double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/lepton.pt()));
+    std::cout << "before" << std::endl;  
   for (std::vector<pat::PackedCandidate>::const_iterator itPFC = pfCands.begin(); itPFC != pfCands.end(); itPFC++) {
+    std::cout << "before EA1" << std::endl;  
     if (abs((*itPFC).pdgId())<7) continue;
-
+    std::cout << "before EA1" << std::endl;
     double dr = deltaR((*itPFC), lepton);
     if (dr > r_iso) continue;
       
@@ -156,60 +205,61 @@ int GetMiniIsolation(const T& lepton, const std::string& method)
       }
     }
   }
-    
+    std::cout << "before EA1" << std::endl;
   float iso = 0.;
   iso = iso_ph + iso_nh;
   if (method == "deltaBeta"){
 	  iso -= 0.5*iso_pu;
 	  }
   if (method == "effectiveArea"){
-	iso -= getAEffEle(e.eta()) * rho;
+	iso -= GetAEff(lepton) * rho;
 	}
   if (iso>0) iso += iso_ch;
   else iso = iso_ch;
   iso = iso*1./lepton.pt();
+    std::cout << "before EA1" << std::endl;
   return iso;
  } 
 
 
 
   const virtual double GetIsolation(const reco::Candidate& lepton, const std::string& method){return -1.;}
-  
-  const double GetAEffEle(double eta)
-  {
-    //from http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/UserCode/EGamma/EGammaAnalysisTools/src/EGammaCutBasedEleId.c 
-    // but gamma + neutral hadrons values...
-    double etaAbs = fabs(eta);
-    //~ double AEff = 0.1;
-    //~ if (etaAbs > 1.0 && etaAbs <= 1.479) AEff = 0.12;
-    //~ if (etaAbs > 1.479 && etaAbs <= 2.0) AEff = 0.085;
-    //~ if (etaAbs > 2.0 && etaAbs <= 2.2) AEff = 0.11;
-    //~ if (etaAbs > 2.2 && etaAbs <= 2.3) AEff = 0.12;
-    //~ if (etaAbs > 2.3 && etaAbs <= 2.4) AEff = 0.12;
-    //~ if (etaAbs > 2.4) AEff = 0.13;
-    double AEff = 0.1013;
-    if (etaAbs > 0.8 && etaAbs <= 1.3) AEff = 0.0988;
-    if (etaAbs > 1.3 && etaAbs <= 2.0) AEff = 0.0572;
-    if (etaAbs > 2.0 && etaAbs <= 2.2) AEff = 0.0842;
-    if (etaAbs > 2.2) AEff = 0.153;
-    return AEff;
-  }
 
-  const double GetAEffMu(double eta)
-  {
-    //from http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/UserCode/EGamma/EGammaAnalysisTools/src/EGammaCutBasedEleId.c 
-    // but gamma + neutral hadrons values...
-    double etaAbs = fabs(eta);
+
+
+
+const double GetAEff(const pat::Muon& lepton){
+
+	double etaAbs = fabs(lepton.eta());
+	
     double AEff = 0.0913;
     if (etaAbs > 0.8 && etaAbs <= 1.3) AEff = 0.0765;
     if (etaAbs > 1.3 && etaAbs <= 2.0) AEff = 0.0546;
     if (etaAbs > 2.0 && etaAbs <= 2.2) AEff = 0.0728;
     if (etaAbs > 2.2) AEff = 0.1177;
     return AEff;
-  }
+}
+
+
+const double GetAEff(const pat::Electron& lepton){
+
+	double etaAbs = fabs(lepton.eta());
+
+    double AEff = 0.1013;
+    if (etaAbs > 0.8 && etaAbs <= 1.3) AEff = 0.0988;
+    if (etaAbs > 1.3 && etaAbs <= 2.0) AEff = 0.0572;
+    if (etaAbs > 2.0 && etaAbs <= 2.2) AEff = 0.0842;
+    if (etaAbs > 2.2) AEff = 0.153;
+    return AEff;
+
+}
+  
+
 
   edm::InputTag rhoSrc_;
+  edm::InputTag candidateSrc_;  
   double rhoIso_;
+  const std::vector<pat::PackedCandidate> pfCands;  
 };
 
 
