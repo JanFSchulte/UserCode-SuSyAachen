@@ -26,6 +26,12 @@ PATMuonD0PVSelector = cms.EDFilter("PATMuonD0PVSelector",
            beamSpotSource  = cms.InputTag("offlinePrimaryVertices") #offlinePrimeryVertices
 )
 
+PATMuonTightIDSelector = cms.EDFilter("PATMuonTightIDSelector", 
+           filter = cms.bool(True),
+           src = cms.InputTag("cleanLayer1Muons"),
+           vertexSource  = cms.InputTag("offlinePrimaryVertices") #offlinePrimeryVertices
+)
+
 patMatchedMuonSelector = cms.EDFilter("PATMuonMatchedSelector", 
    src = cms.InputTag("cleanLayer1Muons"),
    pdgId = cms.int32(13),

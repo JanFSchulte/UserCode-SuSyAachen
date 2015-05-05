@@ -329,8 +329,8 @@ void TagAndProbeTreeWriterDPC<T,P>::TnP(const collection& pairs, const edm::Hand
     ptTP = (tag->p4() + probe->p4()).Pt();
 
     // isolation
-    pfIsoAbs = fctIsolation_(*probe);
-    pfIso = fctIsolation_(*probe) / probe->pt();
+    pfIsoAbs = fctIsolation_(*probe,"pfIsolation");
+    pfIso = fctIsolation_(*probe,"pfIsolation") / probe->pt();
     pfIsoAbsChargedHadrons = -1.;//fctIsolationChargedHadrons_(*probe);
     pfIsoAbsNeutralHadrons = -1.;//fctIsolationNeutralHadrons_(*probe);
     pfIsoAbsPhotons = -1.;//fctIsolationPhotons_(*probe);

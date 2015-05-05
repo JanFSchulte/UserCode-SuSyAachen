@@ -6,6 +6,12 @@
   <use   name="DataFormats/ParticleFlowCandidate"/>
   <use   name="DataFormats/BeamSpot"/>
 </library>
+<library   name="SuSyAachenMuonSelectors" file="muonSelectors.cc">
+  <use   name="CommonTools/UtilAlgos"/>
+  <use   name="DataFormats/PatCandidates"/>
+  <use   name="DataFormats/ParticleFlowCandidate"/>
+  <use   name="DataFormats/BeamSpot"/>
+</library>
 <library   name="SuSyAachenPatFlagSelectors" file="patFlagSelector.cc">
   <use   name="CommonTools/UtilAlgos"/>
   <use   name="DataFormats/PatCandidates"/>

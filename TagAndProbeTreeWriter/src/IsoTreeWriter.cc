@@ -294,7 +294,7 @@ void IsoTreeWriter<T>::fillExtraVars(const pat::Electron& lepton, const edm::Eve
 		    << "d0 " << lepton.gsfTrack()->dxy(vertices->at(0).position()) << std::endl << "\t\t"
 		    << "dZ " << fabs(lepton.gsfTrack()->dz(vertices->at(0).position())) << std::endl << "\t\t"
 		    << " passes Conversion " << lepton.passConversionVeto()  << std::endl << "\t\t"
-		    << " iso " << fctIsolation_(lepton)/lepton.pt() 
+		    << " iso " << fctIsolation_(lepton,"pfIsolation")/lepton.pt() 
 	  	    << std::endl << "\t\t"	
 	    //		  << std::endl << "\t\t"
 	    //		  << " ch "<<lepton.pfIsolationR03().sumChargedHadronPt <<" neut "<< lepton.pfIsolationR03().sumNeutralHadronEt <<" photo "<<  lepton.pfIsolationR03().sumPhotonEt << " pu " <<lepton.pfIsolationR03().sumPUPt       
@@ -394,8 +394,8 @@ void IsoTreeWriter<T>::fillIso(const edm::Handle< std::vector<T> >& leptons, con
 		fillExtraVars(*lep_i,iEvent);
 
 		// isolation
-		pfIsoAbs = fctIsolation_(*lep_i);
-		pfIso = fctIsolation_(*lep_i) / lep_i->pt();
+		pfIsoAbs = fctIsolation_(*lep_i,"pfIsolation");
+		pfIso = fctIsolation_(*lep_i,"pfIsolation") / lep_i->pt();
 		pfIsoAbsChargedHadrons = -1.;//fctIsolationChargedHadrons_(*lep_i);
 		pfIsoAbsNeutralHadrons = -1.;//fctIsolationNeutralHadrons_(*lep_i);
 		pfIsoAbsPhotons = -1.;//fctIsolationPhotons_(*lep_i);

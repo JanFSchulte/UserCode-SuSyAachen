@@ -12,6 +12,7 @@
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 
+#include "SuSyAachen/Skimming/interface/d0SelectorEle.h"
 #include "SuSyAachen/Skimming/interface/d0Selector.h"
 
 // define your producer name
@@ -19,7 +20,7 @@ typedef ObjectSelector< d0Selector<reco::BeamSpot, pat::MuonCollection, std::vec
 typedef ObjectSelector< d0Selector<reco::BeamSpot, pat::ElectronCollection, std::vector<const pat::Electron *> > > PATElectronD0BSSelector;
 typedef ObjectSelector< d0Selector<reco::BeamSpot, reco::PFCandidateCollection, std::vector<const reco::PFCandidate *> > > PFCandidateD0BSSelector;
 typedef ObjectSelector< d0Selector<reco::VertexCollection, pat::MuonCollection, std::vector<const pat::Muon *> > > PATMuonD0PVSelector;
-typedef ObjectSelector< d0Selector<reco::VertexCollection, pat::ElectronCollection, std::vector<const pat::Electron *> > > PATElectronD0PVSelector;
+typedef ObjectSelector< d0SelectorEle<reco::VertexCollection, pat::ElectronCollection, std::vector<const pat::Electron *> > > PATElectronD0PVSelector;
 typedef ObjectSelector< d0Selector<reco::VertexCollection, reco::PFCandidateCollection, std::vector<const reco::PFCandidate *> > > PFCandidateD0PVSelector;
 
 

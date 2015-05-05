@@ -20,9 +20,11 @@ PATElectronD0PVSelector = cms.EDFilter("PATElectronD0PVSelector",
            filter = cms.bool(True),
            src = cms.InputTag("cleanLayer1Electrons"),
            d0Min = cms.double(-999999.),
-           d0Max = cms.double(0.2),
+           d0MaxEB = cms.double(0.2),
+           d0MaxEE = cms.double(0.2),
            dZMin = cms.double(-999999.),
-           dZMax = cms.double(1.),
+           dZMaxEB = cms.double(1.),
+           dZMaxEE = cms.double(1.),
            beamSpotSource  = cms.InputTag("offlinePrimaryVertices") #offlinePrimeryVertices
 )
 

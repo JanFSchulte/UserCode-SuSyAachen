@@ -5,18 +5,18 @@ from SuSyAachen.DiLeptonHistograms.efficiencies.electronEffPSet_cff import elect
 from SuSyAachen.DiLeptonHistograms.efficiencies.muonEffPSet_cff import muonCenterEfficiencies as muonEfficiency
 from SuSyAachen.TagAndProbeTreeWriter.isolationFunctor_cfi import isolationDefinitions
 
-DiLeptonBaseTreesNoTaus = cms.EDAnalyzer("DiLeptonBaseTrees",
+DiLeptonBaseTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonBaseTreesFromMiniAOD",
    electrons = cms.InputTag("triggerMatchedPatElectronsPF"),
    muons = cms.InputTag("triggerMatchedPatMuonsPF"),
 #   taus = cms.InputTag("triggerMatchedPatTausPF"),
-   jets = cms.InputTag("triggerMatchedPatJetsPF"),	   	   
-   bJets = cms.InputTag("triggerMatchedPatJetsPF"),
-   met = cms.InputTag("patMETsPF"),  	      	   
-   vertices = cms.InputTag("offlinePrimaryVertices"),
+   jets = cms.InputTag("qualityJets"),	   	   
+   bJets = cms.InputTag("qualityBJets"),
+   met = cms.InputTag("slimmedMETs"),  	   	   
+   vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
    tauId = cms.string("byTaNCfrHalfPercent"),
-   pfCands = cms.InputTag("particleFlow"),
-   genParticles = cms.InputTag("genParticles"),
-   rho = cms.InputTag("kt6PFJetsForIsolation", "rho"),	   
+   pfCands = cms.InputTag("packedPFCandidates"),
+   genParticles = cms.InputTag("prunedGenParticles"),
+   rho = cms.InputTag("fixedGridRhoFastjetAll"),	   
    susyVars = cms.VPSet(),
    pdfWeightTags = cms.VInputTag(),
    vertexWeights = vertexWeightPars,	   	   	   	   
@@ -79,12 +79,12 @@ DiLeptonBaseTreesNoTaus = cms.EDAnalyzer("DiLeptonBaseTrees",
 
 )
 
-DiLeptonBaseTrees = DiLeptonBaseTreesNoTaus.clone(
+DiLeptonBaseTreesFromMiniAOD = DiLeptonBaseTreesFromMiniAODNoTaus.clone(
     taus = cms.InputTag("triggerMatchedPatTausPF"),
     tauId = cms.string("byTaNCfrHalfPercent"), 
     )
 
-DiLeptonBaseTreesForLMPoints = DiLeptonBaseTrees.clone(
+DiLeptonBaseTreesFromMiniAODForLMPoints = DiLeptonBaseTreesFromMiniAOD.clone(
           pdfWeightTags = cms.VInputTag(
 #            "susyScanPdfWeights:cteq66",
 #            "susyScanPdfWeights:MSTW2008nlo68cl",
@@ -113,7 +113,7 @@ xSecVars = [
     cms.PSet(var = cms.InputTag("susyScankFactor"), type = cms.string("float")),
 ]
 
-DiLeptonBaseTreesmSugra = DiLeptonBaseTrees.clone(
+DiLeptonBaseTreesFromMiniAODmSugra = DiLeptonBaseTreesFromMiniAOD.clone(
    susyVars = cms.VPSet( mSugraVars + xSecVars),
    pdfWeightTags = cms.VInputTag(
         "susyScanPdfWeights:cteq66",
@@ -139,7 +139,7 @@ simplifedVars = cms.VPSet(
         #    cms.PSet(var = cms.InputTag("seqSUSYPARS","susyScanMu"), type = cms.string("int"))
             )
 
-DiLeptonBaseTreesSimplified = DiLeptonBaseTrees.clone(
+DiLeptonBaseTreesFromMiniAODSimplified = DiLeptonBaseTreesFromMiniAOD.clone(
 #    vertexWeights = vertexWeightPars.clone(doWeight = False)
     susyVars = simplifedVars,
     pdfWeightTags = cms.VInputTag(
@@ -150,4 +150,4 @@ DiLeptonBaseTreesSimplified = DiLeptonBaseTrees.clone(
 #    "susyScanPdfWeights:NNPDF10"
     )
     )
-DiLeptonBaseTreesSimplified.vertexWeights.doWeight=False
+DiLeptonBaseTreesFromMiniAODSimplified.vertexWeights.doWeight=False

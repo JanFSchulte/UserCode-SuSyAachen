@@ -107,13 +107,18 @@ struct effectiveAreaIsolationSelector {
     //from http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/UserCode/EGamma/EGammaAnalysisTools/src/EGammaCutBasedEleId.cc
     // but gamma + neutral hadrons values...
     double etaAbs = fabs(eta);
-    double AEff = 0.1;
-    if (etaAbs > 1.0 && etaAbs <= 1.479) AEff = 0.12;
-    if (etaAbs > 1.479 && etaAbs <= 2.0) AEff = 0.085;
-    if (etaAbs > 2.0 && etaAbs <= 2.2) AEff = 0.11;
-    if (etaAbs > 2.2 && etaAbs <= 2.3) AEff = 0.12;
-    if (etaAbs > 2.3 && etaAbs <= 2.4) AEff = 0.12;
-    if (etaAbs > 2.4) AEff = 0.13;
+    //~ double AEff = 0.1;
+    //~ if (etaAbs > 1.0 && etaAbs <= 1.479) AEff = 0.12;
+    //~ if (etaAbs > 1.479 && etaAbs <= 2.0) AEff = 0.085;
+    //~ if (etaAbs > 2.0 && etaAbs <= 2.2) AEff = 0.11;
+    //~ if (etaAbs > 2.2 && etaAbs <= 2.3) AEff = 0.12;
+    //~ if (etaAbs > 2.3 && etaAbs <= 2.4) AEff = 0.12;
+    //~ if (etaAbs > 2.4) AEff = 0.13;
+    double AEff = 0.1013;
+    if (etaAbs > 0.8 && etaAbs <= 1.3) AEff = 0.0988;
+    if (etaAbs > 1.3 && etaAbs <= 2.0) AEff = 0.0572;
+    if (etaAbs > 2.0 && etaAbs <= 2.2) AEff = 0.0842;
+    if (etaAbs > 2.2) AEff = 0.153;
     return AEff;
   }
     

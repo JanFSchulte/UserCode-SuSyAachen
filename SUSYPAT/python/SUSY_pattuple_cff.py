@@ -9,7 +9,7 @@
 
 import FWCore.ParameterSet.Config as cms
 
-def addDefaultSUSYPAT(process,mcInfo=True,HLTMenu='HLT',jetMetCorrections=['L2Relative', 'L3Absolute'],mcVersion='',theJetNames = ['AK4PFCHS'],doValidation=False,extMatch=False,doSusyTopProjection=False,doType1MetCorrection=True,doType0MetCorrection=False):
+def addDefaultSUSYPAT(process,mcInfo=True,HLTMenu='HLT',jetMetCorrections=['L2Relative', 'L3Absolute'],mcVersion='',theJetNames = ['AK4PFCHS'],doValidation=False,extMatch=False,doSusyTopProjection=False,doType1MetCorrection=True,doType0MetCorrection=False,doDeltaBetaReweighting=False):
     #~ theJetNames = ['AK4PFCHS']
     loadPF2PAT(process,mcInfo,jetMetCorrections,extMatch,doSusyTopProjection,doType1MetCorrection,doType0MetCorrection,'PF')
     addTagInfos(process,jetMetCorrections)
@@ -47,6 +47,9 @@ def addDefaultSUSYPAT(process,mcInfo=True,HLTMenu='HLT',jetMetCorrections=['L2Re
     if doValidation:
         loadSusyValidation(process)
         process.susyPatDefaultSequence.replace(process.patPF2PATSequencePF, process.patPF2PATSequencePF * process.ak4CaloJetsL2L3 * process.metJESCorAK4CaloJet  * process.RecoSusyValidation * process.PatSusyValidation*process.MEtoEDMConverter)
+    
+    if doDeltaBetaReweighting:
+        process.load('CommonTools.ParticleFlow.deltaBetaWeights_cff')
 
 def extensiveMatching(process):
     process.load("SimGeneral.TrackingAnalysis.trackingParticlesNoSimHits_cfi")    # On RECO
@@ -555,8 +558,42 @@ def loadSusyValidation(process):
     process.options = cms.untracked.PSet(
         fileMode = cms.untracked.string('NOMERGE')
     )
+    
+#~ def loadNHReweighting(process):
+	#~ from SuSyAachen.Configuration.ElectronPFIsolationSequence_cff import load_electronPFiso_sequence
+	#~ from SuSyAachen.Configuration.MuonPFIsolationSequence_cff import load_muonPFiso_sequence
+	#~ 
+	#~ load_muonPFiso_sequence(process, 'MuonPFIsoSequenceSTAND', algo = 'R04STAND',
+	  #~ src = 'selectedPatMuons',
+	  #~ src_charged_hadron = 'pfAllChargedHadrons',
+	  #~ src_neutral_hadron = 'pfAllNeutralHadrons',
+	  #~ src_photon         = 'pfAllPhotons',
+	  #~ src_charged_pileup = 'pfPileUpAllChargedParticles',
+	  #~ coneR = 0.3)
+	#~ load_muonPFiso_sequence(process, 'MuonPFIsoSequencePFWGT', algo = 'R04PFWGT',
+	  #~ src = 'selectedPatMuons',
+	  #~ src_neutral_hadron = 'pfWeightedNeutralHadrons',
+	  #~ src_photon         = 'pfWeightedPhotons',
+	  #~ coneR = 0.3)
+	#~ load_electronPFiso_sequence(process, 'ElectronPFIsoSequenceSTAND', algo = 'R04STAND',
+	  #~ src = 'selectedPatElectrons',
+	  #~ src_charged_hadron = 'pfAllChargedHadrons',
+	  #~ src_neutral_hadron = 'pfAllNeutralHadrons',
+	  #~ src_photon         = 'pfAllPhotons',
+	  #~ src_charged_pileup = 'pfPileUpAllChargedParticles',
+	  #~ coneR = 0.3)
+	#~ load_electronPFiso_sequence(process, 'ElectronPFIsoSequencePFWGT', algo = 'R04PFWGT',
+	  #~ src = 'selectedPatElectrons',
+	  #~ src_neutral_hadron = 'pfWeightedNeutralHadrons',
+	  #~ src_photon         = 'pfWeightedPhotons',
+	  #~ coneR = 0.3)
+	  #~ 
+	#~ process.MuonPFIsoSequences = cms.Sequence(process.MuonPFIsoSequenceSTAND *process.MuonPFIsoSequencePFWGT)
+	#~ process.ElectronPFIsoSequences = cms.Sequence(process.ElectronPFIsoSequenceSTAND *process.ElectronPFIsoSequencePFWGT)
 
-def getSUSY_pattuple_outputCommands( process ):
+
+#~ def getSUSY_pattuple_outputCommands( process, doNHReweighting):
+def getSUSY_pattuple_outputCommands( process):
     from PhysicsTools.PatAlgos.patEventContent_cff import patEventContent, patExtraAodEventContent, patTriggerEventContent, patTriggerStandAloneEventContent, patEventContentTriggerMatch
     keepList = []
     susyAddEventContent = [ # PAT Objects
@@ -607,6 +644,15 @@ def getSUSY_pattuple_outputCommands( process ):
     keepList.extend(patTriggerEventContent)
     keepList.extend(patEventContentTriggerMatch)
     keepList.extend(susyAddEventContent)
+    #~ if doNHReweighting:
+		#~ NHReweighting = [
+	    #~ 'keep *_selectedPatPhotons*_*_*',
+	    #~ 'keep *_muPFIsoValue*STAND_*_*',
+	    #~ 'keep *_muPFIsoValue*PFWGT_*_*',
+	    #~ 'keep *_elePFIsoValue*STAND_*_*',
+	    #~ 'keep *_elePFIsoValue*PFWGT_*_*',
+		#~ ]
+		#~ keepList.extend(NHReweighting)
     return keepList
 
 

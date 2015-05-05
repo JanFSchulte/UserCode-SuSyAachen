@@ -29,3 +29,9 @@ keep *_pfType1CorrectedMet_*_*
 keep *_pfMet*_*_*
 keep *_pfMET*_*_*
 keep *_cleanPatMuons_*_*
+keep *_OfflinePrimaryVertices_*_*
+keep *_selectedPatMuons_*_*
+keep *_muPFIsoValue*STAND_*_*
+keep *_muPFIsoValue*PFWGT_*_*
+keep *_elePFIsoValue*STAND_*_*
+keep *_elePFIsoValue*PFWGT_*_*

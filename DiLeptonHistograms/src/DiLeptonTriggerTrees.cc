@@ -99,9 +99,9 @@ private:
   float getPhiAtECAL(const  pat::Electron &e, const std::vector<reco::PFCandidate>&pfCands);
   float getPhiAtECAL(const  pat::Muon &mu, const std::vector<reco::PFCandidate>&pfCands);
   float getPhiAtECAL(const  pat::Tau &tau, const std::vector<reco::PFCandidate>&pfCands);
-  float getId(const  pat::Electron &e);
-  float getId(const  pat::Muon &mu);
-  float getId(const  pat::Tau &tau);
+  float getIso(const  pat::Electron &e, const std::string &method);
+  float getIso(const  pat::Muon &mu, const std::string &method);
+  float getIso(const  pat::Tau &tau, const std::string &method);
   float getDeltaB(const  pat::Electron &e);
   float getDeltaB(const  pat::Muon &mu);
   float getDeltaB(const  pat::Tau &tau);
@@ -232,8 +232,10 @@ DiLeptonTriggerTrees::DiLeptonTriggerTrees(const edm::ParameterSet& iConfig):
   initFloatBranch( "pt2" );
   initFloatBranch( "eta1" );
   initFloatBranch( "eta2" );
-  initFloatBranch( "id1" );
-  initFloatBranch( "id2" );
+  initFloatBranch( "isoEffArea1" );
+  initFloatBranch( "isoEffArea2" );
+  initFloatBranch( "isoPF1" );
+  initFloatBranch( "isoPF2" );
   initFloatBranch( "dB1" );
   initFloatBranch( "dB2" );
   initFloatBranch( "mt1" );
@@ -750,8 +752,10 @@ DiLeptonTriggerTrees::fillTree( const std::string &treeName, const aT& a, const 
   *(floatBranches_[treeName]["charge2"]) = b.charge();
   *(floatBranches_[treeName]["eta1"]) = aVec.Eta();
   *(floatBranches_[treeName]["eta2"]) = bVec.Eta();
-  *(floatBranches_[treeName]["id1"]) = getId(a);
-  *(floatBranches_[treeName]["id2"]) = getId(b);
+  *(floatBranches_[treeName]["isoEffArea1"]) = getIso(a,"effectiveArea");
+  *(floatBranches_[treeName]["isoEffArea2"]) = getIso(b,"effectiveArea");
+  *(floatBranches_[treeName]["isoPF1"]) = getIso(a,"deltaBeta");
+  *(floatBranches_[treeName]["isoPF2"]) = getIso(b,"deltaBeta");
   *(floatBranches_[treeName]["dB1"]) = getDeltaB(a);
   *(floatBranches_[treeName]["dB2"]) = getDeltaB(b);
   *(floatBranches_[treeName]["mt1"]) = transverseMass(aVec, met);
@@ -1105,7 +1109,7 @@ const TLorentzVector DiLeptonTriggerTrees::getMomentum(const  pat::Tau &tau)
   return result;
 }
 
-float DiLeptonTriggerTrees::getId(const  pat::Electron &e)
+float DiLeptonTriggerTrees::getIso(const  pat::Electron &e, const std::string &method)
 {
   //  if (e.isEE())
   //  return (e.dr03HcalTowerSumEt() + e.dr03EcalRecHitSumEt() + e.dr03TkSumPt())/e.pt();
@@ -1115,20 +1119,20 @@ float DiLeptonTriggerTrees::getId(const  pat::Electron &e)
   //  std::cout<<"electron " << (lepton.trackIso()+lepton.ecalIso()+lepton.hcalIso())/lepton.pt() << std::endl;
   // return (lepton.trackIso()+lepton.ecalIso()+lepton.hcalIso())/lepton.pt() ;
     //  return (e.chargedHadronIso() + e.photonIso() + e.neutralHadronIso()) / e.pt();
-  return fctIsolation_(e)* 1./e.pt();
+  return fctIsolation_(e,method)* 1./e.pt();
 }
 
-float DiLeptonTriggerTrees::getId(const  pat::Muon &mu)
+float DiLeptonTriggerTrees::getIso(const  pat::Muon &mu, const std::string &method)
 {
   //  std::cout<<"muon " << (lepton.trackIso()+lepton.ecalIso()+lepton.hcalIso())/lepton.pt() << std::endl;
   //  return (mu.isolationR03().hadEt + mu.isolationR03().emEt + mu.isolationR03().sumPt) / mu.pt();
   //  return (mu.chargedHadronIso() + mu.photonIso() + mu.neutralHadronIso()) / mu.pt();
-  return fctIsolation_(mu)* 1./mu.pt();
+  return fctIsolation_(mu,method)* 1./mu.pt();
 }
 
-float DiLeptonTriggerTrees::getId(const  pat::Tau &tau)
+float DiLeptonTriggerTrees::getIso(const  pat::Tau &tau, const std::string &method)
 {
-  float result = fctIsolation_(tau);
+  float result = fctIsolation_(tau,method);
   if(tau.tauID(tauId_) < 0.5)
     result *= -1.0;
   return result;

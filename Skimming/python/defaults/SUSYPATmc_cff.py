@@ -14,11 +14,13 @@ def SUSYPATmc(process):
     doValidation = False
     doExtensiveMatching = False
     doSusyTopProjection = False
+    doType0MetCorrection=False
     doType1MetCorrection=True
+    doDeltaBetaReweighting = True
 
     #Apply SUSYPAT
-    addDefaultSUSYPAT(process,mcInfo,hltName,jetCorrections, mcVersion, jetTypes, doValidation, doExtensiveMatching, doSusyTopProjection,doType1MetCorrection)
-    SUSY_pattuple_outputCommands = getSUSY_pattuple_outputCommands( process )
+    addDefaultSUSYPAT(process,mcInfo,hltName,jetCorrections, mcVersion, jetTypes, doValidation, doExtensiveMatching, doSusyTopProjection,doType1MetCorrection,doType0MetCorrection,doDeltaBetaReweighting)
+    SUSY_pattuple_outputCommands = getSUSY_pattuple_outputCommands( process)
     ############################## END SUSYPAT specifics ####################################
 
     ### AACHEN specific, need better place for this #####
