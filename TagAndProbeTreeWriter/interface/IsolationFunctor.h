@@ -35,11 +35,9 @@ public:
   const void init(const edm::Event &ev )
   {
     edm::Handle<double> rhoIso_h;
-    edm::Handle< std::vector<pat::PackedCandidate>  > pfCands_;
     ev.getByLabel(rhoSrc_, rhoIso_h);
-    ev.getByLabel(candidateSrc_, pfCands_);        
+    ev.getByLabel(candidateSrc_, pfCands);        
     rhoIso_ = *(rhoIso_h.product());
-    pfCands = *(pfCands_.product());
   }
 
   template<class T> const double operator()(const T& lepton, const std::string& method)
@@ -58,7 +56,7 @@ private:
 		caloIso -= 0.5* lepton.pfIsolationVariables().sumPUPt;
 	}
 	
-  cout << pfCands->size() << endl;
+
 
     double iso = 0.;
     iso += lepton.pfIsolationVariables().sumChargedHadronPt;
@@ -105,7 +103,7 @@ private:
     if(caloIso > 0)
       iso+=caloIso;
 
-
+	
 	if (method == "miniIsoEA"){
 		
 		iso = GetMiniIsolation(lepton, *pfCands, "effectiveArea", rhoIso_);
@@ -138,7 +136,6 @@ private:
 template<class T>
 double GetMiniIsolation(const T& lepton, const std::vector<pat::PackedCandidate> &pfCands, const std::string &method, const double &rho)
 {
-    std::cout << "start" << std::endl;
   if (lepton.pt()<5.) return 99999.;
 
   double r_iso_min = 0.05;
@@ -150,16 +147,13 @@ double GetMiniIsolation(const T& lepton, const std::vector<pat::PackedCandidate>
   else {
       //deadcone_ch = 0.0001; deadcone_pu = 0.01; deadcone_ph = 0.01;deadcone_nh = 0.01; // maybe use muon cones??
   }
-  std::cout << "before EA" << std::endl;
+
   double iso_nh(0.); double iso_ch(0.); 
   double iso_ph(0.); double iso_pu(0.);
   double ptThresh = 0;
   double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/lepton.pt()));
-    std::cout << "before" << std::endl;  
   for (std::vector<pat::PackedCandidate>::const_iterator itPFC = pfCands.begin(); itPFC != pfCands.end(); itPFC++) {
-    std::cout << "before EA1" << std::endl;  
     if (abs((*itPFC).pdgId())<7) continue;
-    std::cout << "before EA1" << std::endl;
     double dr = deltaR((*itPFC), lepton);
     if (dr > r_iso) continue;
       
@@ -205,7 +199,6 @@ double GetMiniIsolation(const T& lepton, const std::vector<pat::PackedCandidate>
       }
     }
   }
-    std::cout << "before EA1" << std::endl;
   float iso = 0.;
   iso = iso_ph + iso_nh;
   if (method == "deltaBeta"){
@@ -216,8 +209,7 @@ double GetMiniIsolation(const T& lepton, const std::vector<pat::PackedCandidate>
 	}
   if (iso>0) iso += iso_ch;
   else iso = iso_ch;
-  iso = iso*1./lepton.pt();
-    std::cout << "before EA1" << std::endl;
+
   return iso;
  } 
 
@@ -259,7 +251,7 @@ const double GetAEff(const pat::Electron& lepton){
   edm::InputTag rhoSrc_;
   edm::InputTag candidateSrc_;  
   double rhoIso_;
-  const std::vector<pat::PackedCandidate> pfCands;  
+  edm::Handle< std::vector<pat::PackedCandidate>  > pfCands;  
 };
 
 
