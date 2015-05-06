@@ -152,6 +152,7 @@ private:
   bool debug;
   bool useJets2_;
   bool useTaus_;
+  bool writeID_;
 };
 
 // constructors and destructor
@@ -165,7 +166,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   debug = false;
   useTaus_ = iConfig.existsAs<edm::InputTag>("taus");
   useJets2_ = iConfig.existsAs<edm::InputTag>("jets2");
-  
+  writeID_ = iConfig.existsAs<edm::InputTag>("baseTrees");
   // read config
   eTag_ = iConfig.getParameter<edm::InputTag>("electrons");
   muTag_ = iConfig.getParameter<edm::InputTag>("muons");
@@ -299,6 +300,56 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   if(useJets2_) {
     initFloatBranch( "ht2" );
     initIntBranch( "nJets2" );    
+  }
+  if (writeID_){
+ 
+ 
+	  initFloatBranch( "deltaEtaSuperClusterTrackAtVtx1");
+	  initFloatBranch( "deltaPhiSuperClusterTrackAtVtx1");
+	  initFloatBranch( "sigmaIetaIeta1");
+	  initFloatBranch( "hadronicOverEm1");
+	  initFloatBranch( "eOverP1");
+	  initFloatBranch( "missingHits1");
+	  initFloatBranch( "d01");
+	  initFloatBranch( "dZ1");
+	  initFloatBranch( "globalMuon1");
+	  initFloatBranch( "trackerMuon1");
+	  initFloatBranch( "pfMuon1");
+	  initFloatBranch( "trackChi21");
+	  initFloatBranch( "numberOfValidMuonHits1");
+	  initFloatBranch( "numberOfMatchedStations1");
+	  initFloatBranch( "numberOfValidPixelHits1");
+	  initFloatBranch( "trackerLayersWithMeasurement1");
+	  initFloatBranch( "chargedIso1");
+	  initFloatBranch( "neutralIso1");
+	  initFloatBranch( "photonIso1");
+	  initFloatBranch( "puIso1");
+	  initFloatBranch( "effectiveArea1");
+	  initFloatBranch( "passConversion1");
+
+	  initFloatBranch( "deltaEtaSuperClusterTrackAtVtx2");
+	  initFloatBranch( "deltaPhiSuperClusterTrackAtVtx2");
+	  initFloatBranch( "sigmaIetaIeta2");
+	  initFloatBranch( "hadronicOverEm2");
+	  initFloatBranch( "eOverP2");
+	  initFloatBranch( "missingHits2");
+	  initFloatBranch( "d02");
+	  initFloatBranch( "dZ2");
+	  initFloatBranch( "globalMuon2");
+	  initFloatBranch( "trackerMuon2");
+	  initFloatBranch( "pfMuon2");
+	  initFloatBranch( "trackChi22");
+	  initFloatBranch( "numberOfValidMuonHits2");
+	  initFloatBranch( "numberOfMatchedStations2");
+	  initFloatBranch( "numberOfValidPixelHits2");
+	  initFloatBranch( "trackerLayersWithMeasurement2");
+	  initFloatBranch( "chargedIso2");
+	  initFloatBranch( "neutralIso2");
+	  initFloatBranch( "photonIso2");
+	  initFloatBranch( "puIso2");
+	  initFloatBranch( "effectiveArea2");
+	  initFloatBranch( "passConversion2"); 
+  
   }
   for ( std::vector<edm::ParameterSet>::iterator susyVar_i = susyVars_.begin(); susyVar_i != susyVars_.end(); ++susyVar_i ) {
     edm::InputTag var = susyVar_i->getParameter<edm::InputTag>( "var" );
@@ -862,7 +913,7 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   if( matched == 3 && pdgIds1[1] == pdgIds2[1] ) {
     matched |= 4;
   }
-
+  *(intBranches_[treeName]["matched"]) = matched; 
   *(tLorentzVectorBranches_[treeName]["p4Gen"]) = genVec;
   *(tLorentzVectorBranches_[treeName]["genLepton1"]) = genLepton1;
   *(tLorentzVectorBranches_[treeName]["genLepton2"]) = genLepton2;
@@ -1030,6 +1081,50 @@ void DiLeptonTreesFromMiniAOD::fillLeptonIDs(const std::string &treeName, const 
   *(floatBranches_[treeName]["neutralIso2"]) = ele2.pfIsolationVariables().sumNeutralHadronEt;
   *(floatBranches_[treeName]["photonIso2"]) = ele2.pfIsolationVariables().sumPhotonEt;
   *(floatBranches_[treeName]["puIso2"]) = ele2.pfIsolationVariables().sumPUPt;
+  
+  if (writeID_){
+  
+  *(floatBranches_[treeName]["deltaEtaSuperClusterTrackAtVtx1"]) = ele1.deltaEtaSuperClusterTrackAtVtx();
+  *(floatBranches_[treeName]["deltaPhiSuperClusterTrackAtVtx1"]) = ele1.deltaPhiSuperClusterTrackAtVtx();
+  *(floatBranches_[treeName]["sigmaIetaIeta1"]) = ele1.sigmaIetaIeta();
+  *(floatBranches_[treeName]["hadronicOverEm1"]) = ele1.hadronicOverEm();
+  *(floatBranches_[treeName]["eOverP1"]) = abs(1.0/ele1.ecalEnergy() - ele1.eSuperClusterOverP()/ele1.ecalEnergy());
+  *(floatBranches_[treeName]["missingHits1"]) = ele1.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS);
+  *(floatBranches_[treeName]["effectiveArea1"]) = getAEffEle(ele1.eta());
+  *(floatBranches_[treeName]["passConversion1"]) = ele1.passConversionVeto();
+  *(floatBranches_[treeName]["d01"]) = ele1.gsfTrack()->dxy(vertices->at(0).position());
+  *(floatBranches_[treeName]["dZ1"]) = fabs(ele1.gsfTrack()->dz(vertices->at(0).position())); 
+
+  *(floatBranches_[treeName]["globalMuon1"]) = -999.;
+  *(floatBranches_[treeName]["trackerMuon1"]) = -999.;
+  *(floatBranches_[treeName]["pfMuon1"]) = -999.;
+  *(floatBranches_[treeName]["trackChi21"]) = -999.;
+  *(floatBranches_[treeName]["numberOfValidMuonHits1"]) = -999.;
+  *(floatBranches_[treeName]["numberOfMatchedStations1"]) = -999.;
+  *(floatBranches_[treeName]["numberOfValidPixelHits1"]) = -999.;
+  *(floatBranches_[treeName]["trackerLayersWithMeasurement1"]) = -999.;
+
+  *(floatBranches_[treeName]["deltaEtaSuperClusterTrackAtVtx2"]) = ele2.deltaEtaSuperClusterTrackAtVtx();
+  *(floatBranches_[treeName]["deltaPhiSuperClusterTrackAtVtx2"]) = ele2.deltaPhiSuperClusterTrackAtVtx();
+  *(floatBranches_[treeName]["sigmaIetaIeta2"]) = ele2.sigmaIetaIeta();
+  *(floatBranches_[treeName]["hadronicOverEm2"]) = ele2.hadronicOverEm();
+  *(floatBranches_[treeName]["eOverP2"]) = abs(1.0/ele2.ecalEnergy() - ele2.eSuperClusterOverP()/ele2.ecalEnergy());
+  *(floatBranches_[treeName]["missingHits2"]) = ele2.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS);
+  *(floatBranches_[treeName]["effectiveArea2"]) = getAEffEle(ele2.eta());
+  *(floatBranches_[treeName]["passConversion2"]) = ele2.passConversionVeto();
+  *(floatBranches_[treeName]["d02"]) = ele2.gsfTrack()->dxy(vertices->at(0).position());
+  *(floatBranches_[treeName]["dZ2"]) = fabs(ele2.gsfTrack()->dz(vertices->at(0).position()));
+  
+   *(floatBranches_[treeName]["globalMuon2"]) = -999.;
+  *(floatBranches_[treeName]["trackerMuon2"]) = -999.;
+  *(floatBranches_[treeName]["pfMuon2"]) = -999.;
+  *(floatBranches_[treeName]["trackChi22"]) = -999.;
+  *(floatBranches_[treeName]["numberOfValidMuonHits2"]) = -999.;
+  *(floatBranches_[treeName]["numberOfMatchedStations2"]) = -999.;
+  *(floatBranches_[treeName]["numberOfValidPixelHits2"]) = -999.;
+  *(floatBranches_[treeName]["trackerLayersWithMeasurement2"]) = -999.; 
+  
+  }
 
 }
 
@@ -1048,6 +1143,54 @@ void DiLeptonTreesFromMiniAOD::fillLeptonIDs(const std::string &treeName, const 
   *(floatBranches_[treeName]["neutralIso2"]) = -999.;
   *(floatBranches_[treeName]["photonIso2"]) = -999.;
   *(floatBranches_[treeName]["puIso2"]) = -999.;
+  
+  
+  if (writeID_){
+  
+  *(floatBranches_[treeName]["deltaEtaSuperClusterTrackAtVtx1"]) = ele1.deltaEtaSuperClusterTrackAtVtx();
+  *(floatBranches_[treeName]["deltaPhiSuperClusterTrackAtVtx1"]) = ele1.deltaPhiSuperClusterTrackAtVtx();
+  *(floatBranches_[treeName]["sigmaIetaIeta1"]) = ele1.sigmaIetaIeta();
+  *(floatBranches_[treeName]["hadronicOverEm1"]) = ele1.hadronicOverEm();
+  *(floatBranches_[treeName]["eOverP1"]) = abs(1.0/ele1.ecalEnergy() - ele1.eSuperClusterOverP()/ele1.ecalEnergy());
+  *(floatBranches_[treeName]["missingHits1"]) = ele1.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS);
+  *(floatBranches_[treeName]["effectiveArea1"]) = getAEffEle(ele1.eta());
+  *(floatBranches_[treeName]["passConversion1"]) = ele1.passConversionVeto();
+  *(floatBranches_[treeName]["d01"]) = ele1.gsfTrack()->dxy(vertices->at(0).position());
+  *(floatBranches_[treeName]["dZ1"]) = fabs(ele1.gsfTrack()->dz(vertices->at(0).position())); 
+ 
+   *(floatBranches_[treeName]["globalMuon1"]) = -999.;
+  *(floatBranches_[treeName]["trackerMuon1"]) = -999.;
+  *(floatBranches_[treeName]["pfMuon1"]) = -999.;
+  *(floatBranches_[treeName]["trackChi21"]) = -999.;
+  *(floatBranches_[treeName]["numberOfValidMuonHits1"]) = -999.;
+  *(floatBranches_[treeName]["numberOfMatchedStations1"]) = -999.;
+  *(floatBranches_[treeName]["numberOfValidPixelHits1"]) = -999.;
+  *(floatBranches_[treeName]["trackerLayersWithMeasurement1"]) = -999.;
+
+  *(floatBranches_[treeName]["deltaEtaSuperClusterTrackAtVtx2"]) = -999.;
+  *(floatBranches_[treeName]["deltaPhiSuperClusterTrackAtVtx2"]) = -999.;
+  *(floatBranches_[treeName]["sigmaIetaIeta2"]) = -999.;
+  *(floatBranches_[treeName]["hadronicOverEm2"]) = -999.;
+  *(floatBranches_[treeName]["eOverP2"]) = -999.;
+  *(floatBranches_[treeName]["missingHits2"]) = -999.;
+  *(floatBranches_[treeName]["effectiveArea2"]) = -999.;
+  *(floatBranches_[treeName]["passConversion2"]) = -999.;
+  *(floatBranches_[treeName]["d02"]) = -999.;
+  *(floatBranches_[treeName]["dZ2"]) = -999.;
+  
+  
+  *(floatBranches_[treeName]["globalMuon2"]) = -999.;
+  *(floatBranches_[treeName]["trackerMuon2"]) = -999.;
+  *(floatBranches_[treeName]["pfMuon2"]) = -999.;
+  *(floatBranches_[treeName]["trackChi22"]) = -999.;
+  *(floatBranches_[treeName]["numberOfValidMuonHits2"]) = -999.;
+  *(floatBranches_[treeName]["numberOfMatchedStations2"]) = -999.;
+  *(floatBranches_[treeName]["numberOfValidPixelHits2"]) = -999.;
+  *(floatBranches_[treeName]["trackerLayersWithMeasurement2"]) = -999.;
+  
+  
+  }
+  
 
 }
 
@@ -1066,6 +1209,51 @@ void DiLeptonTreesFromMiniAOD::fillLeptonIDs(const std::string &treeName, const 
   *(floatBranches_[treeName]["neutralIso2"]) = -999.;
   *(floatBranches_[treeName]["photonIso2"]) = -999.;
   *(floatBranches_[treeName]["puIso2"]) = -999.;
+  
+  if (writeID_){
+ 
+  *(floatBranches_[treeName]["deltaEtaSuperClusterTrackAtVtx1"]) = -999.;
+  *(floatBranches_[treeName]["deltaPhiSuperClusterTrackAtVtx1"]) = -999.;
+  *(floatBranches_[treeName]["sigmaIetaIeta1"]) = -999.;
+  *(floatBranches_[treeName]["hadronicOverEm1"]) = -999.;
+  *(floatBranches_[treeName]["eOverP1"]) = -999.;
+  *(floatBranches_[treeName]["missingHits1"]) = -999.;
+  *(floatBranches_[treeName]["effectiveArea1"]) = -999.;
+  *(floatBranches_[treeName]["passConversion1"]) = -999.;
+  *(floatBranches_[treeName]["d01"]) = -999.;
+  *(floatBranches_[treeName]["dZ1"]) = -999.; 
+ 
+  *(floatBranches_[treeName]["globalMuon1"]) = -999.;
+  *(floatBranches_[treeName]["trackerMuon1"]) = -999.;
+  *(floatBranches_[treeName]["pfMuon1"]) = -999.;
+  *(floatBranches_[treeName]["trackChi21"]) = -999.;
+  *(floatBranches_[treeName]["numberOfValidMuonHits1"]) = -999.;
+  *(floatBranches_[treeName]["numberOfMatchedStations1"]) = -999.;
+  *(floatBranches_[treeName]["numberOfValidPixelHits1"]) = -999.;
+  *(floatBranches_[treeName]["trackerLayersWithMeasurement1"]) = -999.;
+
+  *(floatBranches_[treeName]["deltaEtaSuperClusterTrackAtVtx2"]) = -999.;
+  *(floatBranches_[treeName]["deltaPhiSuperClusterTrackAtVtx2"]) = -999.;
+  *(floatBranches_[treeName]["sigmaIetaIeta2"]) = -999.;
+  *(floatBranches_[treeName]["hadronicOverEm2"]) = -999.;
+  *(floatBranches_[treeName]["eOverP2"]) = -999.;
+  *(floatBranches_[treeName]["missingHits2"]) = -999.;
+  *(floatBranches_[treeName]["effectiveArea2"]) = -999.;
+  *(floatBranches_[treeName]["passConversion2"]) = -999.;
+  *(floatBranches_[treeName]["d02"]) = -999.;
+  *(floatBranches_[treeName]["dZ2"]) = -999.;
+  
+  *(floatBranches_[treeName]["globalMuon2"]) = -999.;
+  *(floatBranches_[treeName]["trackerMuon2"]) = -999.;
+  *(floatBranches_[treeName]["pfMuon2"]) = -999.;
+  *(floatBranches_[treeName]["trackChi22"]) = -999.;
+  *(floatBranches_[treeName]["numberOfValidMuonHits2"]) = -999.;
+  *(floatBranches_[treeName]["numberOfMatchedStations2"]) = -999.;
+  *(floatBranches_[treeName]["numberOfValidPixelHits2"]) = -999.;
+  *(floatBranches_[treeName]["trackerLayersWithMeasurement2"]) = -999.; 
+  
+  
+  }
 
 }
 
@@ -1085,6 +1273,59 @@ void DiLeptonTreesFromMiniAOD::fillLeptonIDs(const std::string &treeName, const 
   *(floatBranches_[treeName]["neutralIso2"]) = mu2.pfIsolationR03().sumNeutralHadronEt;
   *(floatBranches_[treeName]["photonIso2"]) = mu2.pfIsolationR03().sumPhotonEt;
   *(floatBranches_[treeName]["puIso2"]) = mu2.pfIsolationR03().sumPUPt;
+  
+  if (writeID_){
+  
+  *(floatBranches_[treeName]["deltaEtaSuperClusterTrackAtVtx1"]) = ele1.deltaEtaSuperClusterTrackAtVtx();
+  *(floatBranches_[treeName]["deltaPhiSuperClusterTrackAtVtx1"]) = ele1.deltaPhiSuperClusterTrackAtVtx();
+  *(floatBranches_[treeName]["sigmaIetaIeta1"]) = ele1.sigmaIetaIeta();
+  *(floatBranches_[treeName]["hadronicOverEm1"]) = ele1.hadronicOverEm();
+  *(floatBranches_[treeName]["eOverP1"]) = abs(1.0/ele1.ecalEnergy() - ele1.eSuperClusterOverP()/ele1.ecalEnergy());
+  *(floatBranches_[treeName]["missingHits1"]) = ele1.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS);
+  *(floatBranches_[treeName]["effectiveArea1"]) = getAEffEle(ele1.eta());
+  *(floatBranches_[treeName]["passConversion1"]) = ele1.passConversionVeto();
+  *(floatBranches_[treeName]["d01"]) = ele1.gsfTrack()->dxy(vertices->at(0).position());
+  *(floatBranches_[treeName]["dZ1"]) = fabs(ele1.gsfTrack()->dz(vertices->at(0).position())); 
+ 
+  *(floatBranches_[treeName]["globalMuon1"]) = -999.;
+  *(floatBranches_[treeName]["trackerMuon1"]) = -999.;
+  *(floatBranches_[treeName]["pfMuon1"]) = -999.;
+  *(floatBranches_[treeName]["trackChi21"]) = -999.;
+  *(floatBranches_[treeName]["numberOfValidMuonHits1"]) = -999.;
+  *(floatBranches_[treeName]["numberOfMatchedStations1"]) = -999.;
+  *(floatBranches_[treeName]["numberOfValidPixelHits1"]) = -999.;
+  *(floatBranches_[treeName]["trackerLayersWithMeasurement1"]) = -999.;
+  
+  *(floatBranches_[treeName]["deltaEtaSuperClusterTrackAtVtx2"]) = -999.;
+  *(floatBranches_[treeName]["deltaPhiSuperClusterTrackAtVtx2"]) = -999.;
+  *(floatBranches_[treeName]["sigmaIetaIeta2"]) = -999.;
+  *(floatBranches_[treeName]["hadronicOverEm2"]) = -999.;
+  *(floatBranches_[treeName]["eOverP2"]) = -999.;
+  *(floatBranches_[treeName]["missingHits2"]) = -999.;
+  *(floatBranches_[treeName]["effectiveArea2"]) = getAEffMu(mu2.eta());
+  *(floatBranches_[treeName]["passConversion2"]) = -999.;
+  
+  *(floatBranches_[treeName]["d02"]) = mu2.dB();
+  *(floatBranches_[treeName]["dZ2"]) = abs(mu2.muonBestTrack()->dz(vertices->at(0).position())); 
+   if (mu2.isGlobalMuon()){
+	  *(floatBranches_[treeName]["trackChi22"]) = mu2.globalTrack()->normalizedChi2();
+	  *(floatBranches_[treeName]["numberOfValidMuonHits2"]) = mu2.globalTrack()->hitPattern().numberOfValidMuonHits();
+  }
+  else{
+	 *(floatBranches_[treeName]["trackChi22"]) = -999.;
+         *(floatBranches_[treeName]["numberOfValidMuonHits2"]) = -999.;
+  }
+  *(floatBranches_[treeName]["numberOfMatchedStations2"]) =mu2.numberOfMatchedStations();
+  if (mu2.isTrackerMuon()){
+  	*(floatBranches_[treeName]["numberOfValidPixelHits2"]) = mu2.innerTrack()->hitPattern().numberOfValidPixelHits();
+  	*(floatBranches_[treeName]["trackerLayersWithMeasurement2"]) = mu2.track()->hitPattern().trackerLayersWithMeasurement();
+  }
+  else{
+  	*(floatBranches_[treeName]["numberOfValidPixelHits2"]) = -999.;
+  	*(floatBranches_[treeName]["trackerLayersWithMeasurement2"]) = -999.;
+  }    
+  
+  }
 
 }
 
@@ -1103,6 +1344,79 @@ void DiLeptonTreesFromMiniAOD::fillLeptonIDs(const std::string &treeName, const 
   *(floatBranches_[treeName]["neutralIso2"]) = mu2.pfIsolationR03().sumNeutralHadronEt;
   *(floatBranches_[treeName]["photonIso2"]) = mu2.pfIsolationR03().sumPhotonEt;
   *(floatBranches_[treeName]["puIso2"]) = mu2.pfIsolationR03().sumPUPt;
+  
+  if (writeID_){
+  *(floatBranches_[treeName]["deltaEtaSuperClusterTrackAtVtx1"]) = -999.;
+  *(floatBranches_[treeName]["deltaPhiSuperClusterTrackAtVtx1"]) = -999.;
+  *(floatBranches_[treeName]["sigmaIetaIeta1"]) = -999.;
+  *(floatBranches_[treeName]["hadronicOverEm1"]) = -999.;
+  *(floatBranches_[treeName]["eOverP1"]) = -999.;
+  *(floatBranches_[treeName]["missingHits1"]) = -999.;
+  *(floatBranches_[treeName]["effectiveArea1"]) = getAEffMu(mu1.eta());
+  *(floatBranches_[treeName]["passConversion1"]) = -999.;
+
+  *(floatBranches_[treeName]["d01"]) = mu1.dB();
+  *(floatBranches_[treeName]["dZ1"]) = abs(mu1.muonBestTrack()->dz(vertices->at(0).position()));
+
+
+  *(floatBranches_[treeName]["globalMuon1"]) = mu1.isGlobalMuon();
+  *(floatBranches_[treeName]["trackerMuon1"]) = mu1.isTrackerMuon();
+  *(floatBranches_[treeName]["pfMuon1"]) = mu1.isPFMuon();
+  if (mu1.isGlobalMuon()){
+	  *(floatBranches_[treeName]["trackChi21"]) = mu1.globalTrack()->normalizedChi2();
+	  *(floatBranches_[treeName]["numberOfValidMuonHits1"]) = mu1.globalTrack()->hitPattern().numberOfValidMuonHits();
+  }
+  else{
+	 *(floatBranches_[treeName]["trackChi21"]) = -999.;
+         *(floatBranches_[treeName]["numberOfValidMuonHits1"]) = -999.;
+  }
+  *(floatBranches_[treeName]["numberOfMatchedStations1"]) =mu1.numberOfMatchedStations();
+  if (mu1.isTrackerMuon()){
+  	*(floatBranches_[treeName]["numberOfValidPixelHits1"]) = mu1.innerTrack()->hitPattern().numberOfValidPixelHits();
+  	*(floatBranches_[treeName]["trackerLayersWithMeasurement1"]) = mu1.track()->hitPattern().trackerLayersWithMeasurement();
+  }
+  else{
+  	*(floatBranches_[treeName]["numberOfValidPixelHits1"]) = -999.;
+  	*(floatBranches_[treeName]["trackerLayersWithMeasurement1"]) = -999.;
+  }
+
+  *(floatBranches_[treeName]["deltaEtaSuperClusterTrackAtVtx2"]) = -999.;
+  *(floatBranches_[treeName]["deltaPhiSuperClusterTrackAtVtx2"]) = -999.;
+  *(floatBranches_[treeName]["sigmaIetaIeta2"]) = -999.;
+  *(floatBranches_[treeName]["hadronicOverEm2"]) = -999.;
+  *(floatBranches_[treeName]["eOverP2"]) = -999.;
+  *(floatBranches_[treeName]["missingHits2"]) = -999.;
+  *(floatBranches_[treeName]["effectiveArea2"]) = getAEffMu(mu2.eta());
+  *(floatBranches_[treeName]["passConversion2"]) = -999.;
+
+  *(floatBranches_[treeName]["d02"]) = mu2.dB();
+  *(floatBranches_[treeName]["dZ2"]) = abs(mu2.muonBestTrack()->dz(vertices->at(0).position()));
+
+
+
+  *(floatBranches_[treeName]["globalMuon2"]) = mu2.isGlobalMuon();
+  *(floatBranches_[treeName]["trackerMuon2"]) = mu2.isTrackerMuon();
+  *(floatBranches_[treeName]["pfMuon2"]) = mu2.isPFMuon();
+  if (mu2.isGlobalMuon()){
+	  *(floatBranches_[treeName]["trackChi22"]) = mu2.globalTrack()->normalizedChi2();
+	  *(floatBranches_[treeName]["numberOfValidMuonHits2"]) = mu2.globalTrack()->hitPattern().numberOfValidMuonHits();
+  }
+  else{
+	 *(floatBranches_[treeName]["trackChi22"]) = -999.;
+         *(floatBranches_[treeName]["numberOfValidMuonHits2"]) = -999.;
+  }
+  *(floatBranches_[treeName]["numberOfMatchedStations2"]) =mu2.numberOfMatchedStations();
+  if (mu2.isTrackerMuon()){
+  	*(floatBranches_[treeName]["numberOfValidPixelHits2"]) = mu2.innerTrack()->hitPattern().numberOfValidPixelHits();
+  	*(floatBranches_[treeName]["trackerLayersWithMeasurement2"]) = mu2.track()->hitPattern().trackerLayersWithMeasurement();
+  }
+  else{
+  	*(floatBranches_[treeName]["numberOfValidPixelHits2"]) = -999.;
+  	*(floatBranches_[treeName]["trackerLayersWithMeasurement2"]) = -999.;
+  }
+  
+  
+  }
 
 
 }
@@ -1122,6 +1436,63 @@ void DiLeptonTreesFromMiniAOD::fillLeptonIDs(const std::string &treeName, const 
   *(floatBranches_[treeName]["neutralIso2"]) = -999.;
   *(floatBranches_[treeName]["photonIso2"]) = -999.;
   *(floatBranches_[treeName]["puIso2"]) = -999.;
+
+  if (writeID_){
+  
+  *(floatBranches_[treeName]["deltaEtaSuperClusterTrackAtVtx1"]) = -999.;
+  *(floatBranches_[treeName]["deltaPhiSuperClusterTrackAtVtx1"]) = -999.;
+  *(floatBranches_[treeName]["sigmaIetaIeta1"]) = -999.;
+  *(floatBranches_[treeName]["hadronicOverEm1"]) = -999.;
+  *(floatBranches_[treeName]["eOverP1"]) = -999.;
+  *(floatBranches_[treeName]["missingHits1"]) = -999.;
+  *(floatBranches_[treeName]["effectiveArea1"]) = getAEffMu(mu1.eta());
+  *(floatBranches_[treeName]["passConversion1"]) = -999.;
+
+  *(floatBranches_[treeName]["d01"]) = mu1.dB();
+  *(floatBranches_[treeName]["dZ1"]) = abs(mu1.muonBestTrack()->dz(vertices->at(0).position()));
+
+  *(floatBranches_[treeName]["globalMuon1"]) = mu1.isGlobalMuon();
+  *(floatBranches_[treeName]["trackerMuon1"]) = mu1.isTrackerMuon();
+  *(floatBranches_[treeName]["pfMuon1"]) = mu1.isPFMuon();
+  if (mu1.isGlobalMuon()){
+	  *(floatBranches_[treeName]["trackChi21"]) = mu1.globalTrack()->normalizedChi2();
+	  *(floatBranches_[treeName]["numberOfValidMuonHits1"]) = mu1.globalTrack()->hitPattern().numberOfValidMuonHits();
+  }
+  else{
+	 *(floatBranches_[treeName]["trackChi21"]) = -999.;
+         *(floatBranches_[treeName]["numberOfValidMuonHits1"]) = -999.;
+  }
+  *(floatBranches_[treeName]["numberOfMatchedStations1"]) =mu1.numberOfMatchedStations();
+  if (mu1.isTrackerMuon()){
+  	*(floatBranches_[treeName]["numberOfValidPixelHits1"]) = mu1.innerTrack()->hitPattern().numberOfValidPixelHits();
+  	*(floatBranches_[treeName]["trackerLayersWithMeasurement1"]) = mu1.track()->hitPattern().trackerLayersWithMeasurement();
+  }
+  else{
+  	*(floatBranches_[treeName]["numberOfValidPixelHits1"]) = -999.;
+  	*(floatBranches_[treeName]["trackerLayersWithMeasurement1"]) = -999.;
+  }
+
+  *(floatBranches_[treeName]["deltaEtaSuperClusterTrackAtVtx2"]) = -999.;
+  *(floatBranches_[treeName]["deltaPhiSuperClusterTrackAtVtx2"]) = -999.;
+  *(floatBranches_[treeName]["sigmaIetaIeta2"]) = -999.;
+  *(floatBranches_[treeName]["hadronicOverEm2"]) = -999.;
+  *(floatBranches_[treeName]["eOverP2"]) = -999.;
+  *(floatBranches_[treeName]["missingHits2"]) = -999.;
+  *(floatBranches_[treeName]["effectiveArea2"]) = -999.;
+  *(floatBranches_[treeName]["passConversion2"]) = -999.;
+  *(floatBranches_[treeName]["d02"]) = -999.;
+  *(floatBranches_[treeName]["dZ2"]) = -999.;
+
+  *(floatBranches_[treeName]["globalMuon2"]) = -999.;
+  *(floatBranches_[treeName]["trackerMuon2"]) = -999.;
+  *(floatBranches_[treeName]["pfMuon2"]) = -999.;
+  *(floatBranches_[treeName]["trackChi22"]) = -999.;
+  *(floatBranches_[treeName]["numberOfValidMuonHits2"]) = -999.;
+  *(floatBranches_[treeName]["numberOfMatchedStations2"]) = -999.;
+  *(floatBranches_[treeName]["numberOfValidPixelHits2"]) = -999.;
+  *(floatBranches_[treeName]["trackerLayersWithMeasurement2"]) = -999.; 
+  
+  }
 
 }
 

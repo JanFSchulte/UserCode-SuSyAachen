@@ -18,6 +18,8 @@
 //#include <DataFormats/PatCandidates/interface/Muon.h>
 //#include <DataFormats/PatCandidates/interface/Tau.h>
 
+using namespace std;
+
 class PdgIdFunctor
 {
 public:
@@ -48,6 +50,7 @@ template<class T>
 std::vector<int>
 PdgIdFunctor::operator()(const T& lepton)
 {
+
 	double minDR = 999.;
 	double deltaR = 0.;
 	const reco::GenParticle * matchedGenPart = new reco::GenParticle();
@@ -60,8 +63,8 @@ PdgIdFunctor::operator()(const T& lepton)
 	int grandMotherPdgId = -9999;
 	
 	 std::vector<int> res;
+	 
 	for (std::vector<reco::GenParticle>::const_iterator itGenParticle = genParticles_.begin(); itGenParticle != genParticles_.end(); itGenParticle++) {
-	    
 	    if (itGenParticle->status() != 1) continue;
 	  
 	    deltaR = reco::deltaR(lepton.eta(),lepton.phi(), itGenParticle->eta(), itGenParticle->phi());
@@ -76,72 +79,73 @@ PdgIdFunctor::operator()(const T& lepton)
 	    
 	    matched = true;
 	    matchedGenPart = &(*itGenParticle);
-	    
 
 	}
 	if (matched == true){
-	    
 	  pdgId = matchedGenPart->pdgId();
-	  
 	  if (!matchedGenPart->mother()){
 	      motherPdgId = -9999;
 	      grandMotherPdgId = -9999;
 	  }
 	  else{
 	      matchedGenPartMother = static_cast<const reco::GenParticle*> (matchedGenPart->mother());
-	      
 	      if (matchedGenPartMother->pdgId() != pdgId){
-		motherPdgId = matchedGenPartMother->pdgId();
+		    motherPdgId = matchedGenPartMother->pdgId();
 	      }
 	      else{
-		
-
-		int tempid = matchedGenPartMother->pdgId();
-		int loop_counter = 0;
-		while(tempid == pdgId){
-		  loop_counter++;
-		  if(loop_counter>=10){
-		    matchedGenPartMother = static_cast<const reco::GenParticle*>(matchedGenPart->mother());
-		    break;
-		  }
-		  matchedGenPart = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());
-		  matchedGenPartMother = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());		  
-		  tempid = matchedGenPartMother->pdgId();
-		}
+		    int tempid = matchedGenPartMother->pdgId();
+		    int loop_counter = 0;
+		    while(tempid == pdgId){
+		       loop_counter++;
+		       if(loop_counter>=10){
+		         matchedGenPartMother = static_cast<const reco::GenParticle*>(matchedGenPart->mother());
+		         break;
+		       }
+		  	   if (!matchedGenPartMother->mother()){
+		  	   	  break;
+		  	   }
+		  	   else{
+				   matchedGenPart = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());
+				   matchedGenPartMother = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());		  
+				   tempid = matchedGenPartMother->pdgId();
+			   }   
+		     }
 		
 	      }
 	      motherPdgId = matchedGenPartMother->pdgId();
-		
-	  }
-	  if (!matchedGenPartMother->mother()){
-	      grandMotherPdgId = -9999;
-	  }	  
-	  else{
-	      matchedGenPartGrandMother = static_cast<const reco::GenParticle*> (matchedGenPartMother->mother());
-	      
-	      if (matchedGenPartGrandMother->pdgId() != motherPdgId){
-		grandMotherPdgId = matchedGenPartGrandMother->pdgId();
-	      }
+	  
+	      if (!matchedGenPartMother->mother()){
+		  grandMotherPdgId = -9999;
+	      }	  
 	      else{
-		
-		
-		int tempid = matchedGenPartGrandMother->pdgId();
-		int loop_counter = 0;
-		while(tempid == motherPdgId){
-		  loop_counter++;
-		  if(loop_counter>=10){
-		    matchedGenPartGrandMother = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());
-		    break;
+		  matchedGenPartGrandMother = static_cast<const reco::GenParticle*> (matchedGenPartMother->mother());
+		  if (matchedGenPartGrandMother->pdgId() != motherPdgId){
+		    grandMotherPdgId = matchedGenPartGrandMother->pdgId();
 		  }
-		  matchedGenPartMother = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());
-		  matchedGenPartGrandMother = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());		  
-		  tempid = matchedGenPartGrandMother->pdgId();
-		}
-		
+		  else{
+		    
+		    int tempid = matchedGenPartGrandMother->pdgId();
+		    int loop_counter = 0;
+		    while(tempid == motherPdgId){
+		      loop_counter++;
+		      if(loop_counter>=10){
+			matchedGenPartGrandMother = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());
+			break;
+		      }
+		      if (!matchedGenPartMother->mother()){
+		         break;
+		      }
+		      else{
+				  matchedGenPartMother = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());
+				  matchedGenPartGrandMother = static_cast<const reco::GenParticle*>(matchedGenPartMother->mother());		  
+				  tempid = matchedGenPartGrandMother->pdgId();
+			  }
+		    }
+		    
+		  }
+		  grandMotherPdgId = matchedGenPartGrandMother->pdgId();
 	      }
-	      grandMotherPdgId = matchedGenPartGrandMother->pdgId();
-		
-	  }	      
+	  }      
 	}
 	res.push_back(pdgId);
 	res.push_back(motherPdgId);

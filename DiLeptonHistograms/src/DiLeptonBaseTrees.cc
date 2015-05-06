@@ -836,7 +836,7 @@ DiLeptonBaseTrees::fillTree( const std::string &treeName, const aT& a, const bT&
   if( matched == 3 && pdgIds1[1] == pdgIds2[1] ) {
     matched |= 4;
   }
-
+  *(intBranches_[treeName]["matched"]) = matched; 
   *(tLorentzVectorBranches_[treeName]["p4Gen"]) = genVec;
   *(tLorentzVectorBranches_[treeName]["genLepton1"]) = genLepton1;
   *(tLorentzVectorBranches_[treeName]["genLepton2"]) = genLepton2;
