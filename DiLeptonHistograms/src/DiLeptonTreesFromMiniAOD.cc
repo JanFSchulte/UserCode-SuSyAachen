@@ -54,6 +54,8 @@
 #include <SuSyAachen/DiLeptonHistograms/interface/PdgIdFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/VertexWeightFunctor.h>
 #include <SuSyAachen/TagAndProbeTreeWriter/interface/IsolationFunctor.h>
+#include <SuSyAachen/DiLeptonHistograms/interface/TriggerMatchFunctorMiniAOD.h>
+
 
 //ROOT
 #include "TTree.h"
@@ -103,9 +105,6 @@ private:
   float getIso(const  pat::Electron &e, const std::string &method);
   float getIso(const  pat::Muon &mu, const std::string &method);
   float getIso(const  pat::Tau &tau, const std::string &method);
-  float getMiniIso(const pat::Electron &e, const std::vector<pat::PackedCandidate> &pfCands, const std::string &method, const float &rho);
-  float getMiniIso(const pat::Muon &mu, const std::vector<pat::PackedCandidate> &pfCands, const std::string &method, const float &rho);
-  float getMiniIso(const pat::Tau &tau, const std::vector<pat::PackedCandidate> &pfCands, const std::string &method, const float &rho);
   float getDeltaB(const  pat::Electron &e);
   float getDeltaB(const  pat::Muon &mu);
   float getDeltaB(const  pat::Tau &tau);
@@ -147,12 +146,14 @@ private:
   VertexWeightFunctor fctVtxWeightUp_;
   VertexWeightFunctor fctVtxWeightDown_;
   IsolationFunctor fctIsolation_;
+  TriggerMatchFunctorMiniAOD fctTrigger_;  
   PdgIdFunctor getPdgId_;
 
   bool debug;
   bool useJets2_;
   bool useTaus_;
   bool writeID_;
+  bool triggerMatches_;
 };
 
 // constructors and destructor
@@ -161,12 +162,15 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   fctVtxWeightUp_    (iConfig.getParameter<edm::ParameterSet>("vertexWeightsUp") ),
   fctVtxWeightDown_    (iConfig.getParameter<edm::ParameterSet>("vertexWeightsDown") ),
   fctIsolation_  (iConfig.getParameter<edm::ParameterSet>("isolationDefinitions")),
+  fctTrigger_  (iConfig.getParameter<edm::ParameterSet>("triggerDefinitions")),  
   getPdgId_( iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition") )
 {
   debug = false;
   useTaus_ = iConfig.existsAs<edm::InputTag>("taus");
   useJets2_ = iConfig.existsAs<edm::InputTag>("jets2");
   writeID_ = iConfig.existsAs<edm::InputTag>("baseTrees");
+  triggerMatches_ = iConfig.existsAs<edm::InputTag>("triggerSummaryTag");  
+
   // read config
   eTag_ = iConfig.getParameter<edm::InputTag>("electrons");
   muTag_ = iConfig.getParameter<edm::InputTag>("muons");
@@ -351,6 +355,40 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
 	  initFloatBranch( "passConversion2"); 
   
   }
+  
+  if (triggerMatches_){
+  		
+	  initIntBranch( "matchesSingleElectron1" );
+	  initIntBranch( "matchesSingleElectron2" );
+	  initIntBranch( "matchesSingleMuon1" );
+	  initIntBranch( "matchesSingleMuon2" );
+	  initIntBranch( "matchesDoubleElectronTrailing1" );
+	  initIntBranch( "matchesDoubleElectronTrailing2" );
+	  initIntBranch( "matchesDoubleElectronLeading1" );
+	  initIntBranch( "matchesDoubleElectronLeading2" );	  
+	  initIntBranch( "matchesDoubleMuonLeading1" );
+	  initIntBranch( "matchesDoubleMuonLeading2" );
+	  initIntBranch( "matchesDoubleMuonLeadingBoth1" );
+	  initIntBranch( "matchesDoubleMuonLeadingBoth2" );	  
+	  initIntBranch( "matchesDoubleMuonLeadingTk1" );
+	  initIntBranch( "matchesDoubleMuonLeadingTk2" );
+	  initIntBranch( "matchesEMuLeading1" );
+	  initIntBranch( "matchesEMuLeading2" );
+	  initIntBranch( "matchesMuELeading1" );
+	  initIntBranch( "matchesMuELeading2" );
+	  initIntBranch( "matchesDoubleMuonTrailing1" );
+	  initIntBranch( "matchesDoubleMuonTrailing2" );
+	  initIntBranch( "matchesDoubleMuonTrailingBoth1" );
+	  initIntBranch( "matchesDoubleMuonTrailingBoth2" );	  
+	  initIntBranch( "matchesDoubleMuonTrailingTk1" );
+	  initIntBranch( "matchesDoubleMuonTrailingTk2" );
+	  initIntBranch( "matchesEMuTrailing1" );
+	  initIntBranch( "matchesEMuTrailing2" );
+	  initIntBranch( "matchesMuETrailing1" );
+	  initIntBranch( "matchesMuETrailing2" );  
+  
+  
+  }
   for ( std::vector<edm::ParameterSet>::iterator susyVar_i = susyVars_.begin(); susyVar_i != susyVars_.end(); ++susyVar_i ) {
     edm::InputTag var = susyVar_i->getParameter<edm::InputTag>( "var" );
     std::string type = susyVar_i->getParameter<std::string>( "type" );
@@ -457,7 +495,6 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   iEvent.getByLabel(metTag_, mets);
 
 
-
   edm::Handle< std::vector< reco::GenParticle > > genParticles;
   iEvent.getByLabel(genParticleTag_, genParticles);
 
@@ -467,7 +504,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   getPdgId_.loadGenParticles(iEvent);
   fctIsolation_.init(iEvent);
-
+  fctTrigger_.loadTrigger(iEvent);
   std::map<std::string, int> intEventProperties;
   std::map<std::string, float> floatEventProperties;
   std::map<std::string, TLorentzVector> tLorentzVectorEventProperties;
@@ -921,6 +958,44 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   if(debug) std::cout<<", M = "<< comb.M() <<", chargeProduct = "<< a.charge()*b.charge() <<std::endl;
   
   
+  if (triggerMatches_){
+
+		std::map<string,int> triggerMatches1 = fctTrigger_.operator()<aT>(a);   
+ 		std::map<string,int> triggerMatches2 = fctTrigger_.operator()<bT>(b);  
+
+		*(intBranches_[treeName]["matchesSingleElectron1"]) = triggerMatches1["matchesSingleElectron"];
+		*(intBranches_[treeName]["matchesSingleMuon1"]) = triggerMatches1["matchesSingleMuon"];
+		*(intBranches_[treeName]["matchesDoubleElectronLeading1"]) = triggerMatches1["matchesDoubleElectronLeading"];
+		*(intBranches_[treeName]["matchesDoubleElectronTrailing1"]) = triggerMatches1["matchesDoubleElectronTrailing"];	
+		*(intBranches_[treeName]["matchesDoubleMuonLeading1"]) = triggerMatches1["matchesDoubleMuonLeading"];
+		*(intBranches_[treeName]["matchesDoubleMuonTrailing1"]) = triggerMatches1["matchesDoubleMuonTrailing"];
+		*(intBranches_[treeName]["matchesDoubleMuonLeadingBoth1"]) = triggerMatches1["matchesDoubleMuonLeadingBoth"];
+		*(intBranches_[treeName]["matchesDoubleMuonTrailingBoth1"]) = triggerMatches1["matchesDoubleMuonTrailingBoth"];		
+		*(intBranches_[treeName]["matchesDoubleMuonLeadingTk1"]) = triggerMatches1["matchesDoubleMuonLeadingTk"];
+		*(intBranches_[treeName]["matchesDoubleMuonTrailingTk1"]) = triggerMatches1["matchesDoubleMuonTrailingTk"];
+		*(intBranches_[treeName]["matchesMuELeading1"]) = triggerMatches1["matchesMuELeading"];
+		*(intBranches_[treeName]["matchesMuETrailing1"]) = triggerMatches1["matchesMuETrailing"];
+		*(intBranches_[treeName]["matchesEMuLeading1"]) = triggerMatches1["matchesMuETrailing"];
+		*(intBranches_[treeName]["matchesEMuTrailing1"]) = triggerMatches1["matchesEMuTrailing"];
+
+		*(intBranches_[treeName]["matchesSingleElectron2"]) = triggerMatches2["matchesSingleElectron"];
+		*(intBranches_[treeName]["matchesSingleMuon2"]) = triggerMatches2["matchesSingleMuon"];
+		*(intBranches_[treeName]["matchesDoubleElectronLeading2"]) = triggerMatches2["matchesDoubleElectronLeading"];
+		*(intBranches_[treeName]["matchesDoubleElectronTrailing2"]) = triggerMatches2["matchesDoubleElectronTrailing"];		
+		*(intBranches_[treeName]["matchesDoubleMuonLeading2"]) = triggerMatches2["matchesDoubleMuonLeading"];
+		*(intBranches_[treeName]["matchesDoubleMuonTrailing2"]) = triggerMatches2["matchesDoubleMuonTrailing"];
+		*(intBranches_[treeName]["matchesDoubleMuonLeadingBoth2"]) = triggerMatches2["matchesDoubleMuonLeadingBoth"];
+		*(intBranches_[treeName]["matchesDoubleMuonTrailingBoth2"]) = triggerMatches2["matchesDoubleMuonTrailingBoth"];		
+		*(intBranches_[treeName]["matchesDoubleMuonLeadingTk2"]) = triggerMatches2["matchesDoubleMuonLeadingTk"];
+		*(intBranches_[treeName]["matchesDoubleMuonTrailingTk2"]) = triggerMatches2["matchesDoubleMuonTrailingTk"];
+		*(intBranches_[treeName]["matchesMuELeading2"]) = triggerMatches2["matchesMuELeading"];
+		*(intBranches_[treeName]["matchesMuETrailing2"]) = triggerMatches2["matchesMuETrailing"];
+		*(intBranches_[treeName]["matchesEMuLeading2"]) = triggerMatches2["matchesEMuLeading"];
+		*(intBranches_[treeName]["matchesEMuTrailing2"]) = triggerMatches2["matchesEMuTrailing"];
+
+  
+  }
+
   trees_[treeName]->Fill();
 }
 

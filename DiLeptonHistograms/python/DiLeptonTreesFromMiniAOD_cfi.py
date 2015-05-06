@@ -6,7 +6,7 @@ from SuSyAachen.DiLeptonHistograms.vertexWeightsDown_cfi import vertexWeightsDow
 from SuSyAachen.DiLeptonHistograms.efficiencies.electronEffPSet_cff import electronCenterEfficiencies as electronEfficiency
 from SuSyAachen.DiLeptonHistograms.efficiencies.muonEffPSet_cff import muonCenterEfficiencies as muonEfficiency
 from SuSyAachen.TagAndProbeTreeWriter.isolationFunctor_cfi import isolationDefinitions
-
+from SuSyAachen.DiLeptonHistograms.triggerDefinitionMiniAOD_cff import defaultTriggerDefinition as triggerDefinitions
 DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
    electrons = cms.InputTag("triggerMatchedPatElectronsPF"),
    muons = cms.InputTag("triggerMatchedPatMuonsPF"),
@@ -26,6 +26,7 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
    vertexWeightsDown = vertexWeightParsDown,   	   	   	   
    pdgIdDefinition = defaultPdgIdDefinition,
    isolationDefinitions = isolationDefinitions,
+   triggerDefinitions = triggerDefinitions,   
    NOelectronCorrections = cms.VPSet(
     cms.PSet(
     absEta = cms.double(0.4),
