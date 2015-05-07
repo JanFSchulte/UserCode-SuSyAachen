@@ -28,9 +28,10 @@
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
-
 #include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
+#include "FWCore/Framework/interface/ESHandle.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
@@ -47,14 +48,19 @@
 
 #include <DataFormats/Provenance/interface/EventID.h>
 
-#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+#include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 
+// For JES
+#include "JetMETCorrections/Objects/interface/JetCorrectionsRecord.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 
 #include <SuSyAachen/DiLeptonHistograms/interface/WeightFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/PdgIdFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/VertexWeightFunctor.h>
 #include <SuSyAachen/TagAndProbeTreeWriter/interface/IsolationFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/TriggerMatchFunctorMiniAOD.h>
+
 
 
 //ROOT
@@ -153,6 +159,7 @@ private:
   bool useJets2_;
   bool useTaus_;
   bool writeID_;
+  bool metUncert_;  
   bool triggerMatches_;
 };
 
@@ -170,7 +177,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   useJets2_ = iConfig.existsAs<edm::InputTag>("jets2");
   writeID_ = iConfig.existsAs<edm::InputTag>("baseTrees");
   triggerMatches_ = iConfig.existsAs<edm::InputTag>("triggerSummaryTag");  
-
+  metUncert_ = iConfig.existsAs<edm::InputTag>("doMETUncert");  
   // read config
   eTag_ = iConfig.getParameter<edm::InputTag>("electrons");
   muTag_ = iConfig.getParameter<edm::InputTag>("muons");
@@ -389,6 +396,26 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   
   
   }
+  
+  
+  if (metUncert_){
+  		
+	  initFloatBranch( "metJetEnUp");
+	  initFloatBranch( "metJetEnDown");
+	  initFloatBranch( "metJetResUp");
+	  initFloatBranch( "metJetResDown");
+	  initFloatBranch( "metMuonEnUp");
+	  initFloatBranch( "metMuonEnDown");
+	  initFloatBranch( "metElectronEnUp");
+	  initFloatBranch( "metElectronEnDown");
+	  initFloatBranch( "metTauEnUp");
+	  initFloatBranch( "metTauEnDown");
+	  initFloatBranch( "metUnclusteredEnUp");
+	  initFloatBranch( "metUnclusteredEnDown");	  	  
+  
+  
+  }  
+  
   for ( std::vector<edm::ParameterSet>::iterator susyVar_i = susyVars_.begin(); susyVar_i != susyVars_.end(); ++susyVar_i ) {
     edm::InputTag var = susyVar_i->getParameter<edm::InputTag>( "var" );
     std::string type = susyVar_i->getParameter<std::string>( "type" );
@@ -537,6 +564,27 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   tLorentzVectorEventProperties["vMetUncorrected"] = uncorrectedMetVector;
   floatEventProperties["uncorrectedMet"] = uncorrectedMetVector.Pt();
 
+
+  if (metUncert_){
+	pat::METCollection const& metsForUncert = *mets;									   
+ 	floatEventProperties["metJetEnUp"] = metsForUncert[0].shiftedPt(pat::MET::JetEnUp); 
+ 	floatEventProperties["metJetEnDown"] = metsForUncert[0].shiftedPt(pat::MET::JetEnDown); 
+ 	floatEventProperties["metJetResUp"] = metsForUncert[0].shiftedPt(pat::MET::JetResUp);
+ 	floatEventProperties["metJetResDown"] = metsForUncert[0].shiftedPt(pat::MET::JetResDown);
+ 	floatEventProperties["metMuonEnUp"] = metsForUncert[0].shiftedPt(pat::MET::MuonEnUp);
+ 	floatEventProperties["metMuonEnDown"] = metsForUncert[0].shiftedPt(pat::MET::MuonEnDown);
+ 	floatEventProperties["metElectronEnUp"] = metsForUncert[0].shiftedPt(pat::MET::ElectronEnUp);
+ 	floatEventProperties["metElectronEnDown"] = metsForUncert[0].shiftedPt(pat::MET::ElectronEnDown);
+ 	floatEventProperties["metTauEnUp"] = metsForUncert[0].shiftedPt(pat::MET::TauEnUp);
+ 	floatEventProperties["metTauEnDown"] = metsForUncert[0].shiftedPt(pat::MET::TauEnDown);
+ 	floatEventProperties["metUnclusteredEnUp"] = metsForUncert[0].shiftedPt(pat::MET::UnclusteredEnUp);
+ 	floatEventProperties["metUnclusteredEnDown"] = metsForUncert[0].shiftedPt(pat::MET::UnclusteredEnDown);  
+  
+  }
+
+
+
+
   floatEventProperties["genPtTop1"] = -1;
   floatEventProperties["genPtTop2"] = -1;
   if (genParticles.isValid()){
@@ -575,6 +623,10 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   edm::FileInPath fip("SuSyAachen/DiLeptonHistograms/data/GR_P_V40_AN1::All_Uncertainty_AK5PF.txt");
   JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(fip.fullPath());
 
+  //edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
+  //iSetup.get<JetCorrectionsRecord>().get("AK4PF",JetCorParColl); 
+  //JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
+  //JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
 
 
   TLorentzVector changeUp(0,0,0,0);
@@ -613,7 +665,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   }
   int nJets=0;
   for(std::vector<pat::Jet>::const_iterator it = jets_->begin(); it != jets_->end() ; ++it){
-	if ((*it).pt() >=35.0 and abs((*it).pt())<2.4){
+	if ((*it).pt() >=35.0 && abs((*it).eta())<2.4){
 		nJets++;
 		tempMHT.SetPxPyPzE((*it).px(), (*it).py(), (*it).pz(), (*it).energy());	
 		MHT = MHT + tempMHT;
