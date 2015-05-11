@@ -55,6 +55,9 @@
 #include "JetMETCorrections/Objects/interface/JetCorrectionsRecord.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 
+#include "RecoJets/JetProducers/interface/PileupJetIdAlgo.h"
+
+
 #include <SuSyAachen/DiLeptonHistograms/interface/WeightFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/PdgIdFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/VertexWeightFunctor.h>
@@ -285,6 +288,9 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   //~ initFloatBranch( "pZeta" );
   //~ initFloatBranch( "pZetaVis" );
   initIntBranch( "nJets" );
+  //initIntBranch( "nJetsNoPULoose" );
+  //initIntBranch( "nJetsNoPUMedium" );
+  //initIntBranch( "nJetsNoPUTight" );      
   initIntBranch( "nJetsOld" );
   initIntBranch( "nBJets" );
   initIntBranch( "nShiftedJetsJESUp" );
@@ -637,7 +643,11 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   std::vector<pat::Jet> * shiftedJetsJESUp = new std::vector<pat::Jet>(); 
   std::vector<pat::Jet> * shiftedJetsJESDown = new std::vector<pat::Jet>(); 
 
+
+
   for (std::vector<pat::Jet>::const_iterator itJet = jets_->begin(); itJet != jets_->end(); itJet++) {
+	
+	
 
     pat::Jet ajetUp( *itJet );
     pat::Jet ajetDown( *itJet );
@@ -664,9 +674,27 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
     shiftedJetsJESDown->push_back(ajetDown);
   }
   int nJets=0;
+  //int nJetsNoPULoose = 0;
+  //int nJetsNoPUMedium = 0;
+  //int nJetsNoPUTight = 0;
+  
+  //float puJetID = 0.;	
+  
   for(std::vector<pat::Jet>::const_iterator it = jets_->begin(); it != jets_->end() ; ++it){
 	if ((*it).pt() >=35.0 && abs((*it).eta())<2.4){
 		nJets++;
+		
+		//puJetID =  it->userFloat("pileupJetId:fullIdLoose");
+		//std::cout << puJetID << endl;
+      	//if( PileupJetIdentifier::passJetId( puJetID, PileupJetIdentifier::kLoose )) {
+        //   nJetsNoPULoose++;
+      	//}
+     	//if( PileupJetIdentifier::passJetId( puJetID, PileupJetIdentifier::kMedium )) {
+        //   nJetsNoPUMedium++;
+        //}
+        //if( PileupJetIdentifier::passJetId( puJetID, PileupJetIdentifier::kTight )) {
+        //   nJetsNoPUTight++;		
+		//}
 		tempMHT.SetPxPyPzE((*it).px(), (*it).py(), (*it).pz(), (*it).energy());	
 		MHT = MHT + tempMHT;
 		floatEventProperties["ht"] += (*it).pt();
@@ -679,7 +707,9 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
 	}
   }
   intEventProperties["nJets"] = nJets;
-
+  //intEventProperties["nJetsNoPULoose"] = nJetsNoPULoose;
+  //intEventProperties["nJetsNoPUMedium"] = nJetsNoPUMedium;
+  //intEventProperties["nJetsNoPUTight"] = nJetsNoPUTight;    
   int nJetsOld=0;
   for(std::vector<pat::Jet>::const_iterator it = jets_->begin(); it != jets_->end() ; ++it){
 	if ((*it).pt() >=40.0){

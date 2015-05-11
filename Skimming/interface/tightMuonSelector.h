@@ -28,11 +28,9 @@ struct tightMuonSelector {
     edm::Handle<reco::VertexCollection> vertexHandle;
     ev.getByLabel(vertexSrc_, vertexHandle);
    
-
     selected_.clear();
     for(typename collection::const_iterator it = col.product()->begin(); 
 	 it != col.product()->end(); ++it ){		 
-
       if ( (*it).isTightMuon(vertexHandle->at(0)))
 	selected_.push_back( & (*it) );
     }

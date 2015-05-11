@@ -18,6 +18,13 @@ d0Electrons = cms.EDFilter("PATElectronD0Selector", filter = filterElectrons,
   beamSpotSource  = cms.InputTag("offlineBeamSpot") #offlinePrimeryVertices
 )
 
+
+idElectrons = cms.EDFilter("PATElectronIDSelector", filter = filterElectrons,
+  src = cms.InputTag("d0Electrons"),
+  idMapSource  = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V1-miniAOD-standalone-loose") #offlinePrimeryVertices
+)
+
+
 cleanElectrons = cms.EDFilter("PATElectronSelector", filter = filterElectrons,
   src = cms.InputTag("d0Electrons"),
   cut = cms.string('')

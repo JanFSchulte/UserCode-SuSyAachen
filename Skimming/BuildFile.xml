@@ -11,5 +11,5 @@
 <flags   EDM_PLUGIN="1"/>
 <export>
   <!--lib   name="SuSyAachenSkimming"/-->
-  <lib   name="1"/>
+  <lib   name="SuSyAachenSkimming"/>
 </export>

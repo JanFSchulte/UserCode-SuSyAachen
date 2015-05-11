@@ -28,6 +28,14 @@ PATElectronD0PVSelector = cms.EDFilter("PATElectronD0PVSelector",
            beamSpotSource  = cms.InputTag("offlinePrimaryVertices") #offlinePrimeryVertices
 )
 
+
+PATElectronIDSelector = cms.EDFilter("PATElectronIDSelector", 
+  filter = cms.bool(True),
+  src = cms.InputTag("cleanLayer1Electrons"),
+  idMapSource  = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V1-miniAOD-standalone-loose") #offlinePrimeryVertices
+)
+
+
 PATElectronConversionSelector = cms.EDFilter("PATElectronConversionSelector",
            filter = cms.bool(True),
            src = cms.InputTag("cleanLayer1Electrons"),
