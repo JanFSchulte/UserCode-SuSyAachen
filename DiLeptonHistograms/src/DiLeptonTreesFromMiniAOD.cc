@@ -288,6 +288,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   //~ initFloatBranch( "pZeta" );
   //~ initFloatBranch( "pZetaVis" );
   initIntBranch( "nJets" );
+  initIntBranch( "nJets30" );  
   //initIntBranch( "nJetsNoPULoose" );
   //initIntBranch( "nJetsNoPUMedium" );
   //initIntBranch( "nJetsNoPUTight" );      
@@ -570,9 +571,10 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   tLorentzVectorEventProperties["vMetUncorrected"] = uncorrectedMetVector;
   floatEventProperties["uncorrectedMet"] = uncorrectedMetVector.Pt();
 
-
+  pat::METCollection const& metsForUncert = *mets;	
+  floatEventProperties["met"] =  metsForUncert[0].pt();	
   if (metUncert_){
-	pat::METCollection const& metsForUncert = *mets;									   
+
  	floatEventProperties["metJetEnUp"] = metsForUncert[0].shiftedPt(pat::MET::JetEnUp); 
  	floatEventProperties["metJetEnDown"] = metsForUncert[0].shiftedPt(pat::MET::JetEnDown); 
  	floatEventProperties["metJetResUp"] = metsForUncert[0].shiftedPt(pat::MET::JetResUp);
@@ -681,7 +683,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   //float puJetID = 0.;	
   
   for(std::vector<pat::Jet>::const_iterator it = jets_->begin(); it != jets_->end() ; ++it){
-	if ((*it).pt() >=35.0 && abs((*it).eta())<2.4){
+	if ((*it).pt() >=35.0 && fabs((*it).eta())<2.4){
 		nJets++;
 		
 		//puJetID =  it->userFloat("pileupJetId:fullIdLoose");
@@ -707,6 +709,14 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
 	}
   }
   intEventProperties["nJets"] = nJets;
+  nJets = 0;
+  for(std::vector<pat::Jet>::const_iterator it = jets_->begin(); it != jets_->end() ; ++it){
+	if ((*it).pt() >=30.0 && fabs((*it).eta())<2.4){
+		nJets++;
+	}
+  }
+  intEventProperties["nJets30"] = nJets;  
+  
   //intEventProperties["nJetsNoPULoose"] = nJetsNoPULoose;
   //intEventProperties["nJetsNoPUMedium"] = nJetsNoPUMedium;
   //intEventProperties["nJetsNoPUTight"] = nJetsNoPUTight;    

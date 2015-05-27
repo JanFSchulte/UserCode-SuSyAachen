@@ -59,6 +59,15 @@ effectiveAreaIsoElectrons = cms.EDFilter("PATElectronEffectiveAreaSelector", fil
                                            isoMin = cms.double(-1.),
                                            isoMax = cms.double(0.09),                                         
                                            )
+                                           
+isoElectrons = cms.EDFilter("PATElectronIsolationSelector", filter = cms.bool(True),
+                                           src = cms.InputTag("cleanElectrons"),
+                                           isolationDefinitions = isolationDefinitions,
+                                           method = cms.string("miniIsoEA"),                                           
+                                           isoMin = cms.double(-1.),
+                                           isoMax = cms.double(0.1),                                         
+                                           )                                           
+                                           
 noMatchedConversionsElectrons = cms.EDFilter("PATElectronMatchedConversionSelector", filter = cms.bool(True),
                                              src = cms.InputTag("cleanElectrons"),
                                              conversionsSource = cms.InputTag("allConversions"),

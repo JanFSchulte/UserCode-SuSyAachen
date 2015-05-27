@@ -49,6 +49,9 @@ PATElectronConversionSelector = cms.EDFilter("PATElectronConversionSelector",
 from SuSyAachen.Skimming.electronSelection_cff import effectiveAreaIsoElectrons
 PATElectronEffectiveAreaSelector = effectiveAreaIsoElectrons.clone(
 )
+from SuSyAachen.Skimming.electronSelection_cff import isoElectrons
+PATElectronIsolationSelector = isoElectrons.clone(
+)
 
 from SuSyAachen.Skimming.electronSelection_cff import noMatchedConversionsElectrons
 PATElectronNoMatchedConversionSelector = noMatchedConversionsElectrons.clone(

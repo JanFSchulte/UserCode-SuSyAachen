@@ -143,14 +143,22 @@ double GetMiniIsolation(const T& lepton, const std::vector<pat::PackedCandidate>
   double kt_scale = 10;
 
   double deadcone_nh(0.), deadcone_ch(0.), deadcone_ph(0.), deadcone_pu(0.);
-  if (fabs(lepton.eta())>1.479) {deadcone_ch = 0.015; deadcone_pu = 0.015; deadcone_ph = 0.08;}
-  else {
-      //deadcone_ch = 0.0001; deadcone_pu = 0.01; deadcone_ph = 0.01;deadcone_nh = 0.01; // maybe use muon cones??
+  
+
+  
+  if (abs(lepton.pdgId()) == 13) {
+      deadcone_ch = 0.0001; deadcone_pu = 0.01; deadcone_ph = 0.01;deadcone_nh = 0.01;  
+  } 
+  else{
+  	if (fabs(lepton.eta())>1.479) {deadcone_ch = 0.015; deadcone_pu = 0.015; deadcone_ph = 0.08;}
   }
 
   double iso_nh(0.); double iso_ch(0.); 
   double iso_ph(0.); double iso_pu(0.);
   double ptThresh = 0;
+  if (abs(lepton.pdgId()) == 13) {
+		ptThresh = 0.5;
+  }
   double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/lepton.pt()));
   for (std::vector<pat::PackedCandidate>::const_iterator itPFC = pfCands.begin(); itPFC != pfCands.end(); itPFC++) {
     if (abs((*itPFC).pdgId())<7) continue;
@@ -205,7 +213,7 @@ double GetMiniIsolation(const T& lepton, const std::vector<pat::PackedCandidate>
 	  iso -= 0.5*iso_pu;
 	  }
   if (method == "effectiveArea"){
-	iso -= GetAEff(lepton) * rho;
+	iso -= GetAEff(lepton) * rho * pow(r_iso/0.3,2);
 	}
   if (iso>0) iso += iso_ch;
   else iso = iso_ch;

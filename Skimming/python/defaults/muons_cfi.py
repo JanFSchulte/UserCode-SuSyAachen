@@ -49,4 +49,7 @@ from SuSyAachen.Skimming.countFilter_cfi import candViewCountFilter
 countSelector = candViewCountFilter.clone(
     src = cms.InputTag("cleanLayer1Muons")
 )
+from SuSyAachen.Skimming.muonSelection_cff import isoMuons
+PATMuonIsolationSelector = isoMuons.clone(
+)
 

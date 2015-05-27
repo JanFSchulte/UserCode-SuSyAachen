@@ -36,12 +36,13 @@ bJetMuonProducer = cms.EDProducer('bJetMuonProducer',
     user_bJetAlgo = cms.string("trackCountingHighPurBJetTags"),
     user_bTagDiscriminator = cms.double(3.),
 )
-
-isoMuons = cms.EDFilter("PATMuonSelector", filter = filterMuons,
-                           src = cms.InputTag("cleanMuons"),
-                           #cut = cms.string('hcalIsoDeposit.candEnergy < 999 &  ecalIsoDeposit.candEnergy < 999')
-                           cut = cms.string('(trackIso + ecalIso + hcalIso) / pt < 0.2')
-                           )
-
+from SuSyAachen.TagAndProbeTreeWriter.isolationFunctor_cfi import isolationDefinitions
+isoMuons = cms.EDFilter("PATMuonIsolationSelector", filter = cms.bool(True),
+                                           src = cms.InputTag("cleanMuons"),
+                                           isolationDefinitions = isolationDefinitions,
+                                           method = cms.string("miniIsoEA"),
+                                           isoMin = cms.double(-1.),
+                                           isoMax = cms.double(0.1),                                         
+                                           )   
 seqMuons = cms.Sequence(basicMuons * globalMuons * qualityMuons * d0Muons * cleanMuons *
                         isoMuons)
