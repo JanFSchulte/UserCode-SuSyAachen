@@ -253,6 +253,8 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initFloatBranch( "miniIsoEffArea2" );
   initFloatBranch( "miniIsoDeltaBeta1" );
   initFloatBranch( "miniIsoDeltaBeta2" );
+  initFloatBranch( "miniIsoConeSize1" );
+  initFloatBranch( "miniIsoConeSize2" );  
   initFloatBranch( "miniIsoPF1" );
   initFloatBranch( "miniIsoPF2" );
     
@@ -955,6 +957,10 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
 
   //  std::cout << "met: "<<met.Et()<< ", unCorr met: "<< uncorrectedMet.Et()
   //<< "=> "<< met.Et()* 1./uncorrectedMet.Et()<< " (xCheck: "<< patMet.corSumEt()*1./patMet.uncorrectedPt(pat::MET::uncorrALL) <<")"<<std::endl;
+  double r_iso_min = 0.05;
+  double r_iso_max = 0.2;
+  double kt_scale = 10;
+
 
   TLorentzVector comb = aVec+bVec;
   TLorentzVector MHT2 = comb + MHT;
@@ -966,6 +972,8 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   *(floatBranches_[treeName]["mht"]) = MHT2.Pt();
   *(floatBranches_[treeName]["pt1"]) = aVec.Pt();
   *(floatBranches_[treeName]["pt2"]) = bVec.Pt();
+  *(floatBranches_[treeName]["miniIsoConeSize1"]) = max(r_iso_min,min(r_iso_max, kt_scale/aVec.Pt()));
+  *(floatBranches_[treeName]["miniIsoConeSize2"]) = max(r_iso_min,min(r_iso_max, kt_scale/bVec.Pt()));  
   *(floatBranches_[treeName]["charge1"]) = a.charge();
   *(floatBranches_[treeName]["charge2"]) = b.charge();
   *(floatBranches_[treeName]["eta1"]) = aVec.Eta();
