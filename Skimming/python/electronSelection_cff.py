@@ -42,7 +42,7 @@ bJetElectronProducer = cms.EDProducer('bJetElectronProducer',
 electronMuonCleaner = cms.EDProducer('electronMuonCleaner',
     src = cms.InputTag("basicElectrons"),
     leptSrc = cms.InputTag("basicMuons"),
-    dRJetLepton = cms.double(0.1)
+    dRJetLepton = cms.double(0.05)
 )
 
 isoElectrons = cms.EDFilter("PATElectronSelector", filter = filterElectrons,
