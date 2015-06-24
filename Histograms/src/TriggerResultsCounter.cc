@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <iostream> 
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"

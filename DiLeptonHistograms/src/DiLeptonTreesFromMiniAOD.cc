@@ -57,6 +57,8 @@
 
 #include "RecoJets/JetProducers/interface/PileupJetIdAlgo.h"
 
+#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
+
 
 #include <SuSyAachen/DiLeptonHistograms/interface/WeightFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/PdgIdFunctor.h>
@@ -134,6 +136,7 @@ private:
   edm::InputTag vertexTagDown_;
   edm::InputTag pfCandTag_;
   edm::InputTag genParticleTag_;
+  edm::InputTag genEventInfoTag_;  
   edm::InputTag rhoTag_;
   std::vector<edm::ParameterSet> susyVars_;
   std::vector<edm::InputTag> pdfs_;
@@ -193,9 +196,10 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   pfCandTag_ = iConfig.getParameter<edm::InputTag>("pfCands");
   susyVars_ = iConfig.getParameter< std::vector<edm::ParameterSet> >("susyVars");
   genParticleTag_ = iConfig.getParameter<edm::InputTag>("genParticles");
+  genEventInfoTag_ = iConfig.getParameter<edm::InputTag>("pdfInfo");
   rhoTag_ = iConfig.getParameter<edm::InputTag>("rho");
   pdfs_ = iConfig.getParameter<std::vector<edm::InputTag> > ("pdfWeightTags");
-
+	
   tauId_ = iConfig.getParameter<std::string >("tauId");
   fakeRates_.SetSource(iConfig,"fakeRates");// TODO use these and add mcInfo flag to choose right rates...
   efficiencies_.SetSource(iConfig,"efficiencies");// TODO use these and add mcInfo flag to choose right rates...
@@ -218,6 +222,8 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
     trees_["MuTau"] = file->make<TTree>("MuTauDileptonTree", "MuTau DileponTree");
     trees_["TauTau"] = file->make<TTree>("TauTauDileptonTree", "TauTau DileponTree");
   }
+  initFloatBranch( "genWeight" );  
+  initFloatBranch( "genWeightAbsValue" );    
   initFloatBranch( "weight" );
   initFloatBranch( "weightUp" );
   initFloatBranch( "weightDown" );
@@ -515,6 +521,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   iEvent.getByLabel(pfCandTag_, pfCands); 
 
 
+
   edm::Handle< std::vector< pat::Tau > > taus;
   if(useTaus_)
     iEvent.getByLabel(tauTag_, taus);
@@ -545,6 +552,26 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   std::map<std::string, float> floatEventProperties;
   std::map<std::string, TLorentzVector> tLorentzVectorEventProperties;
 
+
+  edm::Handle<GenEventInfoProduct> genInfoProduct;
+  iEvent.getByLabel(genEventInfoTag_, genInfoProduct);	
+  if (genInfoProduct.isValid()){
+  	floatEventProperties["genWeightAbsValue"] = (*genInfoProduct).weight();
+   	if ((*genInfoProduct).weight() < 0.0){
+   	
+   		floatEventProperties["genWeight"] = -1;
+   	}
+   	else{
+   		floatEventProperties["genWeight"] = 1;   	
+   	}
+  }
+  else{
+ 
+ 	floatEventProperties["genWeight"] = 1; 
+ 	floatEventProperties["genWeightAbsValue"] = 1;
+  
+  }	  
+      	
 	
   intEventProperties["nVertices"] = vertices->size();
 
@@ -952,8 +979,8 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   TLorentzVector bVec = getMomentum(b); //( b.px(), b.py(), b.pz(), b.energy() );
   TLorentzVector met(patMet.px(), patMet.py(), patMet.pz(), patMet.energy());
   TLorentzVector uncorrectedMet; 
-  uncorrectedMet.SetPtEtaPhiE(patMet.uncorrectedPt(pat::MET::uncorrALL), 0, \
-			      patMet.uncorrectedPhi(pat::MET::uncorrALL), patMet.uncorrectedPt(pat::MET::uncorrALL));  
+  uncorrectedMet.SetPtEtaPhiE(patMet.uncorrectedPt(), 0, \
+			      patMet.uncorrectedPhi(), patMet.uncorrectedPt());  
 
   //  std::cout << "met: "<<met.Et()<< ", unCorr met: "<< uncorrectedMet.Et()
   //<< "=> "<< met.Et()* 1./uncorrectedMet.Et()<< " (xCheck: "<< patMet.corSumEt()*1./patMet.uncorrectedPt(pat::MET::uncorrALL) <<")"<<std::endl;
