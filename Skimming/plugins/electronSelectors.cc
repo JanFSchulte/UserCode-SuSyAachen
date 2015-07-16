@@ -8,6 +8,7 @@
 #include "SuSyAachen/Skimming/interface/isolationSelector.h"
 #include "SuSyAachen/Skimming/interface/matchedConversionSelector.h"
 #include "SuSyAachen/Skimming/interface/eleIDSelector.h"
+#include "SuSyAachen/Skimming/interface/eleMVAIDSelector.h"
 // define your producer name
 typedef ObjectSelector< effectiveAreaIsolationSelector<double, pat::ElectronCollection, std::vector<const pat::Electron *> > > PATElectronEffectiveAreaSelector;
 
@@ -17,9 +18,12 @@ typedef ObjectSelector< matchedConversionSelector<reco::ConversionCollection, re
 
 typedef ObjectSelector< eleIDSelector<double, pat::ElectronCollection, std::vector<const pat::Electron *> > > PATElectronIDSelector;
 
+typedef ObjectSelector< eleMVAIDSelector<double, pat::ElectronCollection, std::vector<const pat::Electron *> > > PATElectronMVAIDSelector;
+
 // declare the module as plugin
 DEFINE_FWK_MODULE( PATElectronEffectiveAreaSelector );
 DEFINE_FWK_MODULE( PATElectronIsolationSelector );
 DEFINE_FWK_MODULE( PATElectronMatchedConversionSelector );
 DEFINE_FWK_MODULE( PATElectronIDSelector );
+DEFINE_FWK_MODULE( PATElectronMVAIDSelector );
 

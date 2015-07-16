@@ -32,6 +32,12 @@ PATMuonTightIDSelector = cms.EDFilter("PATMuonTightIDSelector",
            vertexSource  = cms.InputTag("offlineSlimmedPrimaryVertices") #offlinePrimeryVertices
 )
 
+PATMuonMediumIDSelector = cms.EDFilter("PATMuonMediumIDSelector", 
+           filter = cms.bool(True),
+           src = cms.InputTag("cleanLayer1Muons"),
+           vertexSource  = cms.InputTag("offlineSlimmedPrimaryVertices") #offlinePrimeryVertices
+)
+
 patMatchedMuonSelector = cms.EDFilter("PATMuonMatchedSelector", 
    src = cms.InputTag("cleanLayer1Muons"),
    pdgId = cms.int32(13),
