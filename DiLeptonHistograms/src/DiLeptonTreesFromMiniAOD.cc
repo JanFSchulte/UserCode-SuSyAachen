@@ -58,6 +58,7 @@
 #include "RecoJets/JetProducers/interface/PileupJetIdAlgo.h"
 
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
+#include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 
 
 #include <SuSyAachen/DiLeptonHistograms/interface/WeightFunctor.h>
@@ -136,7 +137,8 @@ private:
   edm::InputTag vertexTagDown_;
   edm::InputTag pfCandTag_;
   edm::InputTag genParticleTag_;
-  edm::InputTag genEventInfoTag_;  
+  edm::InputTag genEventInfoTag_; 
+  edm::InputTag LHEEventTag_; 
   edm::InputTag rhoTag_;
   std::vector<edm::ParameterSet> susyVars_;
   std::vector<edm::InputTag> pdfs_;
@@ -196,6 +198,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   pfCandTag_ = iConfig.getParameter<edm::InputTag>("pfCands");
   susyVars_ = iConfig.getParameter< std::vector<edm::ParameterSet> >("susyVars");
   genParticleTag_ = iConfig.getParameter<edm::InputTag>("genParticles");
+  LHEEventTag_ = iConfig.getParameter<edm::InputTag>("LHEInfo");  
   genEventInfoTag_ = iConfig.getParameter<edm::InputTag>("pdfInfo");
   rhoTag_ = iConfig.getParameter<edm::InputTag>("rho");
   pdfs_ = iConfig.getParameter<std::vector<edm::InputTag> > ("pdfWeightTags");
@@ -313,6 +316,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initFloatBranch( "bjet1pt" );
   initFloatBranch( "bjet2pt" );
   initFloatBranch( "sqrts" );
+  initFloatBranch( "genHT" );  
   initIntBranch( "runNr" );
   initIntBranch( "lumiSec" );
   initIntBranch( "eventNr" );
@@ -571,6 +575,30 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
  	floatEventProperties["genWeightAbsValue"] = 1;
   
   }	  
+
+	// stolen from https://github.com/Aachen-3A/PxlSkimmer/blob/master/Skimming/src/PxlSkimmer_miniAOD.cc#L590
+    edm::Handle<LHEEventProduct> lheInfoHandle;
+    iEvent.getByLabel(LHEEventTag_ , lheInfoHandle);
+
+    if (lheInfoHandle.isValid()) {
+        lhef::HEPEUP lheParticleInfo = lheInfoHandle->hepeup();
+        // get the five vector
+        // (Px, Py, Pz, E and M in GeV)
+        std::vector<lhef::HEPEUP::FiveVector> allParticles = lheParticleInfo.PUP;
+        std::vector<int> statusCodes = lheParticleInfo.ISTUP;
+
+        double ht = 0;
+        for (unsigned int i = 0; i < statusCodes.size(); i++) {
+            if (statusCodes[i] == 1) {
+                if (abs(lheParticleInfo.IDUP[i]) < 11 || abs(lheParticleInfo.IDUP[i]) > 16) {
+                    ht += sqrt(pow(allParticles[i][0], 2) + pow(allParticles[i][1], 2));
+                }
+            }
+        }
+        floatEventProperties["genHT"] = ht;
+    }
+	
+	else floatEventProperties["genHT"] = -999.;
       	
 	
   intEventProperties["nVertices"] = vertices->size();
