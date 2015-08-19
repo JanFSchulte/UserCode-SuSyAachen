@@ -30,9 +30,13 @@ struct mediumMuonSelector {
    
     selected_.clear();
     for(typename collection::const_iterator it = col.product()->begin(); 
-	 it != col.product()->end(); ++it ){		 
-      if ( (*it).isMediumMuon())
-	selected_.push_back( & (*it) );
+	 it != col.product()->end(); ++it ){
+	 //std::cout << (*it).pt() << std::endl;
+  	 	 	 	 
+      if ( (*it).isMediumMuon()){
+		//std::cout << (*it).pt() << std::endl;		 
+		selected_.push_back( & (*it) );
+	}
     }
   }
 
