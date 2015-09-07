@@ -42,6 +42,11 @@ PATElectronMVAIDSelector = cms.EDFilter("PATElectronMVAIDSelector",
   idMapSource  = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Phys14NonTrigValues") #offlinePrimeryVertices
 )
 
+PATElectronLooseMVAIDSelector = cms.EDFilter("PATElectronLooseMVAIDSelector", 
+  filter = cms.bool(True),
+  src = cms.InputTag("cleanLayer1Electrons"),
+  idMapSource  = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Phys14NonTrigValues") #offlinePrimeryVertices
+)
 
 PATElectronConversionSelector = cms.EDFilter("PATElectronConversionSelector",
            filter = cms.bool(True),

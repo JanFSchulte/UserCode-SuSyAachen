@@ -327,6 +327,16 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initIntBranch( "motherPdgId2" );
   initIntBranch( "grandMotherPdgId1" );
   initIntBranch( "grandMotherPdgId2" );  
+  initIntBranch( "isPrompt1" );
+  initIntBranch( "isPrompt2" );
+  initIntBranch( "isFromTau1" );
+  initIntBranch( "isFromTau2" );
+  initIntBranch( "isPromptHardProcess1" );
+  initIntBranch( "isPromptHardProcess2" );
+  initIntBranch( "isFromTauHardProcess1" );
+  initIntBranch( "isFromTauHardProcess2" );
+      
+      
   if(useJets2_) {
     initFloatBranch( "ht2" );
     initIntBranch( "nJets2" );    
@@ -1076,7 +1086,15 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   *(intBranches_[treeName]["motherPdgId1"]) =-9999;
   *(intBranches_[treeName]["motherPdgId2"]) =-9999;  
   *(intBranches_[treeName]["grandMotherPdgId1"]) = -9999;
-  *(intBranches_[treeName]["grandMotherPdgId2"]) = -9999;   
+  *(intBranches_[treeName]["grandMotherPdgId2"]) = -9999; 
+  *(intBranches_[treeName]["isPrompt1"]) = 0;
+  *(intBranches_[treeName]["isPrompt2"]) = 0;
+  *(intBranches_[treeName]["isFromTau1"]) = 0;
+  *(intBranches_[treeName]["isFromTau2"]) = 0;
+  *(intBranches_[treeName]["isPromptHardProcess1"]) = 0;
+  *(intBranches_[treeName]["isPromptHardProcess2"]) = 0;  
+  *(intBranches_[treeName]["isFromTauHardProcess1"]) = 0;
+  *(intBranches_[treeName]["isFromTauHardProcess2"]) = 0;          
   std::vector<int> pdgIds1 = getPdgId_.operator()<aT>(a); 
   std::vector<int> pdgIds2 = getPdgId_.operator()<bT>(b); 	
   *(intBranches_[treeName]["pdgId1"]) = pdgIds1[0];
@@ -1085,7 +1103,14 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   *(intBranches_[treeName]["motherPdgId2"]) = pdgIds2[1];  
   *(intBranches_[treeName]["grandMotherPdgId1"]) = pdgIds1[2];
   *(intBranches_[treeName]["grandMotherPdgId2"]) = pdgIds2[2]; 
-
+  *(intBranches_[treeName]["isPrompt1"]) = pdgIds1[3];
+  *(intBranches_[treeName]["isPrompt2"]) = pdgIds2[3];
+  *(intBranches_[treeName]["isFromTau1"]) = pdgIds1[4];
+  *(intBranches_[treeName]["isFromTau2"]) = pdgIds2[4];
+  *(intBranches_[treeName]["isPromptHardProcess1"]) = pdgIds1[5];
+  *(intBranches_[treeName]["isPromptHardProcess2"]) = pdgIds2[5]; 
+  *(intBranches_[treeName]["isFromTauHardProcess1"]) = pdgIds1[6];
+  *(intBranches_[treeName]["isFromTauHardProcess2"]) = pdgIds2[6];
 
   TLorentzVector genVec( 0., 0., 0., 0. );
   if(a.genLepton() != NULL){

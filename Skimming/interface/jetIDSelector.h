@@ -35,13 +35,13 @@ struct jetIDSelector {
 		bool isPass = true;
 		double energy = (*it).chargedHadronEnergy() + (*it).neutralHadronEnergy() + (*it).photonEnergy() + (*it).electronEnergy() + (*it).muonEnergy() +  (*it).HFEMEnergy();
 
-		// Loose PF JetID from here: https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID#Recommendations_for_8_TeV_data_a
+		// Loose PF JetID from here: https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID#Recommendations_for_13_TeV_data
 		if (((*it).chargedHadronEnergy()/energy) == 0 && fabs((*it).eta()) < 2.4 ) isPass = false;		
 		if (((*it).chargedMultiplicity()) == 0 && fabs((*it).eta() < 2.4 )) isPass = false;
 		if (((*it).chargedEmEnergy()/energy) >= 0.99 && fabs((*it).eta() < 2.4 )) isPass = false;		
 		if (((*it).neutralHadronEnergy()/energy) >= 0.99) isPass = false;				
 		if (((*it).neutralEmEnergy()/energy) >= 0.99) isPass = false;
-		if (((*it).muonEnergy()/energy) >= 0.8) isPass = false;								
+		//if (((*it).muonEnergy()/energy) >= 0.8) isPass = false; // removed in 13 TeV ID								
 		if (((*it).numberOfDaughters()) < 2) isPass = false;	
 		
 		if (isPass){

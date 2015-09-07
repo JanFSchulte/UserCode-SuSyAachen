@@ -64,6 +64,11 @@ PdgIdFunctor::operator()(const T& lepton)
 	
 	 std::vector<int> res;
 	 
+	 int isPrompt = 0;
+	 int isFromTau = 0;
+	 int isPromptHardProcess = 0;
+	 int isFromTauHardProcess = 0;
+	 
 	for (std::vector<reco::GenParticle>::const_iterator itGenParticle = genParticles_.begin(); itGenParticle != genParticles_.end(); itGenParticle++) {
 	    if (itGenParticle->status() != 1) continue;
 	  
@@ -83,6 +88,10 @@ PdgIdFunctor::operator()(const T& lepton)
 	}
 	if (matched == true){
 	  pdgId = matchedGenPart->pdgId();
+	  isPrompt = matchedGenPart->isPromptFinalState();
+	  isFromTau = matchedGenPart->isDirectPromptTauDecayProductFinalState();
+	  isPromptHardProcess = matchedGenPart->fromHardProcessFinalState();
+	  isFromTauHardProcess = matchedGenPart->isDirectHardProcessTauDecayProductFinalState();
 	  if (!matchedGenPart->mother()){
 	      motherPdgId = -9999;
 	      grandMotherPdgId = -9999;
@@ -150,7 +159,10 @@ PdgIdFunctor::operator()(const T& lepton)
 	res.push_back(pdgId);
 	res.push_back(motherPdgId);
 	res.push_back(grandMotherPdgId);
-
+	res.push_back(isPrompt);
+	res.push_back(isFromTau);
+	res.push_back(isPromptHardProcess);
+	res.push_back(isFromTauHardProcess);
 	return res;
 }
 
