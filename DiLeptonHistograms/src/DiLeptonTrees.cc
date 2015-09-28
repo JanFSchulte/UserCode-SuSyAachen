@@ -487,7 +487,7 @@ DiLeptonTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   pat::MET met = mets->front();
   TLorentzVector metVector(mets->front().px(), mets->front().py(), mets->front().pz(), mets->front().energy());
   TLorentzVector uncorrectedMetVector;
-  uncorrectedMetVector.SetPtEtaPhiE(mets->front().uncorrectedPt(), 0,	mets->front().uncorrectedPhi(), mets->front().uncorrectedPt());
+  uncorrectedMetVector.SetPtEtaPhiE(mets->front().uncorPt(), 0,	mets->front().uncorPhi(), mets->front().uncorPt());
   
   floatEventProperties["uncorrectedMet"] =uncorrectedMetVector.Pt();
   tLorentzVectorEventProperties["vMetUncorrected"] = uncorrectedMetVector;
@@ -722,8 +722,8 @@ DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector
 {
   TLorentzVector met(patMet.px(), patMet.py(), patMet.pz(), patMet.energy());
   TLorentzVector uncorrectedMet;
-  uncorrectedMet.SetPtEtaPhiE(patMet.uncorrectedPt(), 0,\
-                              patMet.uncorrectedPhi(), patMet.uncorrectedPt());
+  uncorrectedMet.SetPtEtaPhiE(patMet.uncorPt(), 0,\
+                              patMet.uncorPhi(), patMet.uncorPt());
   *(tLorentzVectorBranches_[treeName]["vMet"]) = met;
   for(std::map<std::string, int>::const_iterator it = intEventProperties.begin(); it != intEventProperties.end(); ++it){
     assert(intBranches_[treeName].find((*it).first) != intBranches_[treeName].end());
@@ -769,8 +769,8 @@ DiLeptonTrees::makeCombinations ( const std::string &treeName, const std::vector
 {
   TLorentzVector met(patMet.px(), patMet.py(), patMet.pz(), patMet.energy());
   TLorentzVector uncorrectedMet;
-  uncorrectedMet.SetPtEtaPhiE(patMet.uncorrectedPt(), 0,\
-                              patMet.uncorrectedPhi(), patMet.uncorrectedPt());
+  uncorrectedMet.SetPtEtaPhiE(patMet.uncorPt(), 0,\
+                              patMet.uncorPhi(), patMet.uncorPt());
   *(tLorentzVectorBranches_[treeName]["vMet"]) = met;
   for(std::map<std::string, int>::const_iterator it = intEventProperties.begin(); it != intEventProperties.end(); ++it){
     assert(intBranches_[treeName].find((*it).first) != intBranches_[treeName].end());
@@ -818,8 +818,8 @@ DiLeptonTrees::fillTree( const std::string &treeName, const aT& a, const bT& b,c
   TLorentzVector bVec = getMomentum(b); //( b.px(), b.py(), b.pz(), b.energy() );
   TLorentzVector met(patMet.px(), patMet.py(), patMet.pz(), patMet.energy());
   TLorentzVector uncorrectedMet; 
-  uncorrectedMet.SetPtEtaPhiE(patMet.uncorrectedPt(), 0, \
-			      patMet.uncorrectedPhi(), patMet.uncorrectedPt());  
+  uncorrectedMet.SetPtEtaPhiE(patMet.uncorPt(), 0, \
+			      patMet.uncorPhi(), patMet.uncorPt());  
 
   //  std::cout << "met: "<<met.Et()<< ", unCorr met: "<< uncorrectedMet.Et()
   //<< "=> "<< met.Et()* 1./uncorrectedMet.Et()<< " (xCheck: "<< patMet.corSumEt()*1./patMet.uncorrectedPt(pat::MET::uncorrALL) <<")"<<std::endl;
