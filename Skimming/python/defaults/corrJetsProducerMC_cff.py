@@ -22,7 +22,7 @@ def corrJetsProducerMC(process):
       	## here you add as many jet types as you need
       	## note that the tag name is specific for the particular sqlite file 
      	 ), 
-      	connect = cms.string('sqlite:Summer15_25nsV2_MC.db')
+      	connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Summer15_25nsV2_MC.db')
     	 # uncomment above tag lines and this comment to use MC JEC
     	 # connect = cms.string('sqlite:Summer12_V7_MC.db')
 	)
