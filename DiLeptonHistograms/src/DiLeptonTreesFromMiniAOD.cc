@@ -131,6 +131,7 @@ private:
   edm::InputTag jet2Tag_;
   edm::InputTag bJetTag_;
   edm::InputTag metTag_;
+  edm::InputTag metNoHFTag_;  
   edm::InputTag vertexTag_;
   edm::InputTag vertexTagUp_;
   edm::InputTag vertexTagDown_;
@@ -193,6 +194,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   if(useJets2_) jet2Tag_ = iConfig.getParameter<edm::InputTag>("jets2");
   bJetTag_ = iConfig.getParameter<edm::InputTag>("bJets");
   metTag_ = iConfig.getParameter<edm::InputTag>("met");
+  metNoHFTag_ = iConfig.getParameter<edm::InputTag>("metNoHF");  
   vertexTag_ = iConfig.getParameter<edm::InputTag>("vertices");
   pfCandTag_ = iConfig.getParameter<edm::InputTag>("pfCands");
   susyVars_ = iConfig.getParameter< std::vector<edm::ParameterSet> >("susyVars");
@@ -235,7 +237,6 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initFloatBranch( "charge1" );
   initFloatBranch( "charge2" );
   initTLorentzVectorBranch( "p4" );
-  initTLorentzVectorBranch( "vMet" );
   initTLorentzVectorBranch( "p4Gen" );
   initTLorentzVectorBranch( "lepton1" );
   initTLorentzVectorBranch( "lepton2" );
@@ -247,7 +248,10 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initTLorentzVectorBranch( "jet4" );
   initTLorentzVectorBranch( "bJet1" );
   initTLorentzVectorBranch( "bJet2" );
+  initTLorentzVectorBranch( "vMet" );  
   initTLorentzVectorBranch( "vMetUncorrected" );
+  initTLorentzVectorBranch( "vMetNoHF" );  
+  initTLorentzVectorBranch( "vMetNoHFUncorrected" );  
   initFloatBranch( "rho" );
   initFloatBranch( "pt1" );
   initFloatBranch( "pt2" );
@@ -286,13 +290,18 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initFloatBranch( "fakeWeight2" );
   initFloatBranch( "deltaPhi" );
   initFloatBranch( "deltaR" );
+  initFloatBranch( "jzbResponse" );
+  initFloatBranch( "jzbResponseUncorr" );  
   initFloatBranch( "jzb" );
+  initFloatBranch( "jzbUncorr" );  
   initFloatBranch( "ht" );
   initFloatBranch( "htJESUp" );
   initFloatBranch( "htJESDown" );
   initFloatBranch( "mht" );
   initFloatBranch( "met" );
   initFloatBranch( "uncorrectedMet" );
+  initFloatBranch( "metNoHF" );
+  initFloatBranch( "uncorrectedMetNoHF" );  
   initFloatBranch( "metJESUp" );
   initFloatBranch( "metJESDown" );
   //~ initFloatBranch( "pZeta" );
@@ -549,6 +558,9 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   
   edm::Handle< std::vector< pat::MET > > mets;
   iEvent.getByLabel(metTag_, mets);
+  
+  edm::Handle< std::vector< pat::MET > > metsNoHF;
+  iEvent.getByLabel(metNoHFTag_, metsNoHF);
 
 
   edm::Handle< std::vector< reco::GenParticle > > genParticles;
@@ -637,6 +649,19 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   
   tLorentzVectorEventProperties["vMetUncorrected"] = uncorrectedMetVector;
   floatEventProperties["uncorrectedMet"] = uncorrectedMetVector.Pt();
+  
+  
+  pat::MET metNoHF = metsNoHF->front();
+  TLorentzVector metVectorNoHF(metsNoHF->front().px(), metsNoHF->front().py(), metsNoHF->front().pz(), metsNoHF->front().energy());
+  TLorentzVector uncorrectedMetVectorNoHF;
+  uncorrectedMetVector.SetPtEtaPhiE(metsNoHF->front().uncorPt(), 0,	metsNoHF->front().uncorPhi(), metsNoHF->front().uncorPt());
+  
+  floatEventProperties["metNoHF"] = metVectorNoHF.Pt();
+  tLorentzVectorEventProperties["vMetNoHF"] = metVectorNoHF; 
+  
+  tLorentzVectorEventProperties["vMetNoHFUncorrected"] = uncorrectedMetVectorNoHF;
+  floatEventProperties["uncorrectedMetNoHF"] = uncorrectedMetVectorNoHF.Pt();  
+  
 
   pat::METCollection const& metsForUncert = *mets;	
   floatEventProperties["met"] =  metsForUncert[0].pt();	
@@ -1061,7 +1086,10 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   *(floatBranches_[treeName]["fakeWeight2"]) = fakeRates_(b);
   *(floatBranches_[treeName]["deltaPhi"]) = aVec.DeltaPhi( bVec );
   *(floatBranches_[treeName]["deltaR"]) = aVec.DeltaR( bVec );
-  *(floatBranches_[treeName]["jzb"]) = (uncorrectedMet+comb).Pt() - comb.Pt();
+  *(floatBranches_[treeName]["jzb"]) = (met+comb).Pt() - comb.Pt();
+  *(floatBranches_[treeName]["jzbUncorr"]) = (uncorrectedMet+comb).Pt() - comb.Pt();  
+  *(floatBranches_[treeName]["jzbResponse"]) = (met+comb).Pt() / comb.Pt();
+  *(floatBranches_[treeName]["jzbResponseUncorr"]) = (uncorrectedMet+comb).Pt() / comb.Pt();    
   //~ *(floatBranches_[treeName]["pZeta"]) = pZeta.first;
   //~ *(floatBranches_[treeName]["pZetaVis"]) = pZeta.second;
 

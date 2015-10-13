@@ -226,17 +226,17 @@ double GetMiniIsolation(const T& lepton, const std::vector<pat::PackedCandidate>
   const virtual double GetIsolation(const reco::Candidate& lepton, const std::string& method){return -1.;}
 
 
-
+// AEffs updated to recommendations on https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSLeptonSF on 12/10/2015
 
 const double GetAEff(const pat::Muon& lepton){
 
 	double etaAbs = fabs(lepton.eta());
 	
-    double AEff = 0.0913;
-    if (etaAbs > 0.8 && etaAbs <= 1.3) AEff = 0.0765;
-    if (etaAbs > 1.3 && etaAbs <= 2.0) AEff = 0.0546;
-    if (etaAbs > 2.0 && etaAbs <= 2.2) AEff = 0.0728;
-    if (etaAbs > 2.2) AEff = 0.1177;
+    double AEff = 0.0735;
+    if (etaAbs > 0.8 && etaAbs <= 1.3) AEff =  0.0619;
+    if (etaAbs > 1.3 && etaAbs <= 2.0) AEff =  0.0465;
+    if (etaAbs > 2.0 && etaAbs <= 2.2) AEff = 0.0433;
+    if (etaAbs > 2.2) AEff = 0.0577;
     return AEff;
 }
 
@@ -245,12 +245,16 @@ const double GetAEff(const pat::Electron& lepton){
 
 	double etaAbs = fabs(lepton.eta());
 
-    double AEff = 0.1013;
-    if (etaAbs > 0.8 && etaAbs <= 1.3) AEff = 0.0988;
-    if (etaAbs > 1.3 && etaAbs <= 2.0) AEff = 0.0572;
-    if (etaAbs > 2.0 && etaAbs <= 2.2) AEff = 0.0842;
-    if (etaAbs > 2.2) AEff = 0.153;
+    double AEff = 0.1752;
+    if (etaAbs > 1.0 && etaAbs <= 1.479) AEff = 0.1862;
+    if (etaAbs > 1.479 && etaAbs <= 2.0) AEff = 0.1411;
+    if (etaAbs > 2.0 && etaAbs <= 2.2) AEff = 0.1534;
+    if (etaAbs > 2.2 && etaAbs <= 2.3) AEff = 0.1903;
+    if (etaAbs > 2.3 && etaAbs <= 2.4) AEff = 0.2243;        
+    if (etaAbs > 2.4) AEff = 0.2687;
     return AEff;
+
+
 
 }
   

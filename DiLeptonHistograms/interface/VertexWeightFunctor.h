@@ -66,7 +66,7 @@ public:
   int getTrueNPV(const edm::Event &iEvent){
     // from https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupMCReweightingUtilities
     edm::Handle<std::vector< PileupSummaryInfo > >  PupInfo;
-    iEvent.getByLabel(edm::InputTag("addPileupInfo"), PupInfo);
+    iEvent.getByLabel(edm::InputTag("slimmedAddPileupInfo"), PupInfo);
 
     std::vector<PileupSummaryInfo>::const_iterator PVI;
 
