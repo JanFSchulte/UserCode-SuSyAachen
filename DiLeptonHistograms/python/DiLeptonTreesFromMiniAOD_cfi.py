@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
 from SuSyAachen.DiLeptonHistograms.pdgIdDefinition_cff import defaultPdgIdDefinition
 from SuSyAachen.DiLeptonHistograms.vertexWeights_cfi import vertexWeights as vertexWeightPars
@@ -13,8 +14,10 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
 #   taus = cms.InputTag("triggerMatchedPatTausPF"),
    jets = cms.InputTag("qualityJets"),	   	   
    bJets = cms.InputTag("qualityBJets"),
-   met = cms.InputTag("slimmedMETs","","Analysis"),  	
-   metNoHF = cms.InputTag("slimmedMETsNoHF","","Analysis"),  	     	           	   
+   met = cms.InputTag("slimmedMETs"),  	
+   metNoHF = cms.InputTag("slimmedMETsNoHF"),  	
+#   met = cms.InputTag("slimmedMETs","","Analysis"),  	
+#   metNoHF = cms.InputTag("slimmedMETsNoHF","","Analysis"),    
    vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
    tauId = cms.string("byTaNCfrHalfPercent"),
    pfCands = cms.InputTag("packedPFCandidates"),

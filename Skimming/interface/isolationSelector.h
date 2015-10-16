@@ -40,7 +40,7 @@ struct isolationSelector {
       iso = 0;
       iso = fctIsolation_(*(it),method_) / (*it).pt();
 		
-      
+      //std::cout << iso << std::endl;
       if (iso > isoMin_ && iso < isoMax_){
 	
 

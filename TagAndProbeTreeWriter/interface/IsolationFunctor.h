@@ -209,6 +209,8 @@ double GetMiniIsolation(const T& lepton, const std::vector<pat::PackedCandidate>
   }
   float iso = 0.;
   iso = iso_ph + iso_nh;
+  
+  //std::cout << iso << " " << rho << " " << GetAEff(lepton) << " " << r_iso << " " << pow(r_iso/0.3,2) << std::endl;
   if (method == "deltaBeta"){
 	  iso -= 0.5*iso_pu;
 	  }

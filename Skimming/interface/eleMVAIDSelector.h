@@ -39,9 +39,9 @@ struct eleMVAIDSelector {
 
 		//std::cout << "pt: " << (*it).pt() << " eta: " << (*it).eta() << " MVA value: " << mvaValue << endl;
 		float workingPoint = -9999.;
-		if (fabs((*it).eta()) < 0.8) workingPoint =  0.73;
-		else if (fabs((*it).eta()) > 0.8 && fabs((*it).eta()) < 1.479) workingPoint = 0.57;
-		else workingPoint = 0.05;
+		if (fabs((*it).eta()) < 0.8) workingPoint =  0.87;
+		else if (fabs((*it).eta()) > 0.8 && fabs((*it).eta()) < 1.479) workingPoint = 0.60;
+		else workingPoint = 0.17;
 		if (mvaValue > workingPoint){
 			//std::cout << "pushing back" << std::endl;
 			selected_.push_back( & (*it) );
