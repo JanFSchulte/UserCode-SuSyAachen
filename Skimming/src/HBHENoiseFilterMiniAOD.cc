@@ -1,9 +1,9 @@
 // -*- C++ -*-
 //
-// Package:    METFilterMiniAOD
-// Class:      METFilterMiniAOD
+// Package:    HBHENoiseFilterMiniAOD
+// Class:      HBHENoiseFilterMiniAOD
 // 
-/**\class METFilterMiniAOD METFilterMiniAOD.cc SuSyAachen/Skimming/src/METFilterMiniAOD.cc
+/**\class HBHENoiseFilterMiniAOD HBHENoiseFilterMiniAOD.cc SuSyAachen/Skimming/src/HBHENoiseFilterMiniAOD.cc
 
  Description: <one line class summary>
 
@@ -33,16 +33,14 @@
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
-#include "DataFormats/Common/interface/TriggerResults.h"
-#include "FWCore/Common/interface/TriggerNames.h"
 //
 // class declaration
 //
 
-class METFilterMiniAOD : public edm::EDFilter {
+class HBHENoiseFilterMiniAOD : public edm::EDFilter {
 public:
-  explicit METFilterMiniAOD(const edm::ParameterSet&);
-  ~METFilterMiniAOD();
+  explicit HBHENoiseFilterMiniAOD(const edm::ParameterSet&);
+  ~HBHENoiseFilterMiniAOD();
   
 private:
   virtual void beginJob() ;
@@ -52,7 +50,6 @@ private:
   // ----------member data ---------------------------
   
   edm::InputTag filterTag_;
-  std::string filterFlag_;
 
 
 
@@ -60,31 +57,27 @@ private:
 };
 
 // constructors and destructor
-METFilterMiniAOD::METFilterMiniAOD(const edm::ParameterSet& iConfig)
+HBHENoiseFilterMiniAOD::HBHENoiseFilterMiniAOD(const edm::ParameterSet& iConfig)
 {
   filterTag_    = iConfig.getParameter < edm::InputTag > ("src");
-  filterFlag_    = iConfig.getParameter < std::string > ("flag");
-
+ 
   debug = false;
 }
 
-METFilterMiniAOD::~METFilterMiniAOD(){}
+HBHENoiseFilterMiniAOD::~HBHENoiseFilterMiniAOD(){}
 
 
 // member functions
 // ------------ method called on each new Event  ------------
 bool
-METFilterMiniAOD::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
+HBHENoiseFilterMiniAOD::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-   edm::Handle<edm::TriggerResults> filterBits;
-  iEvent.getByLabel(filterTag_, filterBits);
-  const edm::TriggerNames &allFilterNames = iEvent.triggerNames(*filterBits);
-  bool filter = false;
+   edm::Handle<bool> HBHEFilterResult;
+  iEvent.getByLabel(filterTag_, HBHEFilterResult);
+  bool filter = true;
   
-  for (unsigned int i = 0, n = filterBits->size(); i < n; ++i){
-	  if (allFilterNames.triggerName(i) == filterFlag_ && filterBits->accept(i)){
-		  filter = true;
-	  }
+  if (!*HBHEFilterResult){
+	  filter = false;
   }
 
   return filter;
@@ -92,14 +85,14 @@ METFilterMiniAOD::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-METFilterMiniAOD::beginJob()
+HBHENoiseFilterMiniAOD::beginJob()
 {
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
-METFilterMiniAOD::endJob() {
+HBHENoiseFilterMiniAOD::endJob() {
 }
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(METFilterMiniAOD);
+DEFINE_FWK_MODULE(HBHENoiseFilterMiniAOD);
