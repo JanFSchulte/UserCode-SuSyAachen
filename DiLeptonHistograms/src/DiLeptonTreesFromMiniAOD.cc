@@ -408,10 +408,16 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
 	  initIntBranch( "matchesSingleMuon2" );
 	  initIntBranch( "matchesDoubleElectronTrailing1" );
 	  initIntBranch( "matchesDoubleElectronTrailing2" );
+	  initIntBranch( "matchesDoubleElectronTrailingNonIso1" );
+	  initIntBranch( "matchesDoubleElectronTrailingNonIso2" );	  
 	  initIntBranch( "matchesDoubleElectronLeading1" );
-	  initIntBranch( "matchesDoubleElectronLeading2" );	  
+	  initIntBranch( "matchesDoubleElectronLeading2" );	 
+	  initIntBranch( "matchesDoubleElectronLeadingNonIso1" );
+	  initIntBranch( "matchesDoubleElectronLeadingNonIso2" );		  
 	  initIntBranch( "matchesDoubleMuonLeading1" );
 	  initIntBranch( "matchesDoubleMuonLeading2" );
+	  initIntBranch( "matchesDoubleMuonLeadingNonIso1" );
+	  initIntBranch( "matchesDoubleMuonLeadingNonIso2" );	  
 	  initIntBranch( "matchesDoubleMuonLeadingBoth1" );
 	  initIntBranch( "matchesDoubleMuonLeadingBoth2" );	  
 	  initIntBranch( "matchesDoubleMuonLeadingTk1" );
@@ -422,6 +428,8 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
 	  initIntBranch( "matchesMuELeading2" );
 	  initIntBranch( "matchesDoubleMuonTrailing1" );
 	  initIntBranch( "matchesDoubleMuonTrailing2" );
+	  initIntBranch( "matchesDoubleMuonTrailingNonIso1" );
+	  initIntBranch( "matchesDoubleMuonTrailingNonIso2" );	  
 	  initIntBranch( "matchesDoubleMuonTrailingBoth1" );
 	  initIntBranch( "matchesDoubleMuonTrailingBoth2" );	  
 	  initIntBranch( "matchesDoubleMuonTrailingTk1" );
@@ -430,7 +438,10 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
 	  initIntBranch( "matchesEMuTrailing2" );
 	  initIntBranch( "matchesMuETrailing1" );
 	  initIntBranch( "matchesMuETrailing2" );  
-  
+	  initIntBranch( "matchesMuEGMuonNonIso1" );
+	  initIntBranch( "matchesMuEGMuonNonIso2" );
+	  initIntBranch( "matchesMuEGElectronNonIso1" );
+	  initIntBranch( "matchesMuEGElectronNonIso2" );  
   
   }
   
@@ -1185,7 +1196,14 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
 		*(intBranches_[treeName]["matchesMuETrailing1"]) = triggerMatches1["matchesMuETrailing"];
 		*(intBranches_[treeName]["matchesEMuLeading1"]) = triggerMatches1["matchesMuETrailing"];
 		*(intBranches_[treeName]["matchesEMuTrailing1"]) = triggerMatches1["matchesEMuTrailing"];
-
+		
+		*(intBranches_[treeName]["matchesDoubleElectronLeadingNonIso1"]) = triggerMatches1["matchesDoubleElectronLeadingNonIso"];
+		*(intBranches_[treeName]["matchesDoubleElectronTrailingNonIso1"]) = triggerMatches1["matchesDoubleElectronTrailingNonIso"];			
+		*(intBranches_[treeName]["matchesDoubleMuonLeadingNonIso1"]) = triggerMatches1["matchesDoubleMuonLeadingNonIso"];
+		*(intBranches_[treeName]["matchesDoubleMuonTrailingNonIso1"]) = triggerMatches1["matchesDoubleMuonTrailingNonIso"];		
+		*(intBranches_[treeName]["matchesMuEGElectronNonIso1"]) = triggerMatches1["matchesMuEGElectronNonIso"];
+		*(intBranches_[treeName]["matchesMuEGMuonNonIso1"]) = triggerMatches1["matchesMuEGMuonNonIso"];
+		
 		*(intBranches_[treeName]["matchesSingleElectron2"]) = triggerMatches2["matchesSingleElectron"];
 		*(intBranches_[treeName]["matchesSingleMuon2"]) = triggerMatches2["matchesSingleMuon"];
 		*(intBranches_[treeName]["matchesDoubleElectronLeading2"]) = triggerMatches2["matchesDoubleElectronLeading"];
@@ -1201,7 +1219,12 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
 		*(intBranches_[treeName]["matchesEMuLeading2"]) = triggerMatches2["matchesEMuLeading"];
 		*(intBranches_[treeName]["matchesEMuTrailing2"]) = triggerMatches2["matchesEMuTrailing"];
 
-  
+ 		*(intBranches_[treeName]["matchesDoubleElectronLeadingNonIso2"]) = triggerMatches2["matchesDoubleElectronLeadingNonIso"];
+		*(intBranches_[treeName]["matchesDoubleElectronTrailingNonIso2"]) = triggerMatches2["matchesDoubleElectronTrailingNonIso"];			
+		*(intBranches_[treeName]["matchesDoubleMuonLeadingNonIso2"]) = triggerMatches2["matchesDoubleMuonLeadingNonIso"];
+		*(intBranches_[treeName]["matchesDoubleMuonTrailingNonIso2"]) = triggerMatches2["matchesDoubleMuonTrailingNonIso"];		
+		*(intBranches_[treeName]["matchesMuEGElectronNonIso2"]) = triggerMatches2["matchesMuEGElectronNonIso"];
+		*(intBranches_[treeName]["matchesMuEGMuonNonIso2"]) = triggerMatches2["matchesMuEGMuonNonIso"]; 
   }
 
   trees_[treeName]->Fill();

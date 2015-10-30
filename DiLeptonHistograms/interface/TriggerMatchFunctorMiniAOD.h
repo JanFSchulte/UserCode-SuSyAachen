@@ -74,9 +74,13 @@ TriggerMatchFunctorMiniAOD::operator()(const T& lepton)
 	 res["matchesSingleElectron"] = 0;
 	 res["matchesSingleMuon"] = 0;
 	 res["matchesDoubleElectronLeading"] = 0;
-	 res["matchesDoubleElectronTrailing"] = 0;	 
+	 res["matchesDoubleElectronTrailing"] = 0;	
+	 res["matchesDoubleElectronLeadingNonIso"] = 0;
+	 res["matchesDoubleElectronTrailingNonIso"] = 0;		 
 	 res["matchesDoubleMuonLeading"] = 0;
 	 res["matchesDoubleMuonTrailing"] = 0;
+	 res["matchesDoubleMuonLeadingNonIso"] = 0;
+	 res["matchesDoubleMuonTrailingNonIso"] = 0;	 
 	 res["matchesDoubleMuonLeadingTk"] = 0;
 	 res["matchesDoubleMuonTrailingTk"] = 0;
 	 res["matchesDoubleMuonLeadingBoth"] = 0;
@@ -85,10 +89,13 @@ TriggerMatchFunctorMiniAOD::operator()(const T& lepton)
 	 res["matchesMuETrailing"] = 0;
 	 res["matchesEMuLeading"] = 0;
 	 res["matchesEMuTrailing"] = 0;
-	 
+	 res["matchesMuEGMuonNonIso"] = 0;
+	 res["matchesMuEGElectronNonIso"] = 0;
+
 	 
 	 bool passesTrailingMuonPt = false;
 	 bool passesMuonIso = false;
+	 bool passesMuonNonIsoDZ = false;	 
 	 bool passesLeadingMuonPt = false;
 
 	 bool passesTrailingTkMuonPt = false;
@@ -106,23 +113,23 @@ TriggerMatchFunctorMiniAOD::operator()(const T& lepton)
 				if (sqrt(pow(aVec.Eta()-obj.eta(),2)+pow(aVec.Phi()-obj.phi(),2)) < 0.2){
 
 					// corresponds to menu for Phys14 samples. Update when appropriate		
-					if (name.Contains("hltEle27WP85GsfTrackIsoFilter")){
+					if (name.Contains("hltEle27noerWPLooseGsfTrackIsoFilter") || name.Contains("hltEle27noerWPTightGsfTrackIsoFilter")){
 						res["matchesSingleElectron"] = 1;
 					}
-					if (name.Contains("hltL3crIsoL1sMu20Eta2p1L1f0L2f20QL3f24QL3crIsoRhoFiltered0p15IterTrk02")){
+					if (name.Contains("hltL3crIsoL1sMu25L1f0L2f10QL3f27QL3trkIsoFiltered0p09") || name.Contains("hltL3fL1sMu25L1f0Tkf27QL3trkIsoFiltered0p09")){
 						res["matchesSingleMuon"] = 1;
 					}
-					if (name.Contains("hltEle23Ele12CaloIdTrackIdIsoTrackIsoLeg1Filter")){
+					if (name.Contains("hltEle17Ele12CaloIdLTrackIdLIsoVLTrackIsoLeg1Filter")){
 						res["matchesDoubleElectronLeading"] = 1;
 					}
-					if (name.Contains("hltEle23Ele12CaloIdTrackIdIsoTrackIsoLeg2Filter")){
+					if (name.Contains("hltEle17Ele12CaloIdLTrackIdLIsoVLTrackIsoLeg2Filter")){
 						res["matchesDoubleElectronTrailing"] = 1;						
 					}
 					
-					if (name.Contains("hltDiMuonGlb17Trk8DzFiltered0p2RelTrkIsoFiltered0p4")){
+					if (name.Contains("hltDiMuonGlb17Trk8RelTrkIsoFiltered0p4DzFiltered0p2")){
 						passesMuonTkIso = true;
 					}
-					if (name.Contains("hltDiMuonGlb17Glb8DzFiltered0p2RelTrkIsoFiltered0p4")){
+					if (name.Contains("hltDiMuonGlb17Glb8RelTrkIsoFiltered0p4DzFiltered0p2")){
 						passesMuonIso = true;
 					}
 					if (name.Contains("hltDiMuonGlbFiltered17TrkFiltered8")){
@@ -134,24 +141,48 @@ TriggerMatchFunctorMiniAOD::operator()(const T& lepton)
 					if (name.Contains("hltL3fL1sDoubleMu103p5L1f0L2f10L3Filtered17")){
 						passesLeadingTkMuonPt = true;
 					}
-					if (name.Contains("hltL3fL1sDoubleMu103p5L1f0L2f10OneMuL3Filtered17")){
+					if (name.Contains("hltL3fL1sDoubleMu103p5L1f0L2f10L3Filtered17")){
 						passesLeadingMuonPt = true;
 					}															
 
 					
 										
-					if (name.Contains("hltL1Mu12EG7L3IsoMuFiltered23")){
+					if (name.Contains("hltMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVLMuonlegL3IsoFiltered17")){
 						res["matchesMuELeading"] = 1;
 					}
-					if (name.Contains("hltMu23Ele12GsfTrackIsoLegEle12GsfCaloIdTrackIdIsoMediumWPFilter")){
+					if (name.Contains("hltMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVLElectronlegTrackIsoFilter")){
 						res["matchesMuETrailing"] = 1;
 					}
-					if (name.Contains("hltL1sL1Mu5EG20ORL1Mu5IsoEG18L3IsoFiltered8")){
+					if (name.Contains("hltMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVLElectronlegTrackIsoFilter")){
 						res["matchesEMuLeading"] = 1;
 					}
-					if (name.Contains("hltMu8Ele23GsfTrackIsoLegEle23GsfCaloIdTrackIdIsoMediumWPFilter")){
+					if (name.Contains("hltMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVLMuonlegL3IsoFiltered8")){
 						res["matchesEMuTrailing"] = 1;
 					}
+					
+					                   
+					if (name.Contains("hltL3fL1sMu16orMu25L1f0L2f25L3Filtered27")){
+						res["matchesDoubleMuonLeadingNonIso"] = 1;
+					}
+					if (name.Contains("hltDiMuonGlbFiltered27TrkFiltered8")){
+						res["matchesDoubleMuonTrailingNonIso"] = 1;
+					}					
+					if (name.Contains("hltDiMuonGlb27Trk8DzFiltered0p2")){
+						passesMuonNonIsoDZ = true;
+					}
+					if (name.Contains("hltDiEle33CaloIdLGsfTrkIdVLDPhiUnseededFilter")){
+						res["matchesDoubleElectronLeadingNonIso"] = 1;
+					}
+					if (name.Contains("hltDiEle33CaloIdLGsfTrkIdVLDPhiUnseededFilter")){
+						res["matchesDoubleElectronTrailingNonIso"] = 1;
+					}
+					if (name.Contains("hltL3fL1sMu16orMu25L1f0L2f10QL3Filtered30Q") || name.Contains("hltL3fL1sMu16orMu25L1f0L2f16QL3Filtered30Q")){
+						res["matchesMuEGMuonNonIso"] = 1;
+					}
+					if (name.Contains("hltEle30CaloIdLGsfTrkIdVLDPhiUnseededFilter")){
+						res["matchesMuEGElectronNonIso"] = 1;
+					}					
+					
 
 				}
 			}
@@ -176,7 +207,13 @@ TriggerMatchFunctorMiniAOD::operator()(const T& lepton)
 		}
 		if  (passesTrailingMuonPt && passesMuonIso){
 			res["matchesDoubleMuonTrailing"] = 1;
-		}		
+		}
+		if (!passesMuonNonIsoDZ){
+		  res["matchesDoubleMuonLeadingNonIso"] = 0;
+		  res["matchesDoubleMuonTrailingNonIso"] = 0;
+		  
+		}
+		
 
     }
     return res;
