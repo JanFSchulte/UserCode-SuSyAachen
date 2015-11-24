@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
 
-def metProducerMiniAOD(process):
+def metProducerMiniAOD_ReReco(process):
 
     ### from Vince: https://github.com/cmstas/NtupleMaker/blob/CMS3_V07-04-08/test/DataProduction2015_NoFilter_RECO_cfg.py#L87-L168 
 	#Run corrected MET maker
@@ -87,9 +87,7 @@ def metProducerMiniAOD(process):
 
 	# end Run corrected MET maker
 
-	setattr(process.slimmedMETs,"t01Variation",cms.InputTag("slimmedMETs","","RECO")) 
-	setattr(process.slimmedMETsNoHF,"t01Variation",cms.InputTag("slimmedMETsNoHF","","RECO")) 
 
 	
-	process.seqmetProducerMiniAOD = cms.Sequence()
-	process.seqmetProducerMiniAODPath = cms.Path(process.seqmetProducerMiniAOD)
+	process.seqmetProducerMiniAOD_ReReco = cms.Sequence()
+	process.seqmetProducerMiniAOD_ReRecoPath = cms.Path(process.seqmetProducerMiniAOD_ReReco)

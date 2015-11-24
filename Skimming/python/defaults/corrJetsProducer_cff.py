@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
 
 def corrJetsProducer(process):
@@ -14,7 +15,7 @@ def corrJetsProducer(process):
 	      cms.PSet(
 	            record = cms.string('JetCorrectionsRecord'),
 	            #~ tag    = cms.string('JetCorrectorParametersCollection_Summer15_50nsV4_DATA_AK4PFchs'),
-	            tag    = cms.string('JetCorrectorParametersCollection_Summer15_25nsV5_DATA_AK4PFchs'),
+	            tag    = cms.string('JetCorrectorParametersCollection_Summer15_25nsV6_DATA_AK4PFchs'),
 	            label  = cms.untracked.string('AK4PFchs')
 	            ),
 
@@ -23,7 +24,7 @@ def corrJetsProducer(process):
       	## note that the tag name is specific for the particular sqlite file 
      	 ), 
       	#~ connect = cms.string('sqlite_file:Summer15_50nsV4_DATA.db')
-      	connect = cms.string('sqlite_file:Summer15_25nsV5_DATA.db')
+      	connect = cms.string('sqlite_file:Summer15_25nsV6_DATA.db')
     	 # uncomment above tag lines and this comment to use MC JEC
     	 # connect = cms.string('sqlite:Summer12_V7_MC.db')
 	)

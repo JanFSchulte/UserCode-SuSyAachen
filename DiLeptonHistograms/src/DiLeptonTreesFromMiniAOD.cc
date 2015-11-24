@@ -96,9 +96,9 @@ private:
   void initFloatBranch( const std::string &name);
   void initIntBranch( const std::string &name);
   void initTLorentzVectorBranch( const std::string &name);
-  template <class aT, class bT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT >&b, const std::vector<pat::PackedCandidate>&pfCands, const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
-  template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a , const std::vector<pat::PackedCandidate>&pfCands,   const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
-  template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<pat::PackedCandidate>&pfCands,  const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho);
+  template <class aT, class bT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT >&b, const std::vector<pat::PackedCandidate>&pfCands, const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const TLorentzVector &MHTLoose, const edm::Handle<reco::VertexCollection> &vertices, const float &rho, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
+  template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a , const std::vector<pat::PackedCandidate>&pfCands,   const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const TLorentzVector &MHTLoose, const edm::Handle<reco::VertexCollection> &vertices, const float &rho, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
+  template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<pat::PackedCandidate>&pfCands,  const pat::MET &patMet, const TLorentzVector &MHT, const TLorentzVector &MHTLoose, const edm::Handle<reco::VertexCollection> &vertices, const float &rho);
   //~ std::pair<double, double> calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, const TLorentzVector& met);
   void fillPdfUncert(const edm::Handle< std::vector<double> >& weightHandle, const std::string& pdfIdentifier, const std::string& treeName);
 
@@ -251,7 +251,9 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initTLorentzVectorBranch( "vMet" );  
   initTLorentzVectorBranch( "vMetUncorrected" );
   initTLorentzVectorBranch( "vMetNoHF" );  
-  initTLorentzVectorBranch( "vMetNoHFUncorrected" );  
+  initTLorentzVectorBranch( "vMetNoHFUncorrected" ); 
+  initTLorentzVectorBranch( "vMHT" );   
+  initTLorentzVectorBranch( "vMHTLoose" );
   initFloatBranch( "rho" );
   initFloatBranch( "pt1" );
   initFloatBranch( "pt2" );
@@ -665,7 +667,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   pat::MET metNoHF = metsNoHF->front();
   TLorentzVector metVectorNoHF(metsNoHF->front().px(), metsNoHF->front().py(), metsNoHF->front().pz(), metsNoHF->front().energy());
   TLorentzVector uncorrectedMetVectorNoHF;
-  uncorrectedMetVector.SetPtEtaPhiE(metsNoHF->front().uncorPt(), 0,	metsNoHF->front().uncorPhi(), metsNoHF->front().uncorPt());
+  uncorrectedMetVectorNoHF.SetPtEtaPhiE(metsNoHF->front().uncorPt(), 0,	metsNoHF->front().uncorPhi(), metsNoHF->front().uncorPt());
   
   floatEventProperties["metNoHF"] = metVectorNoHF.Pt();
   tLorentzVectorEventProperties["vMetNoHF"] = metVectorNoHF; 
@@ -723,7 +725,10 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
 
 
   TLorentzVector MHT;
+  TLorentzVector MHTLoose;  
   TLorentzVector tempMHT;
+  TLorentzVector tempMHTLoose;
+  
   TLorentzVector leadingJetMomentum;
   TLorentzVector subLeadingJetMomentum;
   floatEventProperties["ht"] = 0.0;
@@ -810,6 +815,14 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
 		subLeadingJetMomentum.SetPxPyPzE((*it).px(), (*it).py(), (*it).pz(), (*it).energy());
 		}
 	}
+	
+	if ((*it).pt() >=20.0 && fabs((*it).eta())<5.0){
+
+		tempMHTLoose.SetPxPyPzE((*it).px(), (*it).py(), (*it).pz(), (*it).energy());	
+		MHTLoose = MHTLoose + tempMHTLoose;
+
+	}	
+	
   }
   intEventProperties["nJets"] = nJets;
   nJets = 0;
@@ -935,13 +948,13 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
     }
   }
 
-  makeCombinations< pat::Electron >("EE", *electrons,*pfCands, iEvent, met,MHT,vertices, Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
-  makeCombinations< pat::Electron, pat::Muon >("EMu", *electrons, *muons,*pfCands, iEvent, met,MHT,vertices, Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
-  makeCombinations< pat::Muon >("MuMu", *muons,*pfCands, iEvent, met,MHT,vertices, Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
+  makeCombinations< pat::Electron >("EE", *electrons,*pfCands, iEvent, met,MHT,MHTLoose,vertices, Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
+  makeCombinations< pat::Electron, pat::Muon >("EMu", *electrons, *muons,*pfCands, iEvent, met,MHT,MHTLoose,vertices, Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
+  makeCombinations< pat::Muon >("MuMu", *muons,*pfCands, iEvent, met,MHT,MHTLoose,vertices, Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
   if(useTaus_){
-    makeCombinations< pat::Electron, pat::Tau >("ETau", *electrons, *taus,*pfCands,iEvent, met,MHT,vertices,Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
-    makeCombinations< pat::Muon, pat::Tau>("MuTau", *muons, *taus,*pfCands, iEvent, met,MHT,vertices,Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
-    makeCombinations< pat::Tau >("TauTau", *taus,*pfCands, iEvent, met,MHT,vertices, Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
+    makeCombinations< pat::Electron, pat::Tau >("ETau", *electrons, *taus,*pfCands,iEvent, met,MHT,MHTLoose,vertices,Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
+    makeCombinations< pat::Muon, pat::Tau>("MuTau", *muons, *taus,*pfCands, iEvent, met,MHT,MHTLoose,vertices,Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
+    makeCombinations< pat::Tau >("TauTau", *taus,*pfCands, iEvent, met,MHT,MHTLoose,vertices, Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
   }
   //  if( nMu != 2) std::cout << "-------! "<<nMu<<std::endl;
 
@@ -953,7 +966,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
 }
 
 template <class aT, class bT> void 
-DiLeptonTreesFromMiniAOD::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT> &b,const std::vector<pat::PackedCandidate>&pfCands, const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho , const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties)
+DiLeptonTreesFromMiniAOD::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT> &b,const std::vector<pat::PackedCandidate>&pfCands, const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const TLorentzVector &MHTLoose , const edm::Handle<reco::VertexCollection> &vertices, const float &rho , const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties)
 {
   TLorentzVector met(patMet.px(), patMet.py(), patMet.pz(), patMet.energy());
   TLorentzVector uncorrectedMet2;
@@ -994,13 +1007,13 @@ DiLeptonTreesFromMiniAOD::makeCombinations ( const std::string &treeName, const 
     for( typename std::vector<bT>::const_iterator itB = b.begin(); itB != b.end(); ++itB){
 //      std::cout << treeName <<": "<< fakeRates_(*itA) << std::endl;
 //      weight *= fakeRates_();
-      fillTree<aT,bT>( treeName, *itA, *itB,pfCands, patMet,MHT,vertices,rho); 
+      fillTree<aT,bT>( treeName, *itA, *itB,pfCands, patMet,MHT,MHTLoose,vertices,rho); 
     }
   }
 }
 
 template <class aT> void 
-DiLeptonTreesFromMiniAOD::makeCombinations ( const std::string &treeName, const std::vector<aT> &a,const std::vector<pat::PackedCandidate>&pfCands,const edm::Event &ev, const pat::MET &patMet , const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho , const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties)
+DiLeptonTreesFromMiniAOD::makeCombinations ( const std::string &treeName, const std::vector<aT> &a,const std::vector<pat::PackedCandidate>&pfCands,const edm::Event &ev, const pat::MET &patMet , const TLorentzVector &MHT, const TLorentzVector &MHTLoose, const edm::Handle<reco::VertexCollection> &vertices, const float &rho , const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties)
 {
   TLorentzVector met(patMet.px(), patMet.py(), patMet.pz(), patMet.energy());
   TLorentzVector uncorrectedMet;
@@ -1040,13 +1053,13 @@ DiLeptonTreesFromMiniAOD::makeCombinations ( const std::string &treeName, const 
     for( typename std::vector<aT>::const_iterator itB = a.begin(); itB != itA; ++itB){
       //std::cout << treeName<<"("<<(*itA).pt()<<", "<<(*itA).eta() <<"): "<< fakeRates_(*itA) << std::endl;
 //      weight *= fakeRates_();
-      fillTree<aT, aT>( treeName, *itA, *itB,pfCands, patMet,MHT,vertices,rho); 
+      fillTree<aT, aT>( treeName, *itA, *itB,pfCands, patMet,MHT,MHTLoose,vertices,rho); 
     }
   }
 }
 
 template <class aT, class bT> void 
-DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, const bT& b,const std::vector<pat::PackedCandidate>&pfCands, const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices,const float &rho)
+DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, const bT& b,const std::vector<pat::PackedCandidate>&pfCands, const pat::MET &patMet, const TLorentzVector &MHT, const TLorentzVector &MHTLoose, const edm::Handle<reco::VertexCollection> &vertices,const float &rho)
 {
   if(debug) std::cout << treeName << "- pts:"<< a.pt() << " " << b.pt();
   TLorentzVector aVec = getMomentum(a);//( a.px(), a.py(), a.pz(), a.energy() );
@@ -1065,12 +1078,16 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
 
   TLorentzVector comb = aVec+bVec;
   TLorentzVector MHT2 = comb + MHT;
+  TLorentzVector MHT2Loose = comb + MHTLoose;
+  
   //~ std::pair<double, double> pZeta = calcPZeta(aVec, bVec, met);
   *(floatBranches_[treeName]["chargeProduct"]) = a.charge()*b.charge();
   *(tLorentzVectorBranches_[treeName]["p4"]) = comb;
   *(tLorentzVectorBranches_[treeName]["lepton1"]) = aVec;
   *(tLorentzVectorBranches_[treeName]["lepton2"]) = bVec;
-  *(floatBranches_[treeName]["mht"]) = MHT2.Pt();
+  *(tLorentzVectorBranches_[treeName]["vMHT"]) = MHT2;
+  *(tLorentzVectorBranches_[treeName]["vMHTLoose"]) = MHT2Loose;
+    *(floatBranches_[treeName]["mht"]) = MHT2.Pt();
   *(floatBranches_[treeName]["pt1"]) = aVec.Pt();
   *(floatBranches_[treeName]["pt2"]) = bVec.Pt();
   *(floatBranches_[treeName]["miniIsoConeSize1"]) = max(r_iso_min,min(r_iso_max, kt_scale/aVec.Pt()));
