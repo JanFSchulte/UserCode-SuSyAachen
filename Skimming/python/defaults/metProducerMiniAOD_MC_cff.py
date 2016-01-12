@@ -16,9 +16,12 @@ def metProducerMiniAOD_MC(process):
 	if usePrivateSQlite:
 		from CondCore.DBCommon.CondDBSetup_cfi import *
 		import os
-		era="Summer15_25nsV6_MC"
+		#~ era="Summer15_25nsV6_MC"
+		era="MCRUN2_74_V9"
 		process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
         	                       connect = cms.string( "sqlite_file:"+era+".db" ),
+        	                       #~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Summer15_25nsV6_MC.db'),
+        	                       #~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/MCRUN2_74_V9.db'),
         	                       toGet =  cms.VPSet(
         	    cms.PSet(
         	        record = cms.string("JetCorrectionsRecord"),

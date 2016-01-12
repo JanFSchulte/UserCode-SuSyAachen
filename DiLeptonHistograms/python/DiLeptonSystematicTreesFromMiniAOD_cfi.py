@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
 from SuSyAachen.DiLeptonHistograms.pdgIdDefinition_cff import defaultPdgIdDefinition
+from SuSyAachen.DiLeptonHistograms.LeptonScaleFactorMap_cfi import LeptonScaleFactorMap as LeptonScaleFactorMapPars
+from SuSyAachen.DiLeptonHistograms.btagEffMap_cfi import bTagEffMap as bTagEffMapPars
+from SuSyAachen.DiLeptonHistograms.BTagCalibration_cfi import BTagCalibration as BTagCalibrationPars
+from SuSyAachen.DiLeptonHistograms.BTagCalibrationReader_cfi import BTagCalibrationReader as BTagCalibrationReaderPars
 from SuSyAachen.DiLeptonHistograms.vertexWeights_cfi import vertexWeights as vertexWeightPars
 from SuSyAachen.DiLeptonHistograms.vertexWeightsUp_cfi import vertexWeightsUp as vertexWeightParsUp
 from SuSyAachen.DiLeptonHistograms.vertexWeightsDown_cfi import vertexWeightsDown as vertexWeightParsDown
@@ -8,7 +12,7 @@ from SuSyAachen.DiLeptonHistograms.efficiencies.electronEffPSet_cff import elect
 from SuSyAachen.DiLeptonHistograms.efficiencies.muonEffPSet_cff import muonCenterEfficiencies as muonEfficiency
 from SuSyAachen.TagAndProbeTreeWriter.isolationFunctor_cfi import isolationDefinitions
 from SuSyAachen.DiLeptonHistograms.triggerDefinitionMiniAOD_cff import defaultTriggerDefinition as triggerDefinitions
-DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
+DiLeptonSystematicTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonSystematicTreesFromMiniAOD",
    electrons = cms.InputTag("triggerMatchedPatElectronsPF"),
    muons = cms.InputTag("triggerMatchedPatMuonsPF"),
 #   taus = cms.InputTag("triggerMatchedPatTausPF"),
@@ -27,6 +31,10 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
    rho = cms.InputTag("fixedGridRhoFastjetCentralNeutral"),	   
    susyVars = cms.VPSet(),
    pdfWeightTags = cms.VInputTag(),
+   bTagEfficiencies = bTagEffMapPars,
+   BTagCalibration = BTagCalibrationPars,
+   BTagCalibrationReader = BTagCalibrationReaderPars,
+   LeptonScaleFactors = LeptonScaleFactorMapPars,
    vertexWeights = vertexWeightPars,
    vertexWeightsUp = vertexWeightParsUp,
    vertexWeightsDown = vertexWeightParsDown,   	   	   	   
@@ -90,12 +98,12 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
 
 )
 
-DiLeptonTreesFromMiniAOD = DiLeptonTreesFromMiniAODNoTaus.clone(
+DiLeptonSystematicTreesFromMiniAOD = DiLeptonSystematicTreesFromMiniAODNoTaus.clone(
     taus = cms.InputTag("triggerMatchedPatTausPF"),
     tauId = cms.string("byTaNCfrHalfPercent"), 
     )
 
-DiLeptonTreesFromMiniAODForLMPoints = DiLeptonTreesFromMiniAOD.clone(
+DiLeptonSystematicTreesFromMiniAODForLMPoints = DiLeptonSystematicTreesFromMiniAOD.clone(
           pdfWeightTags = cms.VInputTag(
 #            "susyScanPdfWeights:cteq66",
 #            "susyScanPdfWeights:MSTW2008nlo68cl",
@@ -124,7 +132,7 @@ xSecVars = [
     cms.PSet(var = cms.InputTag("susyScankFactor"), type = cms.string("float")),
 ]
 
-DiLeptonTreesFromMiniAODmSugra = DiLeptonTreesFromMiniAOD.clone(
+DiLeptonSystematicTreesFromMiniAODmSugra = DiLeptonSystematicTreesFromMiniAOD.clone(
    susyVars = cms.VPSet( mSugraVars + xSecVars),
    pdfWeightTags = cms.VInputTag(
         "susyScanPdfWeights:cteq66",
@@ -150,7 +158,7 @@ simplifedVars = cms.VPSet(
         #    cms.PSet(var = cms.InputTag("seqSUSYPARS","susyScanMu"), type = cms.string("int"))
             )
 
-DiLeptonTreesFromMiniAODSimplified = DiLeptonTreesFromMiniAOD.clone(
+DiLeptonSystematicTreesFromMiniAODSimplified = DiLeptonSystematicTreesFromMiniAOD.clone(
 #    vertexWeights = vertexWeightPars.clone(doWeight = False)
     susyVars = simplifedVars,
     pdfWeightTags = cms.VInputTag(
@@ -161,4 +169,4 @@ DiLeptonTreesFromMiniAODSimplified = DiLeptonTreesFromMiniAOD.clone(
 #    "susyScanPdfWeights:NNPDF10"
     )
     )
-DiLeptonTreesFromMiniAODSimplified.vertexWeights.doWeight=False
+DiLeptonSystematicTreesFromMiniAODSimplified.vertexWeights.doWeight=False

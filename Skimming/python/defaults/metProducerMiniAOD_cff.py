@@ -19,6 +19,7 @@ def metProducerMiniAOD(process):
 		era="Summer15_25nsV6_DATA"
 		process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
 					      connect = cms.string( "sqlite_file:"+era+".db" ),
+					      #~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Summer15_25nsV6_DATA.db'),
 					      toGet =  cms.VPSet(
 			    cms.PSet(
 				record = cms.string("JetCorrectionsRecord"),
@@ -87,6 +88,8 @@ def metProducerMiniAOD(process):
 
 	# end Run corrected MET maker
 
+	#~ setattr(process.slimmedMETs,"t01Variation",cms.InputTag("slimmedMETs","","PAT")) 
+	#~ setattr(process.slimmedMETsNoHF,"t01Variation",cms.InputTag("slimmedMETsNoHF","","PAT")) 
 	setattr(process.slimmedMETs,"t01Variation",cms.InputTag("slimmedMETs","","RECO")) 
 	setattr(process.slimmedMETsNoHF,"t01Variation",cms.InputTag("slimmedMETsNoHF","","RECO")) 
 
