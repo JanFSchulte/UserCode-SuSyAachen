@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
 from SuSyAachen.DiLeptonHistograms.pdgIdDefinition_cff import defaultPdgIdDefinition
-from SuSyAachen.DiLeptonHistograms.LeptonScaleFactorMap_cfi import LeptonScaleFactorMap as LeptonScaleFactorMapPars
+from SuSyAachen.DiLeptonHistograms.LeptonFastSimScaleFactorMap_cfi import LeptonFastSimScaleFactorMap as LeptonFastSimScaleFactorMapPars
+from SuSyAachen.DiLeptonHistograms.LeptonFullSimScaleFactorMap_cfi import LeptonFullSimScaleFactorMap as LeptonFullSimScaleFactorMapPars
 from SuSyAachen.DiLeptonHistograms.btagEffMap_cfi import bTagEffMap as bTagEffMapPars
 from SuSyAachen.DiLeptonHistograms.BTagCalibration_cfi import BTagCalibration as BTagCalibrationPars
 from SuSyAachen.DiLeptonHistograms.BTagCalibrationReader_cfi import BTagCalibrationReader as BTagCalibrationReaderPars
@@ -17,10 +18,13 @@ DiLeptonSystematicTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonSystematicTre
    muons = cms.InputTag("triggerMatchedPatMuonsPF"),
 #   taus = cms.InputTag("triggerMatchedPatTausPF"),
    jets = cms.InputTag("qualityJets"),	   	   
+   jetsPuppi = cms.InputTag("qualityJetsPuppi"),	   	   
    bJets = cms.InputTag("qualityBJets"),
+   bJetsPuppi = cms.InputTag("qualityBJetsPuppi"),
    #~ met = cms.InputTag("slimmedMETs"),  	
    #~ metNoHF = cms.InputTag("slimmedMETsNoHF"),  	
    met = cms.InputTag("slimmedMETs","","Analysis"),  	
+   metPuppi = cms.InputTag("slimmedMETsPuppi"),  	
    metNoHF = cms.InputTag("slimmedMETsNoHF","","Analysis"),    
    vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
    tauId = cms.string("byTaNCfrHalfPercent"),
@@ -34,7 +38,8 @@ DiLeptonSystematicTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonSystematicTre
    bTagEfficiencies = bTagEffMapPars,
    BTagCalibration = BTagCalibrationPars,
    BTagCalibrationReader = BTagCalibrationReaderPars,
-   LeptonScaleFactors = LeptonScaleFactorMapPars,
+   LeptonFastSimScaleFactors = LeptonFastSimScaleFactorMapPars,
+   LeptonFullSimScaleFactors = LeptonFullSimScaleFactorMapPars,
    vertexWeights = vertexWeightPars,
    vertexWeightsUp = vertexWeightParsUp,
    vertexWeightsDown = vertexWeightParsDown,   	   	   	   
