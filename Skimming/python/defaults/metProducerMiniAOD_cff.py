@@ -88,10 +88,10 @@ def metProducerMiniAOD(process):
 
 	# end Run corrected MET maker
 
-	#~ setattr(process.slimmedMETs,"t01Variation",cms.InputTag("slimmedMETs","","PAT")) 
-	#~ setattr(process.slimmedMETsNoHF,"t01Variation",cms.InputTag("slimmedMETsNoHF","","PAT")) 
-	setattr(process.slimmedMETs,"t01Variation",cms.InputTag("slimmedMETs","","RECO")) 
-	setattr(process.slimmedMETsNoHF,"t01Variation",cms.InputTag("slimmedMETsNoHF","","RECO")) 
+	setattr(process.slimmedMETs,"t01Variation",cms.InputTag("slimmedMETs","","PAT")) 
+	setattr(process.slimmedMETsNoHF,"t01Variation",cms.InputTag("slimmedMETsNoHF","","PAT")) 
+	#setattr(process.slimmedMETs,"t01Variation",cms.InputTag("slimmedMETs","","RECO")) 
+	#setattr(process.slimmedMETsNoHF,"t01Variation",cms.InputTag("slimmedMETsNoHF","","RECO")) 
 
 	
 	process.seqmetProducerMiniAOD = cms.Sequence()
