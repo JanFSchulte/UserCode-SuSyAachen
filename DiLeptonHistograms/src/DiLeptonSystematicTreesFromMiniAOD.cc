@@ -323,11 +323,12 @@ DiLeptonSystematicTreesFromMiniAOD::DiLeptonSystematicTreesFromMiniAOD(const edm
   initTLorentzVectorBranch( "bJet2" );
   initTLorentzVectorBranch( "bJet1Puppi" );
   initTLorentzVectorBranch( "bJet2Puppi" );
-  initTLorentzVectorBranch( "vMet" );  
+  initTLorentzVectorBranch( "vMet" ); 
   initTLorentzVectorBranch( "vMetPuppi" );  
   initTLorentzVectorBranch( "vMetUncorrected" );
   initTLorentzVectorBranch( "vMetNoHF" );  
-  initTLorentzVectorBranch( "vMetNoHFUncorrected" ); 
+  initTLorentzVectorBranch( "vMetNoHFUncorrected" );   
+  initTLorentzVectorBranch( "vGenMet" ); 
   initTLorentzVectorBranch( "vMHT" );   
   initTLorentzVectorBranch( "vMHTLoose" );
   initTLorentzVectorBranch( "vMHTPuppi" );   
@@ -387,6 +388,7 @@ DiLeptonSystematicTreesFromMiniAOD::DiLeptonSystematicTreesFromMiniAOD(const edm
   initFloatBranch( "uncorrectedMet" );
   initFloatBranch( "metNoHF" );
   initFloatBranch( "uncorrectedMetNoHF" );  
+  initFloatBranch( "genMet" );
   initFloatBranch( "metJESUp" );
   initFloatBranch( "metJESDown" );
   //~ initFloatBranch( "pZeta" );
@@ -828,6 +830,9 @@ DiLeptonSystematicTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm:
   
   }
 
+  TLorentzVector genMetVector(0.,0.,0.,0.);
+  TLorentzVector vGenParticle(0.,0.,0.,0.);
+  
   TLorentzVector genSbottom1(0.,0.,0.,0.);
   TLorentzVector genSbottom2(0.,0.,0.,0.);
   TLorentzVector genDiSbottom(0.,0.,0.,0.);
@@ -842,6 +847,9 @@ DiLeptonSystematicTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm:
   if (genParticles.isValid()){
 	
 	for (std::vector<reco::GenParticle>::const_iterator itGenParticle = genParticles->begin(); itGenParticle != genParticles->end(); itGenParticle++) {
+		
+		vGenParticle.SetPxPyPzE((*itGenParticle).px(), (*itGenParticle).py(), (*itGenParticle).pz(), (*itGenParticle).energy());
+		genMetVector -= vGenParticle;		
 
 		if (abs((*itGenParticle).pdgId())== 6){
 
@@ -872,6 +880,9 @@ DiLeptonSystematicTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm:
 	}
 
   }
+  
+  floatEventProperties["genMet"] = genMetVector.Pt();
+  tLorentzVectorEventProperties["vGenMet"] = genMetVector;
   
   genDiSbottom = genSbottom1 + genSbottom2;
   if (genDiSbottom.Pt() > 1){
