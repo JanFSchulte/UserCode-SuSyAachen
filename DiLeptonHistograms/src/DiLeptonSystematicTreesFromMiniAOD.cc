@@ -846,10 +846,9 @@ DiLeptonSystematicTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm:
   floatEventProperties["genPtTop2"] = -1;
   if (genParticles.isValid()){
 	
-	for (std::vector<reco::GenParticle>::const_iterator itGenParticle = genParticles->begin(); itGenParticle != genParticles->end(); itGenParticle++) {
-		
-		vGenParticle.SetPxPyPzE((*itGenParticle).px(), (*itGenParticle).py(), (*itGenParticle).pz(), (*itGenParticle).energy());
-		genMetVector -= vGenParticle;		
+	genMetVector.SetPxPyPzE(mets->front().genMET()->px(),mets->front().genMET()->py(),mets->front().genMET()->pz(),mets->front().genMET()->energy());
+	
+	for (std::vector<reco::GenParticle>::const_iterator itGenParticle = genParticles->begin(); itGenParticle != genParticles->end(); itGenParticle++) {		
 
 		if (abs((*itGenParticle).pdgId())== 6){
 

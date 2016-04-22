@@ -724,6 +724,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   TLorentzVector metVector(mets->front().px(), mets->front().py(), mets->front().pz(), mets->front().energy());
   TLorentzVector uncorrectedMetVector;
   uncorrectedMetVector.SetPtEtaPhiE(mets->front().uncorPt(), 0,	mets->front().uncorPhi(), mets->front().uncorPt());
+ 
   
   floatEventProperties["met"] = metVector.Pt();
   tLorentzVectorEventProperties["vMet"] = metVector; 
@@ -777,11 +778,8 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   floatEventProperties["genPtTop1"] = -1;
   floatEventProperties["genPtTop2"] = -1;
   if (genParticles.isValid()){
-	
+	genMetVector.SetPxPyPzE(mets->front().genMET()->px(),mets->front().genMET()->py(),mets->front().genMET()->pz(),mets->front().genMET()->energy());
 	for (std::vector<reco::GenParticle>::const_iterator itGenParticle = genParticles->begin(); itGenParticle != genParticles->end(); itGenParticle++) {
-		
-		vGenParticle.SetPxPyPzE((*itGenParticle).px(), (*itGenParticle).py(), (*itGenParticle).pz(), (*itGenParticle).energy());
-		genMetVector -= vGenParticle;
 
 		if (abs((*itGenParticle).pdgId())== 6){
 
