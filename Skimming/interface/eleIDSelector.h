@@ -18,15 +18,17 @@ struct eleIDSelector {
   typedef collectionType collection;
   typedef containerType container;
   typedef typename container::const_iterator const_iterator;
-  eleIDSelector ( const edm::ParameterSet & cfg, edm::ConsumesCollector ):
-    idMapSrc_( cfg.getParameter<edm::InputTag>( "idMapSource" ) )  { }
+  eleIDSelector ( const edm::ParameterSet & cfg, edm::ConsumesCollector iC):
+    //~ idMapSrc_( cfg.getParameter<edm::InputTag>( "idMapSource" ) )  { }
+    idMapToken_(iC.consumes<edm::ValueMap<bool> >(cfg.getParameter<edm::InputTag>( "idMapSource" )))  { }
   
   const_iterator begin() const { return selected_.begin(); }
   const_iterator end() const { return selected_.end(); }
   void select(const edm::Handle< collection > &col , const edm::Event &ev , const edm::EventSetup &setup ) {
     
     edm::Handle<edm::ValueMap<bool> > id_decisions;
-    ev.getByLabel(idMapSrc_, id_decisions);
+    //~ ev.getByLabel(idMapSrc_, id_decisions);
+    ev.getByToken(idMapToken_, id_decisions);
 
 
     selected_.clear();
@@ -46,7 +48,8 @@ struct eleIDSelector {
   size_t size() const { return selected_.size(); }
 private:
   container selected_;
-  edm::InputTag idMapSrc_;
+  //~ edm::InputTag idMapSrc_;
+  edm::EDGetTokenT<edm::ValueMap<bool> > idMapToken_;
 };
 
 #endif

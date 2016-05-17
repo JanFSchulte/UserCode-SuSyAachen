@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
+from CondCore.DBCommon.CondDBSetup_cfi import *
 
 def metProducerMiniAOD_MC(process):
 
@@ -8,16 +9,18 @@ def metProducerMiniAOD_MC(process):
 
 	#configurable options =======================================================================
 	runOnData=False #data/MC switch
-	usePrivateSQlite=True #use external JECs (sqlite file)
-	useHFCandidates=False #create an additionnal NoHF slimmed MET collection if the option is set to false
+	usePrivateSQlite=False #use external JECs (sqlite file)
+	useHFCandidates=True #create an additionnal NoHF slimmed MET collection if the option is set to false
 	applyResiduals=True #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks 	and developments (not the official recommendation!).
+	redoPuppi=False # rebuild puppiMET
 	#===================================================================
 
 	if usePrivateSQlite:
 		from CondCore.DBCommon.CondDBSetup_cfi import *
 		import os
 		#~ era="Summer15_25nsV6_MC"
-		era="MCRUN2_74_V9"
+		#~ era="MCRUN2_74_V9"
+		era="Fall15_25nsV2_MC.db"
 		process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
         	                       connect = cms.string( "sqlite_file:"+era+".db" ),
         	                       #~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Summer15_25nsV6_MC.db'),
@@ -43,11 +46,11 @@ def metProducerMiniAOD_MC(process):
 	### ---------------------------------------------------------------------------
 	### Removing the HF from the MET computation
 	### ---------------------------------------------------------------------------
-	if not useHFCandidates:
-			process.noHFCands = cms.EDFilter("CandPtrSelector",
-    	                                 src=cms.InputTag("packedPFCandidates"),
-    	                                 cut=cms.string("abs(pdgId)!=1 && abs(pdgId)!=2 && abs(eta)<3.0")
-    	                                 )
+	#~ if not useHFCandidates:
+			#~ process.noHFCands = cms.EDFilter("CandPtrSelector",
+    	                                 #~ src=cms.InputTag("packedPFCandidates"),
+    	                                 #~ cut=cms.string("abs(pdgId)!=1 && abs(pdgId)!=2 && abs(eta)<3.0")
+    	                                 #~ )
 
 	#jets are rebuilt from those candidates by the tools, no need to do anything else
 	### =================================================================================
@@ -61,13 +64,54 @@ def metProducerMiniAOD_MC(process):
     	                       isData=runOnData,
     	                       )
 
-	if not useHFCandidates:
-			runMetCorAndUncFromMiniAOD(process,
-    	                           isData=runOnData,
-    	                           pfCandColl=cms.InputTag("noHFCands"),
-    	                           postfix="NoHF"
-    	                           )
+	#~ if not useHFCandidates:
+			#~ runMetCorAndUncFromMiniAOD(process,
+    	                           #~ isData=runOnData,
+    	                           #~ pfCandColl=cms.InputTag("noHFCands"),
+    	                           #~ postfix="NoHF"
+    	                           #~ )
+	if redoPuppi:
+		from PhysicsTools.PatAlgos.slimming.puppiForMET_cff import makePuppiesFromMiniAOD
+		makePuppiesFromMiniAOD( process );
+		
+		runMetCorAndUncFromMiniAOD(process,
+								 isData=runOnData,
+								 pfCandColl=cms.InputTag("puppiForMET"),
+								 recoMetFromPFCs=True,
+								 reclusterJets=True,
+								 jetFlavor="AK4PFPuppi",
+								 postfix="Puppi"
+								 )
 
+	##___________________________External JER file________________________________||
+	##https://github.com/cms-jet/JRDatabase/tree/master/SQLiteFiles
+	process.jer = cms.ESSource("PoolDBESSource",CondDBSetup,
+	                           #connect = cms.string( "frontier://FrontierPrep/CMS_COND_PHYSICSTOOLS"),
+	                           #connect = cms.string( "frontier://FrontierPrep/CMS_CONDITIONS"),
+	                           connect = cms.string("sqlite:Fall15_25nsV2_MC.db"),
+	                           toGet =  cms.VPSet(
+	    cms.PSet(
+	      record = cms.string('JetResolutionRcd'),
+	      #tag    = cms.string('JR_MC_PtResolution_Summer15_25nsV6_AK4PF'),
+	      tag    = cms.string('JR_Fall15_25nsV2_MC_PtResolution_AK4PFchs'),
+	      label  = cms.untracked.string('AK4PFchs_pt')
+	      ),
+	    cms.PSet(
+	      record = cms.string("JetResolutionRcd"),
+	      #tag = cms.string("JR_MC_PhiResolution_Summer15_25nsV6_AK4PF"),
+	      tag = cms.string("JR_Fall15_25nsV2_MC_PhiResolution_AK4PFchs"),
+	      label= cms.untracked.string("AK4PFchs_phi")
+	      ),
+	    cms.PSet(
+	      record = cms.string('JetResolutionScaleFactorRcd'),
+	      #tag    = cms.string('JR_DATAMCSF_Summer15_25nsV6_AK4PFchs'),
+	      tag    = cms.string('JR_Fall15_25nsV2_MC_SF_AK4PFchs'),
+	      label  = cms.untracked.string('AK4PFchs')
+	      ),
+	    
+	    ) )
+	process.es_prefer_jer = cms.ESPrefer("PoolDBESSource",'jer')
+	
 	### -------------------------------------------------------------------
 	### the lines below remove the L2L3 residual corrections when processing data
 	### -------------------------------------------------------------------
@@ -79,13 +123,13 @@ def metProducerMiniAOD_MC(process):
 			process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
 			process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
 
-			if not useHFCandidates:
-				  process.patPFMetT1T2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-				  process.patPFMetT1T2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-				  process.patPFMetT2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-				  process.patPFMetT2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-				  process.shiftedPatJetEnDownNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-				  process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+			#~ if not useHFCandidates:
+				  #~ process.patPFMetT1T2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+				  #~ process.patPFMetT1T2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+				  #~ process.patPFMetT2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+				  #~ process.patPFMetT2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+				  #~ process.shiftedPatJetEnDownNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+				  #~ process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
 	### ------------------------------------------------------------------
 
 	# end Run corrected MET maker

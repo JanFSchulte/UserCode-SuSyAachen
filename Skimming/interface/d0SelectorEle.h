@@ -18,21 +18,23 @@ struct d0SelectorEle {
   typedef collectionType collection;
   typedef containerType container;
   typedef typename container::const_iterator const_iterator;
-  d0SelectorEle ( const edm::ParameterSet & cfg, edm::ConsumesCollector ):
+  d0SelectorEle ( const edm::ParameterSet & cfg, edm::ConsumesCollector iC ):
     d0Min_( cfg.getParameter<double>( "d0Min") ),
     d0MaxEB_( cfg.getParameter<double>( "d0MaxEB" ) ),
     d0MaxEE_( cfg.getParameter<double>( "d0MaxEE" ) ),
     dZMin_( cfg.getParameter<double>( "dZMin") ),
     dZMaxEB_( cfg.getParameter<double>( "dZMaxEB" ) ),
     dZMaxEE_( cfg.getParameter<double>( "dZMaxEE" ) ),
-    beamSpotSrc_( cfg.getParameter<edm::InputTag>( "beamSpotSource" ) )  { }
+    //~ beamSpotSrc_( cfg.getParameter<edm::InputTag>( "beamSpotSource" ) )  { }
+    beamSpotToken_(iC.consumes<T>(cfg.getParameter<edm::InputTag>( "beamSpotSource" )))  { }
   
   const_iterator begin() const { return selected_.begin(); }
   const_iterator end() const { return selected_.end(); }
   void select(const edm::Handle< collection > &col , const edm::Event &ev , const edm::EventSetup &setup ) {
     
     edm::Handle<T> beamSpotHandle;
-    ev.getByLabel(beamSpotSrc_, beamSpotHandle);
+    //~ ev.getByLabel(beamSpotSrc_, beamSpotHandle);
+    ev.getByToken(beamSpotToken_, beamSpotHandle);
     point_ = getPoint(beamSpotHandle);
 
     selected_.clear();
@@ -90,7 +92,8 @@ private:
   double dZMaxEB_;
   double dZMaxEE_;
   math::XYZPoint point_;
-  edm::InputTag beamSpotSrc_;
+  //~ edm::InputTag beamSpotSrc_;
+  edm::EDGetTokenT<T> beamSpotToken_;
 };
 
 #endif

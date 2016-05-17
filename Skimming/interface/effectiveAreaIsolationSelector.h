@@ -18,12 +18,13 @@ struct effectiveAreaIsolationSelector {
   typedef collectionType collection;
   typedef containerType container;
   typedef typename container::const_iterator const_iterator;
-  effectiveAreaIsolationSelector ( const edm::ParameterSet & cfg, edm::ConsumesCollector ):
-    fctIsolation_ (cfg.getParameter<edm::ParameterSet>("isolationDefinitions")),
+  effectiveAreaIsolationSelector ( const edm::ParameterSet & cfg, edm::ConsumesCollector iC ):
+    fctIsolation_ (cfg.getParameter<edm::ParameterSet>("isolationDefinitions"), (edm::ConsumesCollector&&)iC),
     isoMin_( cfg.getParameter<double>( "isoMin") ),
     isoMax_( cfg.getParameter<double>( "isoMax" ) ),
     isoMaxEE_(0.1),
-    rhoSrc_( cfg.getParameter<edm::InputTag>( "rhoSource" ) )  { }
+    //~ rhoSrc_( cfg.getParameter<edm::InputTag>( "rhoSource" ) )  { }
+    rhoToken_(iC.consumes<rhoType>(cfg.getParameter<edm::InputTag>( "rhoSource" )))  { }
   
   const_iterator begin() const { return selected_.begin(); }
   const_iterator end() const { return selected_.end(); }
@@ -32,7 +33,8 @@ struct effectiveAreaIsolationSelector {
     fctIsolation_.init(ev);
 
     edm::Handle<rhoType> rhoIso_h;
-    ev.getByLabel(rhoSrc_, rhoIso_h);
+    //~ ev.getByLabel(rhoSrc_, rhoIso_h);
+    ev.getByToken(rhoToken_, rhoIso_h);
     double rhoIso = *(rhoIso_h.product());
 
     selected_.clear();
@@ -127,7 +129,8 @@ struct effectiveAreaIsolationSelector {
     double isoMin_;
     double isoMax_;
     double isoMaxEE_;
-    edm::InputTag rhoSrc_;
+    //~ edm::InputTag rhoSrc_;
+    edm::EDGetTokenT<rhoType> rhoToken_;
 };
 
 #endif

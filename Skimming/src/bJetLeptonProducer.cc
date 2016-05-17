@@ -53,8 +53,8 @@ class bJetLeptonProducer : public edm::EDProducer {
       ~bJetLeptonProducer();
 
    private:
-      edm::InputTag jetSrc;
-      edm::InputTag leptonSrc;
+      edm::EDGetTokenT< std::vector<pat::Jet> > jetToken_;
+      edm::EDGetTokenT< std::vector< T > > leptonToken_;
       double dRCut;
       double dPhiCut;
       double bTagCut;
@@ -79,12 +79,12 @@ class bJetLeptonProducer : public edm::EDProducer {
 // constructors and destructor
 //
 template< typename T >
-bJetLeptonProducer<T>::bJetLeptonProducer(const edm::ParameterSet& iConfig)
+bJetLeptonProducer<T>::bJetLeptonProducer(const edm::ParameterSet& iConfig):
+   jetToken_(consumes< std::vector<pat::Jet> >(iConfig.getParameter<edm::InputTag>("src"))),
+   leptonToken_(consumes< std::vector< T > >(iConfig.getParameter<edm::InputTag>("leptSrc")))
 { 
    produces< std::vector< T > > ();
    
-   leptonSrc      = iConfig.getParameter<edm::InputTag> ("src");
-   jetSrc         = iConfig.getParameter<edm::InputTag> ("jetSrc");
    dRCut          = iConfig.getParameter<double> ("dRJetLepton");
    dPhiCut        = iConfig.getParameter<double> ("dPhiOppositeJetLepton");
    bJetAlgo       = iConfig.getParameter<std::string> ("user_bJetAlgo");
@@ -111,11 +111,11 @@ template< typename T >
 void
 bJetLeptonProducer<T>::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-   edm::Handle< std::vector< T > > leptons;
-   iEvent.getByLabel(leptonSrc, leptons);
-
    edm::Handle< std::vector<pat::Jet> > jets;
-   iEvent.getByLabel(jetSrc, jets);
+   iEvent.getByToken(jetToken_, jets);
+   
+   edm::Handle< std::vector< T > > leptons;
+   iEvent.getByToken(leptonToken_, leptons);
 
    std::auto_ptr<std::vector< T > > theLeptons ( new std::vector< T >() );
    double dR_ = 999999999.;

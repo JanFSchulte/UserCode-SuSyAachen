@@ -32,6 +32,9 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 
+
+#include "FWCore/Framework/interface/EDConsumerBase.h"
+
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "DataFormats/TrackReco/interface/Track.h"
@@ -160,8 +163,8 @@ private:
 //
 template< typename T  > 
 IsoTreeWriter<T>::IsoTreeWriter(const edm::ParameterSet& iConfig):
-  fctIsolation_  (iConfig.getParameter<edm::ParameterSet>("isolationDefinitions")),
-  fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
+  fctIsolation_  (iConfig.getParameter<edm::ParameterSet>("isolationDefinitions"),consumesCollector()),
+  fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights"),consumesCollector() )
 {
 	//now do what ever initialization is needed
         debug_ = true;

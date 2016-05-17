@@ -64,9 +64,9 @@ private:
   // ----------member data ---------------------------
   std::vector<std::string> combinations_;
   
-  edm::InputTag primaryTag_;
-  edm::InputTag secondaryTag_;
-  edm::InputTag tertiaryTag_;
+  edm::EDGetTokenT< collection > primaryToken_;
+  edm::EDGetTokenT< collection > secondaryToken_;
+  edm::EDGetTokenT< collection > tertiaryToken_;
 
   bool sameSign_;
   bool matching_;
@@ -91,12 +91,12 @@ private:
 //
 // constructors and destructor
 //
-DiLeptonFilter::DiLeptonFilter(const edm::ParameterSet& iConfig)
+DiLeptonFilter::DiLeptonFilter(const edm::ParameterSet& iConfig):
+  primaryToken_(consumes< collection >(iConfig.getParameter<edm::InputTag>("primarySrc"))),
+  secondaryToken_(consumes< collection >(iConfig.getParameter<edm::InputTag>("secondarySrc"))),
+  tertiaryToken_(consumes< collection >(iConfig.getParameter<edm::InputTag>("tertiarySrc")))
 {
   combinations_ = iConfig.getParameter< std::vector<std::string> > ("combinations");
-  primaryTag_ = iConfig.getParameter<edm::InputTag> ("primarySrc");
-  secondaryTag_ = iConfig.getParameter<edm::InputTag> ("secondarySrc");
-  tertiaryTag_ = iConfig.getParameter<edm::InputTag> ("tertiarySrc");
   sameSign_ = iConfig.getParameter<bool> ("sameSign");
   matching_ = iConfig.getParameter<bool> ("matching");
   strictExclusion_ = iConfig.getParameter<bool> ("strictExclusion");
@@ -139,19 +139,19 @@ DiLeptonFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::map< char, collection > collectionMap;
   
   edm::Handle< collection > primary;
-  iEvent.getByLabel(primaryTag_, primary);
+  iEvent.getByToken(primaryToken_, primary);
   collectionMap['p'] = *primary;
 
   if(useSecondary_){
     edm::Handle< collection > secondary;
-    iEvent.getByLabel(secondaryTag_, secondary);
+    iEvent.getByToken(secondaryToken_, secondary);
     collectionMap['s'] = *secondary;
   }
   
 
   if(useTertiary_){
     edm::Handle< collection > tertiary;
-    iEvent.getByLabel(tertiaryTag_, tertiary);
+    iEvent.getByToken(tertiaryToken_, tertiary);
     collectionMap['t'] = *tertiary;
    }
   //  if(strictExclusion_)std::cout << "---"<<std::endl;

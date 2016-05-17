@@ -59,7 +59,8 @@ private:
   virtual void endJob();
 
   void addTriggerSet( const edm::ParameterSet& tSet);
-  edm::InputTag triggerTag_;
+  edm::InputTag triggerNameTag_;
+  edm::EDGetTokenT<edm::TriggerResults> triggerToken_;
   std::vector< std::string > prefix_;
 
   //histos
@@ -69,12 +70,13 @@ private:
 };
 
 // constructors and destructor
-TriggerResultsCounter::TriggerResultsCounter(const edm::ParameterSet& iConfig)
+TriggerResultsCounter::TriggerResultsCounter(const edm::ParameterSet& iConfig):
+  triggerToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerTag")))
 {
   debug = false;
   // read config
   //  subDir_ = iConfig.getParameter<std::string> ("subDir");
-  triggerTag_ = iConfig.getParameter<edm::InputTag>("triggerTag");
+  triggerNameTag_ = iConfig.getParameter<edm::InputTag>("triggerTag");
   prefix_ = iConfig.getParameter< std::vector<std::string> > ("prefix");
   // init histos
   //  fs->mkdir(subDir_);
@@ -125,10 +127,11 @@ TriggerResultsCounter::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
   // get hold of TriggerResults Object
   edm::Handle<edm::TriggerResults> triggerResults;
-  iEvent.getByLabel(triggerTag_, triggerResults);
+  //~ iEvent.getByLabel(triggerTag_, triggerResults);
+  iEvent.getByToken(triggerToken_, triggerResults);
 
   if (triggerResults.failedToGet()) {
-    std::cout<<" could not get: "<<triggerTag_<<std::endl;
+    std::cout<<" could not get: "<<triggerNameTag_<<std::endl;
     return;
   }
   const edm::TriggerNames & triggerNames = iEvent.triggerNames(*triggerResults);

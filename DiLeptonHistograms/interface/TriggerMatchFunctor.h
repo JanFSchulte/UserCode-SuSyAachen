@@ -28,14 +28,17 @@ using namespace std;
 class TriggerMatchFunctor
 {
 public:
- TriggerMatchFunctor(edm::ParameterSet const & params):triggerEvent_(){
+ TriggerMatchFunctor(edm::ParameterSet const & params, edm::ConsumesCollector iC ):
+    triggerEvent_(),
+    triggerToken_(iC.consumes<trigger::TriggerEvent>(params.getParameter<edm::InputTag>("triggerSrc")))
+ {
     hasTrigger_ = false;
-    triggerTag_ = params.getParameter<edm::InputTag> ("triggerSrc");
+    //~ triggerTag_ = params.getParameter<edm::InputTag> ("triggerSrc");
   }
   
   void loadTrigger( const edm::Event& ev){
     edm::Handle<trigger::TriggerEvent> triggerEvent;
-    hasTrigger_ = ev.getByLabel(triggerTag_, triggerEvent);
+    hasTrigger_ = ev.getByToken(triggerToken_, triggerEvent);
     if(hasTrigger_) triggerEvent_ = *triggerEvent;
   }
   
@@ -45,7 +48,8 @@ public:
  private:
   bool hasTrigger_;
   trigger::TriggerEvent triggerEvent_; 
-  edm::InputTag triggerTag_;  
+  //~ edm::InputTag triggerTag_;
+  edm::EDGetTokenT<trigger::TriggerEvent> triggerToken_;  
   
 };
 

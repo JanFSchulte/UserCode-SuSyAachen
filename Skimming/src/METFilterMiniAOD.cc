@@ -51,7 +51,7 @@ private:
 
   // ----------member data ---------------------------
   
-  edm::InputTag filterTag_;
+  edm::EDGetTokenT<edm::TriggerResults> filterToken_;
   std::string filterFlag_;
 
 
@@ -60,9 +60,9 @@ private:
 };
 
 // constructors and destructor
-METFilterMiniAOD::METFilterMiniAOD(const edm::ParameterSet& iConfig)
+METFilterMiniAOD::METFilterMiniAOD(const edm::ParameterSet& iConfig):
+  filterToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("src")))
 {
-  filterTag_    = iConfig.getParameter < edm::InputTag > ("src");
   filterFlag_    = iConfig.getParameter < std::string > ("flag");
 
   debug = false;
@@ -76,8 +76,8 @@ METFilterMiniAOD::~METFilterMiniAOD(){}
 bool
 METFilterMiniAOD::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-   edm::Handle<edm::TriggerResults> filterBits;
-  iEvent.getByLabel(filterTag_, filterBits);
+  edm::Handle<edm::TriggerResults> filterBits;
+  iEvent.getByToken(filterToken_, filterBits);
   const edm::TriggerNames &allFilterNames = iEvent.triggerNames(*filterBits);
   bool filter = false;
   

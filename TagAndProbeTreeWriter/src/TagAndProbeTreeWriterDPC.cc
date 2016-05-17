@@ -149,7 +149,7 @@ private:
 //
 template< typename T, typename P > 
 TagAndProbeTreeWriterDPC<T,P>::TagAndProbeTreeWriterDPC(const edm::ParameterSet& iConfig):
-  fctIsolation_  (iConfig.getParameter<edm::ParameterSet>("isolationDefinitions"))
+  fctIsolation_  (iConfig.getParameter<edm::ParameterSet>("isolationDefinitions"),consumesCollector())
 {
     //now do what ever initialization is needed
     //Debug flag

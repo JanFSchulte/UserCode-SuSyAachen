@@ -55,8 +55,8 @@ private:
 
   // ----------member data ---------------------------
   
-  edm::InputTag inputTag_;
-  edm::InputTag inputTagMet_;
+  edm::EDGetTokenT< collection > inputToken_;
+  edm::EDGetTokenT< std::vector<pat::MET> > inputTokenMet_;
 
   double minCut_;
   double maxCut_;
@@ -74,10 +74,10 @@ private:
 //
 // constructors and destructor
 //
-MetSqrtHtFilter::MetSqrtHtFilter(const edm::ParameterSet& iConfig)
+MetSqrtHtFilter::MetSqrtHtFilter(const edm::ParameterSet& iConfig):
+  inputToken_(consumes< collection >(iConfig.getParameter<edm::InputTag>("src"))),
+  inputTokenMet_(consumes< std::vector<pat::MET> >(iConfig.getParameter<edm::InputTag>("metSrc")))
 {
-  inputTag_ = iConfig.getParameter<edm::InputTag> ("src");
-  inputTagMet_ = iConfig.getParameter<edm::InputTag> ("metSrc");
   minCut_ = iConfig.getParameter<double> ("minCut");
   maxCut_ = iConfig.getParameter<double> ("maxCut");
 }
@@ -102,10 +102,10 @@ MetSqrtHtFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
   edm::Handle< collection > candidates;
-  iEvent.getByLabel(inputTag_, candidates);
+  iEvent.getByToken(inputToken_, candidates);
   
   edm::Handle< std::vector<pat::MET> > mets;
-  iEvent.getByLabel(inputTagMet_, mets);
+  iEvent.getByToken(inputTokenMet_, mets);
 
   bool result = false;
   double ht = 0.0;

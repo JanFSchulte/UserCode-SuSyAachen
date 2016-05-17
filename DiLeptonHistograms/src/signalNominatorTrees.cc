@@ -106,7 +106,7 @@ private:
 
 // constructors and destructor
 signalNominatorTrees::signalNominatorTrees(const edm::ParameterSet& iConfig): 
-  getPdgId_( iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition") )
+  getPdgId_( iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition") , consumesCollector() )
 {
   debug = false;
   

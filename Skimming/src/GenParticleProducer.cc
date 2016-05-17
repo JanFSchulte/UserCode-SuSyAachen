@@ -47,7 +47,7 @@ class GenParticlePatProducer : public edm::EDProducer {
       ~GenParticlePatProducer();
 
    private:
-      edm::InputTag leptonSrc;
+      edm::EDGetTokenT< std::vector<T> > leptonToken_;
       virtual void beginJob() ;
       virtual void produce(edm::Event&, const edm::EventSetup&);
       virtual void endJob() ;
@@ -70,11 +70,10 @@ class GenParticlePatProducer : public edm::EDProducer {
 // constructors and destructor
 //
 template< typename T >
-GenParticlePatProducer<T>::GenParticlePatProducer(const edm::ParameterSet& iConfig)
+GenParticlePatProducer<T>::GenParticlePatProducer(const edm::ParameterSet& iConfig):
+  leptonToken_(consumes< std::vector< T > >(iConfig.getParameter<edm::InputTag>("src")))
 { 
    produces< std::vector< reco::GenParticle > > ();
-   
-   leptonSrc      = iConfig.getParameter<edm::InputTag> ("src");
 }
 
 
@@ -98,7 +97,7 @@ void
 GenParticlePatProducer<T>::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    edm::Handle< std::vector< T > > leptons;
-   iEvent.getByLabel(leptonSrc, leptons);
+   iEvent.getByToken(leptonToken_, leptons);
 
    std::auto_ptr<std::vector< reco::GenParticle > > theGens ( new std::vector< reco::GenParticle >() );
    

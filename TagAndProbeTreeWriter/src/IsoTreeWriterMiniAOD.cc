@@ -160,8 +160,8 @@ private:
 //
 template< typename T  > 
 IsoTreeWriterMiniAOD<T>::IsoTreeWriterMiniAOD(const edm::ParameterSet& iConfig):
-  fctIsolation_  (iConfig.getParameter<edm::ParameterSet>("isolationDefinitions")),
-  fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
+  fctIsolation_  (iConfig.getParameter<edm::ParameterSet>("isolationDefinitions"),consumesCollector()),
+  fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights"),consumesCollector() )
 {
 	//now do what ever initialization is needed
         debug_ = true;

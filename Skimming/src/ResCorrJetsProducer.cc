@@ -50,7 +50,7 @@ class ResCorrJetsProducer : public edm::EDProducer {
       ~ResCorrJetsProducer();
 
    private:
-      edm::InputTag jetSrc;
+      edm::EDGetTokenT< std::vector<pat::Jet> > jetToken_;
       std::string jetCorrections;
   //FactorizedJetCorrector* JEC;
       const JetCorrector* JEC;
@@ -73,11 +73,11 @@ class ResCorrJetsProducer : public edm::EDProducer {
 //
 // constructors and destructor
 //
-ResCorrJetsProducer::ResCorrJetsProducer(const edm::ParameterSet& iConfig)
+ResCorrJetsProducer::ResCorrJetsProducer(const edm::ParameterSet& iConfig):
+  jetToken_(consumes< std::vector<pat::Jet> >(iConfig.getParameter<edm::InputTag>("src")))
 { 
    produces< std::vector<pat::Jet> > ();
    
-   jetSrc            = iConfig.getParameter<edm::InputTag> ("src");
    jetCorrections    = iConfig.getParameter<std::string> ("jetCorrections");
 
    JEC = 0;
@@ -105,7 +105,7 @@ ResCorrJetsProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     JEC = JetCorrector::getJetCorrector(jetCorrections, iSetup);
 
    edm::Handle< std::vector<pat::Jet> > jets;
-   iEvent.getByLabel(jetSrc, jets);
+   iEvent.getByToken(jetToken_, jets);
    bool isRealData = iEvent.isRealData();
 
    std::auto_ptr<std::vector<pat::Jet> > theJets ( new std::vector<pat::Jet>() );

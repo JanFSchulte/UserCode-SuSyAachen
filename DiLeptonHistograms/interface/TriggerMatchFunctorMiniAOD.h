@@ -29,20 +29,24 @@ using namespace std;
 class TriggerMatchFunctorMiniAOD
 {
 public:
- TriggerMatchFunctorMiniAOD(edm::ParameterSet const & params):triggerObjects_(){
+ TriggerMatchFunctorMiniAOD(edm::ParameterSet const & params, edm::ConsumesCollector iC ):
+    triggerObjects_(),
+    bitsToken_(iC.consumes<edm::TriggerResults>(params.getParameter<edm::InputTag>("bits"))), 
+    objectToken_(iC.consumes<pat::TriggerObjectStandAloneCollection>(params.getParameter<edm::InputTag>("objects"))) 
+ {
     hasTrigger_ = false;
-    bitsTag_ = params.getParameter<edm::InputTag> ("bits");
+    //~ bitsTag_ = params.getParameter<edm::InputTag> ("bits");
     //prescaleTag_ = params.getParameter<edm::InputTag> ("prescales");  
-    objectTag_ = params.getParameter<edm::InputTag> ("objects");       
+    //~ objectTag_ = params.getParameter<edm::InputTag> ("objects");       
   }
   
   void loadTrigger( const edm::Event& ev){
     edm::Handle<edm::TriggerResults> triggerBits;
     edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
     //edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
-    hasTrigger_ = ev.getByLabel(bitsTag_, triggerBits);
+    hasTrigger_ = ev.getByToken(bitsToken_, triggerBits);
     //hasTrigger_ = ev.getByLabel(prescaleTag_, triggerPrescales);
-    hasTrigger_ = ev.getByLabel(objectTag_, triggerObjects);        
+    hasTrigger_ = ev.getByToken(objectToken_, triggerObjects);        
     if(hasTrigger_) triggerObjects_ = triggerObjects;
     if(hasTrigger_) triggerBits_ = triggerBits;  
     if(hasTrigger_) names_ = ev.triggerNames(*triggerBits);
@@ -56,9 +60,11 @@ public:
   bool hasTrigger_;
   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects_;
   edm::Handle<edm::TriggerResults> triggerBits_;
-  edm::InputTag bitsTag_; 
+  //~ edm::InputTag bitsTag_; 
+  edm::EDGetTokenT<edm::TriggerResults> bitsToken_;
   //edm::InputTag prescaleTag_;
-  edm::InputTag objectTag_;
+  //~ edm::InputTag objectTag_;
+  edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> objectToken_;
   edm::TriggerNames names_;     
   
 };

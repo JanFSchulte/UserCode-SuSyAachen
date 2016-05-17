@@ -18,15 +18,16 @@ struct tightMuonSelector {
   typedef collectionType collection;
   typedef containerType container;
   typedef typename container::const_iterator const_iterator;
-  tightMuonSelector ( const edm::ParameterSet & cfg, edm::ConsumesCollector ):
-    vertexSrc_( cfg.getParameter<edm::InputTag>( "vertexSource" ) )  { }
+  tightMuonSelector ( const edm::ParameterSet & cfg, edm::ConsumesCollector iC):
+    //~ vertexSrc_( cfg.getParameter<edm::InputTag>( "vertexSource" ) )  { }
+    vertexToken_(iC.consumes<reco::VertexCollection>(cfg.getParameter<edm::InputTag>("vertexSource")))   { }
   
   const_iterator begin() const { return selected_.begin(); }
   const_iterator end() const { return selected_.end(); }
   void select(const edm::Handle< collection > &col , const edm::Event &ev , const edm::EventSetup &setup ) {
     
     edm::Handle<reco::VertexCollection> vertexHandle;
-    ev.getByLabel(vertexSrc_, vertexHandle);
+    ev.getByToken(vertexToken_, vertexHandle);
    
     selected_.clear();
     for(typename collection::const_iterator it = col.product()->begin(); 
@@ -39,7 +40,7 @@ struct tightMuonSelector {
   size_t size() const { return selected_.size(); }
 private:
   container selected_;
-  edm::InputTag vertexSrc_;
+  edm::EDGetTokenT<reco::VertexCollection> vertexToken_;
 };
 
 #endif

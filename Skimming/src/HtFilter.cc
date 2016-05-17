@@ -55,7 +55,8 @@ private:
 
   // ----------member data ---------------------------
   
-  edm::InputTag inputTag_;
+  //~ edm::InputTag inputTag_;
+  edm::EDGetTokenT< collection > inputToken_;
 
   double minHT_;
   double maxHT_;
@@ -73,9 +74,10 @@ private:
 //
 // constructors and destructor
 //
-HtFilter::HtFilter(const edm::ParameterSet& iConfig)
+HtFilter::HtFilter(const edm::ParameterSet& iConfig):
+  inputToken_(consumes< collection >(iConfig.getParameter<edm::InputTag>("src")))
 {
-  inputTag_ = iConfig.getParameter<edm::InputTag> ("src");
+  //~ inputTag_ = iConfig.getParameter<edm::InputTag> ("src");
   minHT_ = iConfig.getParameter<double> ("minHT");
   maxHT_ = iConfig.getParameter<double> ("maxHT");
 }
@@ -100,7 +102,8 @@ HtFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
   edm::Handle< collection > candidates;
-  iEvent.getByLabel(inputTag_, candidates);
+  //~ iEvent.getByLabel(inputTag_, candidates);
+  iEvent.getByToken(inputToken_, candidates);
 
   bool result = false;
   double ht = 0.0;

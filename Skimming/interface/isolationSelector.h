@@ -7,6 +7,7 @@
 //Framework
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Utilities/interface/InputTag.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include "SuSyAachen/TagAndProbeTreeWriter/interface/IsolationFunctor.h"
 
@@ -18,8 +19,8 @@ struct isolationSelector {
   typedef collectionType collection;
   typedef containerType container;
   typedef typename container::const_iterator const_iterator;
-  isolationSelector ( const edm::ParameterSet & cfg, edm::ConsumesCollector ):
-    fctIsolation_ (cfg.getParameter<edm::ParameterSet>("isolationDefinitions")),
+  isolationSelector ( const edm::ParameterSet & cfg, edm::ConsumesCollector iC ):
+    fctIsolation_ (cfg.getParameter<edm::ParameterSet>("isolationDefinitions"), (edm::ConsumesCollector&&)iC),
     isoMin_( cfg.getParameter<double>( "isoMin") ),
     isoMax_( cfg.getParameter<double>( "isoMax" ) ),
 	method_( cfg.getParameter<string>( "method" ) ),    

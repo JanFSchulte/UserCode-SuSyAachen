@@ -16,7 +16,7 @@
 
 //Constructor
 DiLeptonHistograms::DiLeptonHistograms(const edm::ParameterSet &iConfig):
-fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
+fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights"), consumesCollector() )
 {
     //now do what ever initialization is needed
     //Debug flag

@@ -49,7 +49,7 @@ private:
 
   // ----------member data ---------------------------
   
-  edm::InputTag filterTag_;
+  edm::EDGetTokenT<bool> filterToken_;
 
 
 
@@ -57,9 +57,9 @@ private:
 };
 
 // constructors and destructor
-HBHENoiseFilterMiniAOD::HBHENoiseFilterMiniAOD(const edm::ParameterSet& iConfig)
+HBHENoiseFilterMiniAOD::HBHENoiseFilterMiniAOD(const edm::ParameterSet& iConfig):
+  filterToken_(consumes<bool>(iConfig.getParameter<edm::InputTag>("src")))
 {
-  filterTag_    = iConfig.getParameter < edm::InputTag > ("src");
  
   debug = false;
 }
@@ -73,7 +73,7 @@ bool
 HBHENoiseFilterMiniAOD::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    edm::Handle<bool> HBHEFilterResult;
-  iEvent.getByLabel(filterTag_, HBHEFilterResult);
+  iEvent.getByToken(filterToken_, HBHEFilterResult);
   bool filter = true;
   
   if (!*HBHEFilterResult){

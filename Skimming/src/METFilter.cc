@@ -50,7 +50,7 @@ private:
 
   // ----------member data ---------------------------
   
-  edm::InputTag filterTag_;
+  edm::EDGetTokenT<bool> filterToken_;
 
 
 
@@ -58,10 +58,9 @@ private:
 };
 
 // constructors and destructor
-METFilter::METFilter(const edm::ParameterSet& iConfig)
+METFilter::METFilter(const edm::ParameterSet& iConfig):
+  filterToken_(consumes<bool>(iConfig.getParameter<edm::InputTag>("src")))
 {
-  filterTag_    = iConfig.getParameter < edm::InputTag > ("src");
-
   debug = false;
 }
 
@@ -74,7 +73,7 @@ bool
 METFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   edm::Handle< bool > filterHandle;
-  iEvent.getByLabel(filterTag_, filterHandle);
+  iEvent.getByToken(filterToken_, filterHandle);
   Bool_t filter = (Bool_t)(*filterHandle);
 
  

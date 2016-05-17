@@ -14,13 +14,15 @@
 #include <PhysicsTools/Utilities/interface/Lumi3DReWeighting.h>
 #include <SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h>
 
+#include "FWCore/Framework/interface/ConsumesCollector.h"
+
 #include <iostream>
 
 class VertexWeightFunctor
 {
 public:
   VertexWeightFunctor( ){}
-  VertexWeightFunctor( edm::ParameterSet const & params ){
+  VertexWeightFunctor( edm::ParameterSet const & params , edm::ConsumesCollector iC ){
             std::string mcFile_ = params.getParameter<std::string>("mcFile");
             std::string mcName_ = params.getParameter<std::string>("mcName");
             std::string dataFile_ = params.getParameter<std::string>("dataFile");
@@ -34,6 +36,7 @@ public:
             doWeight3D_ = params.getParameter<bool>("doWeight3D");
             fractionRunA_ = params.getParameter<double>("fractionRunA");
             fractionRunB_ = params.getParameter<double>("fractionRunB");
+            iC.consumes<std::vector< PileupSummaryInfo > >(edm::InputTag("slimmedAddPileupInfo"));
             /*std::cout << mcFile_ << std::endl;
             std::cout << mcName_ << std::endl;
             std::cout << dataFile_ << std::endl;

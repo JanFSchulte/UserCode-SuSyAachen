@@ -53,7 +53,8 @@ private:
 
   // ----------member data ---------------------------
   
-  edm::InputTag inputTag_;
+  //~ edm::InputTag inputTag_;
+  edm::EDGetTokenT< collection > inputToken_;
 
   double minMHT_;
 
@@ -70,9 +71,10 @@ private:
 //
 // constructors and destructor
 //
-MhtFilter::MhtFilter(const edm::ParameterSet& iConfig)
+MhtFilter::MhtFilter(const edm::ParameterSet& iConfig):
+  inputToken_(consumes< collection >(iConfig.getParameter<edm::InputTag>("src")))
 {
-  inputTag_ = iConfig.getParameter<edm::InputTag> ("src");
+  //~ inputTag_ = iConfig.getParameter<edm::InputTag> ("src");
   minMHT_ = iConfig.getParameter<double> ("minMHT");
 }
 
@@ -96,7 +98,8 @@ MhtFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
   edm::Handle< collection > candidates;
-  iEvent.getByLabel(inputTag_, candidates);
+  //~ iEvent.getByLabel(inputTag_, candidates);
+  iEvent.getByToken(inputToken_, candidates);
 
   reco::Candidate::LorentzVector cand(0.,0.,0.,0.);
   for(collection::const_iterator it = candidates->begin(); it != candidates->end() ; ++it){

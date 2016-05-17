@@ -156,11 +156,11 @@ private:
 
 // constructors and destructor
 DiLeptonTrees::DiLeptonTrees(const edm::ParameterSet& iConfig):
-  fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") ),
-  fctVtxWeightUp_    (iConfig.getParameter<edm::ParameterSet>("vertexWeightsUp") ),
-  fctVtxWeightDown_    (iConfig.getParameter<edm::ParameterSet>("vertexWeightsDown") ),
-  fctIsolation_  (iConfig.getParameter<edm::ParameterSet>("isolationDefinitions")),
-  getPdgId_( iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition") )
+  fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights"),consumesCollector() ),
+  fctVtxWeightUp_    (iConfig.getParameter<edm::ParameterSet>("vertexWeightsUp"),consumesCollector() ),
+  fctVtxWeightDown_    (iConfig.getParameter<edm::ParameterSet>("vertexWeightsDown") ,consumesCollector()),
+  fctIsolation_  (iConfig.getParameter<edm::ParameterSet>("isolationDefinitions"),consumesCollector()),
+  getPdgId_( iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition"),consumesCollector() )
 {
   debug = false;
   useTaus_ = iConfig.existsAs<edm::InputTag>("taus");

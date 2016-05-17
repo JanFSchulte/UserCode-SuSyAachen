@@ -14,6 +14,9 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 
+#include "FWCore/Framework/interface/ConsumesCollector.h"
+
+
 //#include <DataFormats/PatCandidates/interface/Electron.h>
 //#include <DataFormats/PatCandidates/interface/Muon.h>
 //#include <DataFormats/PatCandidates/interface/Tau.h>
@@ -23,15 +26,18 @@ using namespace std;
 class PdgIdFunctor
 {
 public:
- PdgIdFunctor(edm::ParameterSet const & params):genParticles_(){
+ PdgIdFunctor(edm::ParameterSet const & params, edm::ConsumesCollector iC ):
+    genParticles_(),
+    genToken_(iC.consumes<reco::GenParticleCollection>(params.getParameter<edm::InputTag>("genSrc")))
+ {
     hasGen_ = false;
     deltaR_ = params.getParameter<double>("deltaR");
-    genTag_ = params.getParameter<edm::InputTag> ("genSrc");
   }
   
   void loadGenParticles( const edm::Event& ev){
     edm::Handle<reco::GenParticleCollection> genParticles;
-    hasGen_ = ev.getByLabel(genTag_, genParticles);
+    //~ hasGen_ = ev.getByLabel(genTag_, genParticles);
+    hasGen_ = ev.getByToken(genToken_, genParticles);
     if(hasGen_) genParticles_ = *genParticles;
   }
   
@@ -43,7 +49,7 @@ public:
   reco::GenParticleCollection genParticles_; 
   
   double deltaR_;
-  edm::InputTag genTag_;  
+  edm::EDGetTokenT<reco::GenParticleCollection> genToken_;  
 };
 
 template<class T>

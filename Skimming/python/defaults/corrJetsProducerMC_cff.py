@@ -36,16 +36,16 @@ def corrJetsProducerMC(process):
 
 
 
-	from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import patJetCorrFactorsUpdated
-	process.patJetCorrFactorsReapplyJEC = patJetCorrFactorsUpdated.clone(
+	from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import updatedPatJetCorrFactors
+	process.patJetCorrFactorsReapplyJEC = updatedPatJetCorrFactors.clone(
   	src = cms.InputTag("slimmedJets"),
   	levels = ['L1FastJet', 
     	    'L2Relative', 
     	    'L3Absolute'],
  	 payload = 'AK4PFchs' ) # Make sure to choose the appropriate levels and payload here!
 	
-	from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import patJetsUpdated	
-	process.patJetsReapplyJEC = patJetsUpdated.clone(
+	from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import updatedPatJets	
+	process.patJetsReapplyJEC = updatedPatJets.clone(
   	jetSource = cms.InputTag("slimmedJets"),
   	jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetCorrFactorsReapplyJEC"))
   	)

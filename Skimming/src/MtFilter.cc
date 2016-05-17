@@ -58,8 +58,8 @@ private:
 
   // ----------member data ---------------------------
   
-  edm::InputTag inputTag_;
-  edm::InputTag inputTagMET_;
+  edm::EDGetTokenT< collection > inputToken_;
+  edm::EDGetTokenT< metCollection > inputTokenMET_;
 
   double minMT_;
   double maxMT_;
@@ -68,10 +68,10 @@ private:
 };
 
 // constructors and destructor
-MtFilter::MtFilter(const edm::ParameterSet& iConfig)
+MtFilter::MtFilter(const edm::ParameterSet& iConfig):
+  inputToken_(consumes< collection >(iConfig.getParameter<edm::InputTag>("src"))),
+  inputTokenMET_(consumes< metCollection >(iConfig.getParameter<edm::InputTag>("srcMET")))
 {
-  inputTagMET_ = iConfig.getParameter<edm::InputTag> ("srcMET");
-  inputTag_ = iConfig.getParameter<edm::InputTag> ("src");
   minMT_ = iConfig.getParameter<double> ("minMT");
   maxMT_ = iConfig.getParameter<double> ("maxMT");
   debug = false;
@@ -87,10 +87,10 @@ MtFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
   edm::Handle< collection > candidates;
-  iEvent.getByLabel(inputTag_, candidates);
+  iEvent.getByToken(inputToken_, candidates);
 
   edm::Handle< metCollection > metCollection;
-  iEvent.getByLabel(inputTagMET_, metCollection);
+  iEvent.getByToken(inputTokenMET_, metCollection);
 
   pat::MET met = *((*metCollection).begin());
   bool passedMin = false;

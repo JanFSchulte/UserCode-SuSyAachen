@@ -36,6 +36,8 @@
 
 #include "CommonTools/Utils/interface/PtComparator.h"
 
+#include "FWCore/Framework/interface/ConsumesCollector.h"
+
 //
 // class declaration
 //
@@ -46,8 +48,8 @@ class jetLeptonCleaner : public edm::EDProducer {
       ~jetLeptonCleaner();
 
    private:
-      edm::InputTag jetSrc;
-      edm::InputTag leptonSrc;
+      edm::EDGetTokenT< std::vector< T1 > > jetToken_;
+      edm::EDGetTokenT< std::vector< T2 > > leptonToken_;
       double dRCut;
       virtual void beginJob() ;
       virtual void produce(edm::Event&, const edm::EventSetup&);
@@ -70,12 +72,11 @@ class jetLeptonCleaner : public edm::EDProducer {
 // constructors and destructor
 //
 template< typename T1, typename T2 >
-jetLeptonCleaner<T1,T2>::jetLeptonCleaner(const edm::ParameterSet& iConfig)
+jetLeptonCleaner<T1,T2>::jetLeptonCleaner(const edm::ParameterSet& iConfig):
+   jetToken_(consumes< std::vector< T1 > >(iConfig.getParameter<edm::InputTag>("src"))),
+   leptonToken_(consumes< std::vector< T2 > >(iConfig.getParameter<edm::InputTag>("leptSrc")))
 { 
    produces< std::vector< T1 > > ();
-   
-   leptonSrc      = iConfig.getParameter<edm::InputTag> ("leptSrc");
-   jetSrc         = iConfig.getParameter<edm::InputTag> ("src");
    dRCut          = iConfig.getParameter<double> ("dRJetLepton");
 }
 
@@ -99,11 +100,11 @@ template< typename T1, typename T2 >
 void
 jetLeptonCleaner<T1,T2>::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-   edm::Handle< std::vector< T2 > > leptons;
-   iEvent.getByLabel(leptonSrc, leptons);
-
    edm::Handle< std::vector< T1 > > jets;
-   iEvent.getByLabel(jetSrc, jets);
+   iEvent.getByToken(jetToken_, jets);
+   
+   edm::Handle< std::vector< T2 > > leptons;
+   iEvent.getByToken(leptonToken_, leptons);
 
    std::auto_ptr<std::vector< T1 > > theJets ( new std::vector< T1 >() );
    double dR_ = 999999999.;

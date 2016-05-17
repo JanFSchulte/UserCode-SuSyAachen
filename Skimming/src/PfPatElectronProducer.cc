@@ -43,7 +43,7 @@ class PfElectronProducer : public edm::EDProducer {
       ~PfElectronProducer();
 
    private:
-      edm::InputTag eleSrc;
+      edm::EDGetTokenT< std::vector<pat::Electron> > eleToken_;
       virtual void beginJob() ;
       virtual void produce(edm::Event&, const edm::EventSetup&);
       virtual void endJob() ;
@@ -64,11 +64,10 @@ class PfElectronProducer : public edm::EDProducer {
 //
 // constructors and destructor
 //
-PfElectronProducer::PfElectronProducer(const edm::ParameterSet& iConfig)
+PfElectronProducer::PfElectronProducer(const edm::ParameterSet& iConfig):
+  eleToken_(consumes< std::vector<pat::Electron> >(iConfig.getParameter<edm::InputTag>("src")))
 { 
    produces< std::vector<pat::Electron> > ();
-   
-   eleSrc            = iConfig.getParameter<edm::InputTag> ("src");
 }
 
 
@@ -90,7 +89,7 @@ void
 PfElectronProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    edm::Handle< std::vector<pat::Electron> > electrons;
-   iEvent.getByLabel(eleSrc, electrons);
+   iEvent.getByToken(eleToken_, electrons);
 
    std::auto_ptr<std::vector<pat::Electron> > theElectrons ( new std::vector<pat::Electron>() );
    for (std::vector<pat::Electron>::const_iterator ele_i = electrons->begin(); ele_i != electrons->end(); ++ele_i){

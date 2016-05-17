@@ -83,7 +83,7 @@ private:
 	};
 	// ----------member data ---------------------------
 
-	edm::InputTag inputTag_;
+	edm::EDGetTokenT< reco::GenParticleCollection > inputToken_;
 	//instead of a single mother we could go for a vector of ParticleTemplates and read a VPSet then the AND of mother would prevail
 	ParticleTemplate mother_;
 
@@ -93,10 +93,10 @@ private:
 
 // constructors and destructor
 SignatureFilter::SignatureFilter(const edm::ParameterSet& iConfig):
+		inputToken_(consumes< reco::GenParticleCollection >(iConfig.getParameter<edm::InputTag>("src"))),
 		mother_(iConfig)
 {
 	debug_ = false;
-	inputTag_ = iConfig.getParameter<edm::InputTag> ("src");
 
 }
 
@@ -119,7 +119,7 @@ SignatureFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 	bool result = false;
 	edm::Handle< reco::GenParticleCollection > genParticles;
-	iEvent.getByLabel(inputTag_, genParticles);
+	iEvent.getByToken(inputToken_, genParticles);
 
 	for(reco::GenParticleCollection::const_iterator it = genParticles->begin();
 			it != genParticles->end(); ++it){

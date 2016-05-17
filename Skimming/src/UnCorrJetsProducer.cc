@@ -50,7 +50,7 @@ class UnCorrJetsProducer : public edm::EDProducer {
       ~UnCorrJetsProducer();
 
    private:
-      edm::InputTag jetSrc;
+      edm::EDGetTokenT< std::vector<pat::Jet> > jetToken_;
       std::string jetCorrections;
       FactorizedJetCorrector* JEC;
       virtual void beginJob() ;
@@ -72,11 +72,10 @@ class UnCorrJetsProducer : public edm::EDProducer {
 //
 // constructors and destructor
 //
-UnCorrJetsProducer::UnCorrJetsProducer(const edm::ParameterSet& iConfig)
+UnCorrJetsProducer::UnCorrJetsProducer(const edm::ParameterSet& iConfig):
+  jetToken_(consumes< std::vector<pat::Jet> >(iConfig.getParameter<edm::InputTag>("src")))
 { 
    produces< std::vector<pat::Jet> > ();
-   
-   jetSrc            = iConfig.getParameter<edm::InputTag> ("src");
 }
 
 
@@ -98,7 +97,7 @@ void
 UnCorrJetsProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    edm::Handle< std::vector<pat::Jet> > jets;
-   iEvent.getByLabel(jetSrc, jets);
+   iEvent.getByToken(jetToken_, jets);
 
    std::auto_ptr<std::vector<pat::Jet> > theJets ( new std::vector<pat::Jet>() );
    for (std::vector<pat::Jet>::const_iterator jet_i = jets->begin(); jet_i != jets->end(); ++jet_i){

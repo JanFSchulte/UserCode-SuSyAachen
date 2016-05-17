@@ -53,7 +53,7 @@ private:
 
   // ----------member data ---------------------------
   
-  edm::InputTag inputTag_;
+  edm::EDGetTokenT< T > inputToken_;
 
   unsigned int minN_;
   unsigned int maxN_;
@@ -72,9 +72,9 @@ private:
 // constructors and destructor
 //
 template< typename T >
-CountFilter<T>::CountFilter(const edm::ParameterSet& iConfig)
+CountFilter<T>::CountFilter(const edm::ParameterSet& iConfig):
+  inputToken_(consumes<T>(iConfig.getParameter<edm::InputTag>("src")))
 {
-  inputTag_ = iConfig.getParameter<edm::InputTag> ("src");
   minN_ = iConfig.getParameter<unsigned int> ("minNumber");
   maxN_ = iConfig.getParameter<unsigned int> ("maxNumber");
 }
@@ -101,7 +101,7 @@ CountFilter<T>::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
   edm::Handle< T > candidates;
-  iEvent.getByLabel(inputTag_, candidates);
+  iEvent.getByToken(inputToken_, candidates);
 
   unsigned int number = candidates->size();
   bool result = (number >= minN_ && number <= maxN_);

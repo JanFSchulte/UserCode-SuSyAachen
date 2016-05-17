@@ -17,7 +17,7 @@
 
 //Constructor
 WeightSummer::WeightSummer(const edm::ParameterSet &iConfig):
-fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") )
+fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights"),consumesCollector()  )
 {
     // Create the root file
     edm::Service<TFileService> theFile;
