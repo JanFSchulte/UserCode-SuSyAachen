@@ -81,6 +81,11 @@ private:
 		iso = GetMiniIsolation(lepton, *pfCands, "pfWeight", rhoIso_);
 	
 	}	
+	else if (method == "miniIsoPuppi"){
+		
+		iso = GetMiniIsolation(lepton, *pfCands, "Puppi", rhoIso_);
+	
+	}	
 
 
     return iso;
@@ -121,6 +126,11 @@ private:
 		iso = GetMiniIsolation(lepton, *pfCands, "pfWeight", rhoIso_);
 	
 	}
+	else if (method == "miniIsoPuppi"){
+		
+		iso = GetMiniIsolation(lepton, *pfCands, "Puppi", rhoIso_);
+	
+	}
 
 
 
@@ -141,6 +151,8 @@ double GetMiniIsolation(const T& lepton, const std::vector<pat::PackedCandidate>
   double r_iso_min = 0.05;
   double r_iso_max = 0.2;
   double kt_scale = 10;
+  
+  float iso = 0.;
 
   double deadcone_nh(0.), deadcone_ch(0.), deadcone_ph(0.), deadcone_pu(0.);
   
@@ -160,65 +172,119 @@ double GetMiniIsolation(const T& lepton, const std::vector<pat::PackedCandidate>
 		ptThresh = 0.5;
   }
   double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/lepton.pt()));
-  for (std::vector<pat::PackedCandidate>::const_iterator itPFC = pfCands.begin(); itPFC != pfCands.end(); itPFC++) {
-    if (abs((*itPFC).pdgId())<7) continue;
-    double dr = deltaR((*itPFC), lepton);
-    if (dr > r_iso) continue;
-      
-      //////////////////  NEUTRALS  /////////////////////////
-    if ((*itPFC).charge()==0){
-      if ((*itPFC).pt()>ptThresh) {
-        double wpf(1.);
-        if (method == "pfWeight"){
-          double wpv(1.), wpu(1.);
-          for (std::vector<pat::PackedCandidate>::const_iterator itJPFC = pfCands.begin(); itJPFC != pfCands.end(); itJPFC++) {
-            double jdr = deltaR2((*itPFC), (*itJPFC));
-            if ((*itPFC).charge()!=0 || jdr<0.00001) continue;
-            double jpt = (*itJPFC).pt();
-            double weight = jpt*jpt/jdr;
-            if ((*itJPFC).fromPV()>1 and abs((*itJPFC).charge())>0 and weight>1) wpv *= weight;
-            else if (weight>1) wpu *= weight;
-          }
-          wpv = 0.5*log(wpv);
-          wpu = 0.5*log(wpu);
-          wpf = wpv/(wpv+wpu);
-        }
-          /////////// PHOTONS ////////////
-        if (abs((*itPFC).pdgId())==22) {
-          if(dr < deadcone_ph) continue;
-          iso_ph += wpf*(*itPFC).pt();
-	    /////////// NEUTRAL HADRONS ////////////
-        } else if (abs((*itPFC).pdgId())==130) {
-          if(dr < deadcone_nh) continue;
-          iso_nh += wpf*(*itPFC).pt();
-        }
-      }
-        //////////////////  CHARGED from PV  /////////////////////////
-    } else if ((*itPFC).fromPV()>1){
-      if (abs((*itPFC).pdgId())==211) {
-        if(dr < deadcone_ch) continue;
-        iso_ch += (*itPFC).pt();
-      }
-        //////////////////  CHARGED from PU  /////////////////////////
-    } else {
-      if ((*itPFC).pt()>ptThresh){
-        if(dr < deadcone_pu) continue;
-        iso_pu += (*itPFC).pt();
-      }
-    }
-  }
-  float iso = 0.;
-  iso = iso_ph + iso_nh;
   
-  //std::cout << iso << " " << rho << " " << GetAEff(lepton) << " " << r_iso << " " << pow(r_iso/0.3,2) << std::endl;
-  if (method == "deltaBeta"){
-	  iso -= 0.5*iso_pu;
+  if (method == "Puppi"){
+	  
+	  double val_PuppiWithLep    [3]= {0,0,0} ;
+	  double val_PuppiWithoutLep [3]= {0,0,0} ;
+	
+	  enum particleType{
+	      CH = 0, 
+	      NH = 1,
+	      PH = 2,
+	      OTHER = 100000
+	  };
+	  
+	 for (std::vector<pat::PackedCandidate>::const_iterator cand = pfCands.begin(); cand != pfCands.end(); cand++) {
+		  if (abs((*cand).pdgId())<7) continue;
+		  double dr = deltaR((*cand), lepton);
+		  if (dr > r_iso) continue;
+		
+		  // check particleTyple (CH/NH/PH or other). remove 'other'.
+		  const particleType pType =
+		  isCH( abs((*cand).pdgId()) ) ? CH :
+		  isNH( abs((*cand).pdgId()) ) ? NH :
+		  isPH( abs((*cand).pdgId()) ) ? PH : OTHER ;
+		  if( pType == OTHER ){
+			if( abs((*cand).pdgId()) != 1 && abs((*cand).pdgId()) != 2 
+			&& abs( (*cand).pdgId() ) != 11
+			&& abs( (*cand).pdgId() ) != 13){
+				std::cout <<"candidate with PDGID = " << abs( (*cand).pdgId() ) << " is not CH/NH/PH/e/mu or 1/2 (and this is removed from isolation calculation)"  << std::endl ; 
+			}
+		  continue ;
+		  }
+
+		  // Check particleType dependent DR cut (remove overlapped candiadte)
+		  // The threshold values were taken from 'MuonPFIsolationSequence_cff.py'.
+		  if( pType == CH && dr < deadcone_ch ) continue ;
+		  if( pType == NH && dr < deadcone_nh ) continue ;
+		  if( pType == PH && dr < deadcone_ph ) continue ;
+
+		  // The candidate passed all the selection.
+		  // Now, add its PT to the variable with weight.
+		
+		  val_PuppiWithLep   [ pType ] += (*cand).pt() * (*cand).puppiWeight() ;
+		  val_PuppiWithoutLep[ pType ] += (*cand).pt() * (*cand).puppiWeightNoLep();
 	  }
-  if (method == "effectiveArea"){
-	iso -= GetAEff(lepton) * rho * pow(r_iso/0.3,2);
-	}
-  if (iso>0) iso += iso_ch;
-  else iso = iso_ch;
+	  
+	  const double reliso_Puppi_withLep    = ( val_PuppiWithLep   [CH] + val_PuppiWithLep   [NH] + val_PuppiWithLep   [PH] ) ;
+	  const double reliso_Puppi_withoutlep = ( val_PuppiWithoutLep[CH] + val_PuppiWithoutLep[NH] + val_PuppiWithoutLep[PH] ) ;
+	  
+	  iso = 0.5 * ( reliso_Puppi_withLep + reliso_Puppi_withoutlep);
+	  
+  }  
+	  
+  else {
+	  for (std::vector<pat::PackedCandidate>::const_iterator itPFC = pfCands.begin(); itPFC != pfCands.end(); itPFC++) {
+	    if (abs((*itPFC).pdgId())<7) continue;
+	    double dr = deltaR((*itPFC), lepton);
+	    if (dr > r_iso) continue;
+	      
+	      //////////////////  NEUTRALS  /////////////////////////
+	    if ((*itPFC).charge()==0){
+	      if ((*itPFC).pt()>ptThresh) {
+	        double wpf(1.);
+	        if (method == "pfWeight"){
+	          double wpv(1.), wpu(1.);
+	          for (std::vector<pat::PackedCandidate>::const_iterator itJPFC = pfCands.begin(); itJPFC != pfCands.end(); itJPFC++) {
+	            double jdr = deltaR2((*itPFC), (*itJPFC));
+	            if ((*itPFC).charge()!=0 || jdr<0.00001) continue;
+	            double jpt = (*itJPFC).pt();
+	            double weight = jpt*jpt/jdr;
+	            if ((*itJPFC).fromPV()>1 and abs((*itJPFC).charge())>0 and weight>1) wpv *= weight;
+	            else if (weight>1) wpu *= weight;
+	          }
+	          wpv = 0.5*log(wpv);
+	          wpu = 0.5*log(wpu);
+	          wpf = wpv/(wpv+wpu);
+	        }
+	          /////////// PHOTONS ////////////
+	        if (abs((*itPFC).pdgId())==22) {
+	          if(dr < deadcone_ph) continue;
+	          iso_ph += wpf*(*itPFC).pt();
+		    /////////// NEUTRAL HADRONS ////////////
+	        } else if (abs((*itPFC).pdgId())==130) {
+	          if(dr < deadcone_nh) continue;
+	          iso_nh += wpf*(*itPFC).pt();
+	        }
+	      }
+	        //////////////////  CHARGED from PV  /////////////////////////
+	    } else if ((*itPFC).fromPV()>1){
+	      if (abs((*itPFC).pdgId())==211) {
+	        if(dr < deadcone_ch) continue;
+	        iso_ch += (*itPFC).pt();
+	      }
+	        //////////////////  CHARGED from PU  /////////////////////////
+	    } else {
+	      if ((*itPFC).pt()>ptThresh){
+	        if(dr < deadcone_pu) continue;
+	        iso_pu += (*itPFC).pt();
+	      }
+	    }
+	  }
+	  
+	  iso = iso_ph + iso_nh;
+	  
+	  //std::cout << iso << " " << rho << " " << GetAEff(lepton) << " " << r_iso << " " << pow(r_iso/0.3,2) << std::endl;
+	  if (method == "deltaBeta"){
+		  iso -= 0.5*iso_pu;
+		  }
+	  if (method == "effectiveArea"){
+		iso -= GetAEff(lepton) * rho * pow(r_iso/0.3,2);
+		}
+	  if (iso>0) iso += iso_ch;
+	  else iso = iso_ch;
+  }
 
   return iso;
  } 
@@ -260,7 +326,39 @@ const double GetAEff(const pat::Electron& lepton){
 
 }
   
+bool isNH( long pdgid ){
 
+  const long id = abs( pdgid );
+
+  //     pdgId = cms.vint32(111,130,310,2112),
+  if( id == 111 ) return true ; 
+  if( id == 130 ) return true ; 
+  if( id == 310 ) return true ; 
+  if( id == 2112 ) return true ; 
+
+  return false;
+}
+
+bool isCH( long pdgid ){
+
+  const long id = abs( pdgid );
+
+  //  pdgId = cms.vint32(211,-211,321,-321,999211,2212,-2212),
+  if( id == 211    ) return true ; 
+  if( id == 321    ) return true ; 
+  if( id == 999211 ) return true ; 
+  if( id == 2212   ) return true ; 
+
+  return false;
+
+}
+
+bool isPH( long pdgid ){
+
+  const long id = abs( pdgid );
+  if( id == 22 ) return true ; 
+  return false;
+}
 
   edm::InputTag rhoSrc_;
   edm::InputTag candidateSrc_;  

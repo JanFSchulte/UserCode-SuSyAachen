@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
 
-def metProducerMiniAOD_MC(process):
+def metProducerMiniAOD_MC_Signal(process):
 
     ### from Vince: https://github.com/cmstas/NtupleMaker/blob/CMS3_V07-04-08/test/DataProduction2015_NoFilter_RECO_cfg.py#L87-L168 
 	#Run corrected MET maker
@@ -16,8 +16,7 @@ def metProducerMiniAOD_MC(process):
 	if usePrivateSQlite:
 		from CondCore.DBCommon.CondDBSetup_cfi import *
 		import os
-		era="Summer15_25nsV6_MC"
-		#~ era="MCRUN2_74_V9"
+		era="MCRUN2_74_V9"
 		process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
         	                       connect = cms.string( "sqlite_file:"+era+".db" ),
         	                       #~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Summer15_25nsV6_MC.db'),
@@ -92,5 +91,5 @@ def metProducerMiniAOD_MC(process):
 
 
 	
-	process.seqmetProducerMiniAOD_MC = cms.Sequence()
-	process.seqmetProducerMiniAODPath = cms.Path(process.seqmetProducerMiniAOD_MC)
+	process.seqmetProducerMiniAOD_MC_Signal = cms.Sequence()
+	process.seqmetProducerMiniAODPath = cms.Path(process.seqmetProducerMiniAOD_MC_Signal)
