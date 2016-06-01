@@ -3,7 +3,7 @@ from SuSyAachen.DiLeptonHistograms.vertexWeights_cfi import vertexWeights as ver
 
 mctreewriter = cms.EDAnalyzer('HadronicTree',
     genSrc = cms.InputTag("genParticles"),
-    genJets = cms.InputTag("ak5genJetsNoNu"),
+    genJets = cms.InputTag("ak4genJetsNoNu"),
     jets = cms.InputTag("triggerMatchedPatJetsPF"),
     met = cms.InputTag("patMETsPF"),
     vertices = cms.InputTag("offlinePrimaryVertices"),

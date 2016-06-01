@@ -55,7 +55,7 @@ jetTauCleaner = cms.EDProducer('jetTauCleaner',
 
 resCorrectedJetProducer = cms.EDProducer('ResCorrJetsProducer',
   src = cms.InputTag("basicJets"),
-  jetCorrections = cms.string("ak5PFJetsL2L3Residual")
+  jetCorrections = cms.string("ak4PFJetsL2L3Residual")
 )
 
 unCorrectedJetProducer = cms.EDProducer('UnCorrJetsProducer',

@@ -4,12 +4,12 @@ filterJets = cms.bool(False)
 filterMET = cms.bool(True)
 
 basicJets = cms.EDFilter("PATJetSelector", filter = filterJets,
-  src = cms.InputTag("cleanLayer1JetsAK5"),
+  src = cms.InputTag("cleanLayer1JetsAK4"),
   cut = cms.string("pt > 50 & abs( eta ) < 2.5")
 )
 
 METFilter =  cms.EDFilter("PATMETSelector", filter = filterMET,
-  src = cms.InputTag("layer1METsAK5"),
+  src = cms.InputTag("layer1METsAK4"),
   cut = cms.string("pt > 100")
 )
 

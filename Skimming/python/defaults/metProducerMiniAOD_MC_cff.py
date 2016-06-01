@@ -88,7 +88,8 @@ def metProducerMiniAOD_MC(process):
 	process.jer = cms.ESSource("PoolDBESSource",CondDBSetup,
 	                           #connect = cms.string( "frontier://FrontierPrep/CMS_COND_PHYSICSTOOLS"),
 	                           #connect = cms.string( "frontier://FrontierPrep/CMS_CONDITIONS"),
-	                           connect = cms.string("sqlite:Fall15_25nsV2_MC.db"),
+	                           #~ connect = cms.string("sqlite:Fall15_25nsV2_MC.db"),
+	                           connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Fall15_25nsV2_MC.db'),
 	                           toGet =  cms.VPSet(
 	    cms.PSet(
 	      record = cms.string('JetResolutionRcd'),

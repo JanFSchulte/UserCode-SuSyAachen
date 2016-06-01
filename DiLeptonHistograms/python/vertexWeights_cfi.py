@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 vertexWeights = cms.PSet(
-    mcFile = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/mc_PU_dist_startup_2015.root'),
+    mcFile = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/mc_PU_dist_Fall2015.root'),
     mcName = cms.string('pileup'),
     dataFile = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/PU_dist_Full2015.root'),
     dataName = cms.string('pileup'),

@@ -9,20 +9,20 @@ defaultSelector = cms.EDFilter("PATJetSelector",
 from SuSyAachen.Skimming.jetSelectors_cfi import patJetCountFilter as patJetCountFilterOrig
 patJetCountFilter = patJetCountFilterOrig.clone(
            filter = cms.bool(True),
-           src = cms.InputTag("cleanLayer1JetsAK5"),
+           src = cms.InputTag("cleanLayer1JetsAK4"),
            minNumber = 1
 )
 
 genJetSelector = cms.EDFilter("GenJetSelector", 
            filter = cms.bool(True),
-           src = cms.InputTag("ak5GenJets"),
+           src = cms.InputTag("ak4GenJets"),
            cut = cms.string("pt > 100")
 )
 
 from SuSyAachen.Skimming.jetSelectors_cfi import patJetFlagFilter
 patJetFlagSelector =  patJetFlagFilter.clone(
            filter = cms.bool(True),
-           src = cms.InputTag("cleanLayer1JetsAK5"),
+           src = cms.InputTag("cleanLayer1JetsAK4"),
            cut = cms.string("pat::Flags::Overlap::Electrons")
 )
 

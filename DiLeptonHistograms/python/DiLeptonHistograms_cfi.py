@@ -24,8 +24,8 @@ muonLooseSource = cms.InputTag("cleanLayer1Muons"),
 electronLooseSource = cms.InputTag("cleanLayer1Electrons"),
 tauLooseSource = cms.InputTag("cleanLayer1Taus"),
 triggerSource = cms.InputTag("TriggerResults","","HLT"),
-metSource = cms.InputTag("layer1METsAK5"),
-jetSource = cms.InputTag("cleanLayer1JetsAK5"),
+metSource = cms.InputTag("layer1METsAK4"),
+jetSource = cms.InputTag("cleanLayer1JetsAK4"),
 
 CSA_weighted = cms.untracked.bool(False),
 
