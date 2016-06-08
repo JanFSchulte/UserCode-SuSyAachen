@@ -24,7 +24,7 @@ def metProducerMiniAOD_MC(process):
 		era="Spring16_25nsV1_MC.db"
 		process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
         	                       connect = cms.string( "sqlite_file:"+era+".db" ),
-        	                       #~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Summer15_25nsV6_MC.db'),
+        	                       #~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Spring16_25nsV1_MC.db'),
         	                       #~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/MCRUN2_74_V9.db'),
         	                       toGet =  cms.VPSet(
         	    cms.PSet(

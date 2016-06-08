@@ -17,7 +17,7 @@ def corrJetsProducerMC(process):
 		      toGet = cms.VPSet(
 		      cms.PSet(
 		            record = cms.string('JetCorrectionsRecord'),
-		            tag    = cms.string('JetCorrectorParametersCollection_Summer15_25nsV6_MC_AK4PFchs'),
+		            tag    = cms.string('JetCorrectorParametersCollection_Spring16_25nsV1_MC_AK4PFchs'),
 		            #~ tag    = cms.string('JetCorrectorParametersCollection_MCRUN2_74_V9_AK4PFchs'),
 		            label  = cms.untracked.string('AK4PFchs')
 		            ),
@@ -26,8 +26,8 @@ def corrJetsProducerMC(process):
 			## here you add as many jet types as you need
 			## note that the tag name is specific for the particular sqlite file 
 			 ), 
-			connect = cms.string('sqlite_file:Summer15_25nsV6_MC.db')
-			#~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Summer15_25nsV6_MC.db'),
+			connect = cms.string('sqlite_file:Spring16_25nsV1_MC.db')
+			#~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Spring16_25nsV1_MC.db'),
 			#~ connect = cms.string('sqlite_file:MCRUN2_74_V9.db'),
 			#~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/MCRUN2_74_V9.db'),
 			 # uncomment above tag lines and this comment to use MC JEC
