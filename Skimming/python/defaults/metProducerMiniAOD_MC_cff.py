@@ -20,7 +20,8 @@ def metProducerMiniAOD_MC(process):
 		import os
 		#~ era="Summer15_25nsV6_MC"
 		#~ era="MCRUN2_74_V9"
-		era="Fall15_25nsV2_MC.db"
+		#~ era="Fall15_25nsV2_MC.db"
+		era="Spring16_25nsV1_MC.db"
 		process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
         	                       connect = cms.string( "sqlite_file:"+era+".db" ),
         	                       #~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Summer15_25nsV6_MC.db'),
@@ -83,35 +84,6 @@ def metProducerMiniAOD_MC(process):
 								 postfix="Puppi"
 								 )
 
-	##___________________________External JER file________________________________||
-	##https://github.com/cms-jet/JRDatabase/tree/master/SQLiteFiles
-	process.jer = cms.ESSource("PoolDBESSource",CondDBSetup,
-	                           #connect = cms.string( "frontier://FrontierPrep/CMS_COND_PHYSICSTOOLS"),
-	                           #connect = cms.string( "frontier://FrontierPrep/CMS_CONDITIONS"),
-	                           #~ connect = cms.string("sqlite:Fall15_25nsV2_MC.db"),
-	                           connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Fall15_25nsV2_MC.db'),
-	                           toGet =  cms.VPSet(
-	    cms.PSet(
-	      record = cms.string('JetResolutionRcd'),
-	      #tag    = cms.string('JR_MC_PtResolution_Summer15_25nsV6_AK4PF'),
-	      tag    = cms.string('JR_Fall15_25nsV2_MC_PtResolution_AK4PFchs'),
-	      label  = cms.untracked.string('AK4PFchs_pt')
-	      ),
-	    cms.PSet(
-	      record = cms.string("JetResolutionRcd"),
-	      #tag = cms.string("JR_MC_PhiResolution_Summer15_25nsV6_AK4PF"),
-	      tag = cms.string("JR_Fall15_25nsV2_MC_PhiResolution_AK4PFchs"),
-	      label= cms.untracked.string("AK4PFchs_phi")
-	      ),
-	    cms.PSet(
-	      record = cms.string('JetResolutionScaleFactorRcd'),
-	      #tag    = cms.string('JR_DATAMCSF_Summer15_25nsV6_AK4PFchs'),
-	      tag    = cms.string('JR_Fall15_25nsV2_MC_SF_AK4PFchs'),
-	      label  = cms.untracked.string('AK4PFchs')
-	      ),
-	    
-	    ) )
-	process.es_prefer_jer = cms.ESPrefer("PoolDBESSource",'jer')
 	
 	### -------------------------------------------------------------------
 	### the lines below remove the L2L3 residual corrections when processing data
