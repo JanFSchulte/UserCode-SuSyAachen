@@ -4,7 +4,7 @@ import FWCore.ParameterSet.Config as cms
 def corrJetsProducer(process):
 
 
-	usePrivateSQlite=False
+	usePrivateSQlite=True
 	
 	if usePrivateSQlite:
 		process.load("CondCore.DBCommon.CondDBCommon_cfi")
@@ -18,7 +18,7 @@ def corrJetsProducer(process):
 		      cms.PSet(
 		            record = cms.string('JetCorrectionsRecord'),
 		            #~ tag    = cms.string('JetCorrectorParametersCollection_Summer15_50nsV4_DATA_AK4PFchs'),
-		            tag    = cms.string('JetCorrectorParametersCollection_Summer15_25nsV6_DATA_AK4PFchs'),
+		            tag    = cms.string('JetCorrectorParametersCollection_Spring16_25nsV6_DATA_AK4PFchs'),
 		            label  = cms.untracked.string('AK4PFchs')
 		            ),
 	
@@ -26,9 +26,8 @@ def corrJetsProducer(process):
 	      	## here you add as many jet types as you need
 	      	## note that the tag name is specific for the particular sqlite file 
 	     	 ), 
-	      	#~ connect = cms.string('sqlite_file:Summer15_50nsV4_DATA.db')
-	      	connect = cms.string('sqlite_file:Summer15_25nsV6_DATA.db')
-	      	#~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Summer15_25nsV6_DATA.db')
+	      	connect = cms.string('sqlite_file:Spring16_25nsV6_DATA.db')
+	      	#~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Spring16_25nsV6_DATA.db')
 	    	 # uncomment above tag lines and this comment to use MC JEC
 	    	 # connect = cms.string('sqlite:Summer12_V7_MC.db')
 		)

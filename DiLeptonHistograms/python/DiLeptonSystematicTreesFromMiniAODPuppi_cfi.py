@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
 from SuSyAachen.DiLeptonHistograms.pdgIdDefinition_cff import defaultPdgIdDefinition
+from SuSyAachen.DiLeptonHistograms.LeptonFastSimScaleFactorMap_cfi import LeptonFastSimScaleFactorMap as LeptonFastSimScaleFactorMapPars
+from SuSyAachen.DiLeptonHistograms.LeptonFullSimScaleFactorMap_cfi import LeptonFullSimScaleFactorMap as LeptonFullSimScaleFactorMapPars
+from SuSyAachen.DiLeptonHistograms.btagEffMap_cfi import bTagEffMap as bTagEffMapPars
+from SuSyAachen.DiLeptonHistograms.BTagCalibration_cfi import BTagCalibration as BTagCalibrationPars
+from SuSyAachen.DiLeptonHistograms.BTagCalibrationReader_cfi import BTagCalibrationReader as BTagCalibrationReaderPars
 from SuSyAachen.DiLeptonHistograms.vertexWeights_cfi import vertexWeights as vertexWeightPars
 from SuSyAachen.DiLeptonHistograms.vertexWeightsUp_cfi import vertexWeightsUp as vertexWeightParsUp
 from SuSyAachen.DiLeptonHistograms.vertexWeightsDown_cfi import vertexWeightsDown as vertexWeightParsDown
@@ -8,18 +13,18 @@ from SuSyAachen.DiLeptonHistograms.efficiencies.electronEffPSet_cff import elect
 from SuSyAachen.DiLeptonHistograms.efficiencies.muonEffPSet_cff import muonCenterEfficiencies as muonEfficiency
 from SuSyAachen.TagAndProbeTreeWriter.isolationFunctor_cfi import isolationDefinitions
 from SuSyAachen.DiLeptonHistograms.triggerDefinitionMiniAOD_cff import defaultTriggerDefinition as triggerDefinitions
-DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
+DiLeptonSystematicTreesFromMiniAODPuppiNoTaus = cms.EDAnalyzer("DiLeptonSystematicTreesFromMiniAODPuppi",
    electrons = cms.InputTag("triggerMatchedPatElectronsPF"),
-   looseElectrons = cms.InputTag("LooseElectrons"),
    muons = cms.InputTag("triggerMatchedPatMuonsPF"),
-   looseMuons = cms.InputTag("LooseMuons"),
 #   taus = cms.InputTag("triggerMatchedPatTausPF"),
    jets = cms.InputTag("qualityJets"),	   	   
    genJets = cms.InputTag("slimmedGenJets"),	   	   
+   jetsPuppi = cms.InputTag("qualityJetsPuppi"),	   	   
    bJets = cms.InputTag("qualityBJets"),
-   bJets35 = cms.InputTag("qualityBJets35"),	
-   #~ met = cms.InputTag("slimmedMETs","","Analysis"),  	
-   met = cms.InputTag("slimmedMETs"),  	 	     	    
+   bJetsPuppi = cms.InputTag("qualityBJetsPuppi"),  	
+   met = cms.InputTag("slimmedMETs","","Analysis"),  	
+   #~ metPuppi = cms.InputTag("slimmedMETsPuppi"),  	  
+   metPuppi = cms.InputTag("slimmedMETsPuppi","","Analysis"),  	  
    vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
    pfCands = cms.InputTag("packedPFCandidates"),
    genParticles = cms.InputTag("prunedGenParticles"),
@@ -28,47 +33,17 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
    rho = cms.InputTag("fixedGridRhoFastjetCentralNeutral"),	   
    susyVars = cms.VPSet(),
    pdfWeightTags = cms.VInputTag(),
+   bTagEfficiencies = bTagEffMapPars,
+   BTagCalibration = BTagCalibrationPars,
+   BTagCalibrationReader = BTagCalibrationReaderPars,
+   LeptonFastSimScaleFactors = LeptonFastSimScaleFactorMapPars,
+   LeptonFullSimScaleFactors = LeptonFullSimScaleFactorMapPars,
    vertexWeights = vertexWeightPars,
    vertexWeightsUp = vertexWeightParsUp,
    vertexWeightsDown = vertexWeightParsDown,   	   	   	   
    pdgIdDefinition = defaultPdgIdDefinition,
    isolationDefinitions = isolationDefinitions,
-   triggerDefinitions = triggerDefinitions,
-   writeID = cms.untracked.bool(False),
-   writeTrigger = cms.untracked.bool(True),
-   triggerNames=cms.vstring(													#	1e34	7e33
-						"HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",			# 	0 		1
-						"HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",			# 	1 		1
-						"HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v",				    # 	1 		1
-						"HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",				# 	1 		1
-						"HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",				# 	1 		1
-						"HLT_Mu27_TkMu8_v",										#	50 		1
-						"HLT_Mu30_TkMu11_v",									#	1 		1
-						#~ "HLT_Mu17_v",											#	1 		1			??????
-						"HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",	# 	0 		1
-						"HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",	# 	1 		1
-						"HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",		# 	0 		1			
-						"HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",		# 	1 		1			
-						"HLT_Mu30_Ele30_CaloIdL_GsfTrkIdVL_v",					# 	1 		1
-						"HLT_PFHT125_v",
-						"HLT_PFHT200_v",
-						"HLT_PFHT250_v",
-						"HLT_PFHT300_v",
-						"HLT_PFHT350_v", 
-						"HLT_PFHT400_v",
-						"HLT_PFHT475_v",
-						"HLT_PFHT600_v",
-						"HLT_PFHT650_v",
-						"HLT_PFHT800_v",
-						"HLT_PFHT900_v",
-						"HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_PFHT250_v",		# 	1 		1		Emergency 0
-						"HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_PFHT300_v",		# 	1 		1
-						"HLT_DoubleMu8_Mass8_PFHT250_v",						# 	1 		1		Emergency 0
-						"HLT_DoubleMu8_Mass8_PFHT300_v",						# 	1 		1
-						"HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT250_v",		# 	1 		1		Emergency 0
-						"HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_v",		# 	1 		1
-	), 
-     
+   triggerDefinitions = triggerDefinitions,   
    NOelectronCorrections = cms.VPSet(
     cms.PSet(
     absEta = cms.double(0.4),
@@ -126,12 +101,12 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
 
 )
 
-DiLeptonTreesFromMiniAOD = DiLeptonTreesFromMiniAODNoTaus.clone(
+DiLeptonSystematicTreesFromMiniAODPuppi = DiLeptonSystematicTreesFromMiniAODPuppiNoTaus.clone(
     taus = cms.InputTag("triggerMatchedPatTausPF"),
     tauId = cms.string("byTaNCfrHalfPercent"), 
     )
 
-DiLeptonTreesFromMiniAODForLMPoints = DiLeptonTreesFromMiniAOD.clone(
+DiLeptonSystematicTreesFromMiniAODPuppiForLMPoints = DiLeptonSystematicTreesFromMiniAODPuppi.clone(
           pdfWeightTags = cms.VInputTag(
 #            "susyScanPdfWeights:cteq66",
 #            "susyScanPdfWeights:MSTW2008nlo68cl",
@@ -160,7 +135,7 @@ xSecVars = [
     cms.PSet(var = cms.InputTag("susyScankFactor"), type = cms.string("float")),
 ]
 
-DiLeptonTreesFromMiniAODmSugra = DiLeptonTreesFromMiniAOD.clone(
+DiLeptonSystematicTreesFromMiniAODPuppimSugra = DiLeptonSystematicTreesFromMiniAODPuppi.clone(
    susyVars = cms.VPSet( mSugraVars + xSecVars),
    pdfWeightTags = cms.VInputTag(
         "susyScanPdfWeights:cteq66",
@@ -186,7 +161,7 @@ simplifedVars = cms.VPSet(
         #    cms.PSet(var = cms.InputTag("seqSUSYPARS","susyScanMu"), type = cms.string("int"))
             )
 
-DiLeptonTreesFromMiniAODSimplified = DiLeptonTreesFromMiniAOD.clone(
+DiLeptonSystematicTreesFromMiniAODPuppiSimplified = DiLeptonSystematicTreesFromMiniAODPuppi.clone(
 #    vertexWeights = vertexWeightPars.clone(doWeight = False)
     susyVars = simplifedVars,
     pdfWeightTags = cms.VInputTag(
@@ -197,4 +172,4 @@ DiLeptonTreesFromMiniAODSimplified = DiLeptonTreesFromMiniAOD.clone(
 #    "susyScanPdfWeights:NNPDF10"
     )
     )
-DiLeptonTreesFromMiniAODSimplified.vertexWeights.doWeight=False
+DiLeptonSystematicTreesFromMiniAODPuppiSimplified.vertexWeights.doWeight=False

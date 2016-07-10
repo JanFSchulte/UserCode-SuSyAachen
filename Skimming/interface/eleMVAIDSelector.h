@@ -19,7 +19,9 @@ struct eleMVAIDSelector {
   typedef containerType container;
   typedef typename container::const_iterator const_iterator;
   eleMVAIDSelector ( const edm::ParameterSet & cfg, edm::ConsumesCollector iC):
-    //~ idMapSrc_( cfg.getParameter<edm::InputTag>( "idMapSource" ) )  { }
+    workingPointCentralBarrel_( cfg.getParameter<double>( "workingPointCentralBarrel") ),
+    workingPointOuterBarrel_( cfg.getParameter<double>( "workingPointOuterBarrel") ),
+    workingPointEndcap_( cfg.getParameter<double>( "workingPointEndcap") ),
     idMapToken_(iC.consumes<edm::ValueMap<float> >(cfg.getParameter<edm::InputTag>( "idMapSource" )))  { }
   
   const_iterator begin() const { return selected_.begin(); }
@@ -27,25 +29,20 @@ struct eleMVAIDSelector {
   void select(const edm::Handle< collection > &col , const edm::Event &ev , const edm::EventSetup &setup ) {
     
     edm::Handle<edm::ValueMap<float> > id_values;
-    //~ ev.getByLabel(idMapSrc_, id_values);
     ev.getByToken(idMapToken_, id_values);
 
 
     selected_.clear();
-	//std::cout << "--------------------------" << std::endl;
-	//std::cout << ev.id().event() << endl;
-    //~ double etaValue;
     for(typename collection::const_iterator it = col.product()->begin(); it != col.product()->end(); ++it ){
 		const edm::Ptr<pat::Electron> elPtr(col, it - col->begin() );
 		float mvaValue  = (*id_values)[ elPtr ];
 
 		//std::cout << "pt: " << (*it).pt() << " eta: " << (*it).eta() << " MVA value: " << mvaValue << endl;
 		float workingPoint = -9999.;
-		if (fabs((*it).eta()) < 0.8) workingPoint =  0.87;
-		else if (fabs((*it).eta()) > 0.8 && fabs((*it).eta()) < 1.479) workingPoint = 0.60;
-		else workingPoint = 0.17;
+		if (fabs((*it).eta()) < 0.8) workingPoint =  workingPointCentralBarrel_;
+		else if (fabs((*it).eta()) > 0.8 && fabs((*it).eta()) < 1.479) workingPoint = workingPointOuterBarrel_;
+		else workingPoint = workingPointEndcap_;
 		if (mvaValue > workingPoint){
-			//std::cout << "pushing back" << std::endl;
 			selected_.push_back( & (*it) );
     	}
     }
@@ -56,7 +53,9 @@ struct eleMVAIDSelector {
   size_t size() const { return selected_.size(); }
 private:
   container selected_;
-  //~ edm::InputTag idMapSrc_;
+  float workingPointCentralBarrel_;
+  float workingPointOuterBarrel_;
+  float workingPointEndcap_;
   edm::EDGetTokenT<edm::ValueMap<float> > idMapToken_;
 };
 

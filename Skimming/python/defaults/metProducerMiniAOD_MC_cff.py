@@ -9,7 +9,7 @@ def metProducerMiniAOD_MC(process):
 
 	#configurable options =======================================================================
 	runOnData=False #data/MC switch
-	usePrivateSQlite=False #use external JECs (sqlite file)
+	usePrivateSQlite=True #use external JECs (sqlite file)
 	useHFCandidates=True #create an additionnal NoHF slimmed MET collection if the option is set to false
 	applyResiduals=True #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks 	and developments (not the official recommendation!).
 	redoPuppi=False # rebuild puppiMET
@@ -21,10 +21,10 @@ def metProducerMiniAOD_MC(process):
 		#~ era="Summer15_25nsV6_MC"
 		#~ era="MCRUN2_74_V9"
 		#~ era="Fall15_25nsV2_MC.db"
-		era="Spring16_25nsV1_MC.db"
+		era="Spring16_25nsV6_MC"
 		process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
         	                       connect = cms.string( "sqlite_file:"+era+".db" ),
-        	                       #~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Spring16_25nsV1_MC.db'),
+        	                       #~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Spring16_25nsV6_MC.db'),
         	                       #~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/MCRUN2_74_V9.db'),
         	                       toGet =  cms.VPSet(
         	    cms.PSet(

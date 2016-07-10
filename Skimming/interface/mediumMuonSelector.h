@@ -36,7 +36,20 @@ struct mediumMuonSelector {
 	 it != col.product()->end(); ++it ){
 	 //std::cout << (*it).pt() << std::endl;
   	 	 	 	 
-      if ( (*it).isMediumMuon()){
+      //~ if ( (*it).isMediumMuon()){
+		//~ //std::cout << (*it).pt() << std::endl;		 
+		//~ selected_.push_back( & (*it) );
+	  //~ }
+	  bool goodGlobalMuon = (*it).isGlobalMuon() &&
+							(*it).globalTrack()->normalizedChi2() < 3 &&
+							(*it).combinedQuality().chi2LocalPosition < 12 &&
+							(*it).combinedQuality().trkKink < 20;
+	  //~ bool isMedium = muon::isLooseMuon(*it) &&
+	  bool isMedium = (*it).isLooseMuon() &&
+					  (*it).innerTrack()->validFraction() > 0.49 &&
+		//~ bool isMedium =	  (*it).innerTrack()->validFraction() > 0.49;
+					  (*it).segmentCompatibility() > (goodGlobalMuon ? 0.303 : 0.451);
+      if ( isMedium){
 		//std::cout << (*it).pt() << std::endl;		 
 		selected_.push_back( & (*it) );
 	  }

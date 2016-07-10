@@ -25,7 +25,8 @@ struct d0SelectorEle {
     dZMin_( cfg.getParameter<double>( "dZMin") ),
     dZMaxEB_( cfg.getParameter<double>( "dZMaxEB" ) ),
     dZMaxEE_( cfg.getParameter<double>( "dZMaxEE" ) ),
-    //~ beamSpotSrc_( cfg.getParameter<edm::InputTag>( "beamSpotSource" ) )  { }
+    SIP3DMin_( cfg.getParameter<double>( "SIP3DMin" ) ),
+    SIP3DMax_( cfg.getParameter<double>( "SIP3DMax" ) ),
     beamSpotToken_(iC.consumes<T>(cfg.getParameter<edm::InputTag>( "beamSpotSource" )))  { }
   
   const_iterator begin() const { return selected_.begin(); }
@@ -33,38 +34,36 @@ struct d0SelectorEle {
   void select(const edm::Handle< collection > &col , const edm::Event &ev , const edm::EventSetup &setup ) {
     
     edm::Handle<T> beamSpotHandle;
-    //~ ev.getByLabel(beamSpotSrc_, beamSpotHandle);
     ev.getByToken(beamSpotToken_, beamSpotHandle);
+    
     point_ = getPoint(beamSpotHandle);
 
     selected_.clear();
     std::pair<double, double> dS (0.,0.);
-    //~ double etaValue;
+    double SIP3D = 0.;
     for(typename collection::const_iterator it = col.product()->begin(); 
 	 it != col.product()->end(); ++it ){
       
       dS = calcDs( *it, point_);
-      //~ etaValue = getEta( *it);
-      //std::cout << "d0 = " << dS.first << "  dZ = " << dS.second << std::endl;
-      //~ if ( dS.first >= d0Min_ && dS.first < d0MaxEB_ && dS.second >= dZMin_ && dS.second < dZMaxEB_ && std::abs(etaValue) < 1.479 )
-      if ( dS.first >= d0Min_ && dS.first < d0MaxEB_ && dS.second >= dZMin_ && dS.second < dZMaxEB_ && (*it).isEB() )
-      //std::cout << "Selected it d0 = " << dS.first << "  dZ = " << dS.second << std::endl;
+      SIP3D = calcSIP3D( *it);
+      if ( dS.first >= d0Min_ && dS.first < d0MaxEB_ && dS.second >= dZMin_ && dS.second < dZMaxEB_ && SIP3D < SIP3DMax_ && SIP3D >= SIP3DMin_ && (*it).isEB() )
 	selected_.push_back( & (*it) );
-      if ( dS.first >= d0Min_ && dS.first < d0MaxEE_ && dS.second >= dZMin_ && dS.second < dZMaxEE_ && (*it).isEE() )
-      //std::cout << "Selected it d0 = " << dS.first << "  dZ = " << dS.second << std::endl;
+      if ( dS.first >= d0Min_ && dS.first < d0MaxEE_ && dS.second >= dZMin_ && dS.second < dZMaxEE_  && SIP3D < SIP3DMax_ && SIP3D >= SIP3DMin_&& (*it).isEE() )
 	selected_.push_back( & (*it) );
     }
   }
-  // fast hack: this should be specialized
-  //~ double getEta( pat::Electron p)
-  //~ {    
-    //~ return p.eta();  
-  //~ }
+  
   // fast hack: this should be specialized
   std::pair<double, double> calcDs( pat::Electron p, math::XYZPoint vx)
   {    
     return std::make_pair(std::abs( p.gsfTrack()->dxy( vx )), std::abs( p.gsfTrack()->dz( vx )));  
   }
+  
+  double calcSIP3D( pat::Electron p)
+  {
+    return std::abs(p.dB(pat::Electron::PV3D)/p.edB(pat::Electron::PV3D));  
+  }
+  
   // fast hack: this should be specialized
   math::XYZPoint getPoint( edm::Handle<reco::BeamSpot> beamSpotHandle)
   { 
@@ -91,8 +90,9 @@ private:
   double dZMin_;
   double dZMaxEB_;
   double dZMaxEE_;
+  double SIP3DMin_;
+  double SIP3DMax_;
   math::XYZPoint point_;
-  //~ edm::InputTag beamSpotSrc_;
   edm::EDGetTokenT<T> beamSpotToken_;
 };
 

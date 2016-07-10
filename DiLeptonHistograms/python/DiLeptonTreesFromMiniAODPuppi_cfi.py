@@ -16,10 +16,14 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
 #   taus = cms.InputTag("triggerMatchedPatTausPF"),
    jets = cms.InputTag("qualityJets"),	   	   
    genJets = cms.InputTag("slimmedGenJets"),	   	   
+   #~ genJets = cms.InputTag("selectedPatJetsAK4PFPuppi","genJets"),	   	     	   
+   jetsPuppi = cms.InputTag("qualityJetsPuppi"),  	   
    bJets = cms.InputTag("qualityBJets"),
-   bJets35 = cms.InputTag("qualityBJets35"),	
+   bJets35 = cms.InputTag("qualityBJets35"),
+   bJetsPuppi = cms.InputTag("qualityBJetsPuppi"),  	
    #~ met = cms.InputTag("slimmedMETs","","Analysis"),  	
-   met = cms.InputTag("slimmedMETs"),  	 	     	    
+   met = cms.InputTag("slimmedMETs"),  	
+   metPuppi = cms.InputTag("slimmedMETsPuppi"),  	     	    
    vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
    pfCands = cms.InputTag("packedPFCandidates"),
    genParticles = cms.InputTag("prunedGenParticles"),
@@ -34,23 +38,17 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
    pdgIdDefinition = defaultPdgIdDefinition,
    isolationDefinitions = isolationDefinitions,
    triggerDefinitions = triggerDefinitions,
-   writeID = cms.untracked.bool(False),
+   writeID = cms.untracked.bool(True),
    writeTrigger = cms.untracked.bool(True),
-   triggerNames=cms.vstring(													#	1e34	7e33
-						"HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",			# 	0 		1
-						"HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",			# 	1 		1
-						"HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v",				    # 	1 		1
-						"HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",				# 	1 		1
-						"HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",				# 	1 		1
-						"HLT_Mu27_TkMu8_v",										#	50 		1
-						"HLT_Mu30_TkMu11_v",									#	1 		1
-						#~ "HLT_Mu17_v",											#	1 		1			??????
-						"HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",	# 	0 		1
-						"HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",	# 	1 		1
-						"HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",		# 	0 		1			
-						"HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",		# 	1 		1			
-						"HLT_Mu30_Ele30_CaloIdL_GsfTrkIdVL_v",					# 	1 		1
-						"HLT_PFHT125_v",
+   triggerNames=cms.vstring(
+						"HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
+						"HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v",
+						"HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
+						"HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",
+						"HLT_Mu27_TkMu8_v",
+						"HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
+						"HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",					
+						"HLT_Mu30_Ele30_CaloIdL_GsfTrkIdVL_v",
 						"HLT_PFHT200_v",
 						"HLT_PFHT250_v",
 						"HLT_PFHT300_v",
@@ -60,13 +58,9 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
 						"HLT_PFHT600_v",
 						"HLT_PFHT650_v",
 						"HLT_PFHT800_v",
-						"HLT_PFHT900_v",
-						"HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_PFHT250_v",		# 	1 		1		Emergency 0
-						"HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_PFHT300_v",		# 	1 		1
-						"HLT_DoubleMu8_Mass8_PFHT250_v",						# 	1 		1		Emergency 0
-						"HLT_DoubleMu8_Mass8_PFHT300_v",						# 	1 		1
-						"HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT250_v",		# 	1 		1		Emergency 0
-						"HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_v",		# 	1 		1
+						"HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_PFHT300_v",
+						"HLT_DoubleMu8_Mass8_PFHT300_v",
+						"HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_v",
 	), 
      
    NOelectronCorrections = cms.VPSet(
