@@ -50,7 +50,7 @@
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
-#include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenLumiInfoHeader.h"
 
 
 #include <SuSyAachen/DiLeptonHistograms/interface/WeightFunctor.h>
@@ -85,10 +85,16 @@ private:
 
   void initFloatBranch( const std::string &name);
   void initIntBranch( const std::string &name);
-
   
-  edm::InputTag genParticleTag_;
-  edm::InputTag LHEEventTag_;  
+  virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
+
+  //~ edm::EDGetTokenT< std::vector< pat::Electron > > 			electronToken_;
+  //~ edm::EDGetTokenT< std::vector< pat::Muon > > 				muonToken_;
+  edm::EDGetTokenT< std::vector< reco::GenParticle > >	 	genParticleToken_;
+  
+  edm::EDGetTokenT< std::vector< pat::Jet > >				jetToken_;  
+  //~ 
+  edm::Handle< std::vector< pat::Jet > > jets;
   
   PdgIdFunctor getPdgId_;
 
@@ -96,23 +102,30 @@ private:
   //data
   std::map<std::string, TTree*> trees_;  
   std::map<std::string, std::map< std::string, float*> > floatBranches_; 
-  std::map<std::string, std::map< std::string, unsigned int*> > intBranches_; 
-
-
-
+  std::map<std::string, std::map< std::string, unsigned int*> > intBranches_;
+  
+  std::string modelName_; 
+  
+  bool newLumiBlock_;
 
   bool debug;
 };
 
 // constructors and destructor
-signalNominatorTrees::signalNominatorTrees(const edm::ParameterSet& iConfig): 
-  getPdgId_( iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition") , consumesCollector() )
+signalNominatorTrees::signalNominatorTrees(const edm::ParameterSet& iConfig):
+  //~ electronToken_		(consumes< std::vector< pat::Electron > > 		(iConfig.getParameter<edm::InputTag>("electrons"))),
+  //~ muonToken_			(consumes< std::vector< pat::Muon > >			(iConfig.getParameter<edm::InputTag>("muons"))),
+  genParticleToken_		(consumes< std::vector< reco::GenParticle > >	(iConfig.getParameter<edm::InputTag>("genParticles"))), 
+  jetToken_				(consumes< std::vector< pat::Jet > >			(iConfig.getParameter<edm::InputTag>("jets"))),
+  
+  getPdgId_( iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition") , consumesCollector() ),
+  newLumiBlock_(true)
 {
   debug = false;
+  mayConsume<GenLumiInfoHeader,edm::InLumi> (edm::InputTag("generator"));
   
   
   // read config
-  genParticleTag_ = iConfig.getParameter<edm::InputTag>("genParticles");
   //~ LHEEventTag_ = iConfig.getParameter<edm::InputTag>("LHEInfo");
 
 
@@ -123,6 +136,8 @@ signalNominatorTrees::signalNominatorTrees(const edm::ParameterSet& iConfig):
  
   initFloatBranch( "mSbottom" );
   initFloatBranch( "mNeutralino2" );
+  initFloatBranch( "ISRCorrection" );
+  initFloatBranch( "ISRUncertainty" );
 
 }
 
@@ -183,7 +198,13 @@ signalNominatorTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& i
   std::map<std::string, TLorentzVector> tLorentzVectorEventProperties;
   
   edm::Handle< std::vector< reco::GenParticle > > genParticles;
-  iEvent.getByLabel(genParticleTag_, genParticles);
+  iEvent.getByToken(genParticleToken_, genParticles);
+  
+  //~ edm::Handle< std::vector< pat::Electron > > electrons;
+  //~ iEvent.getByToken(electronToken_, electrons);
+//~ 
+  //~ edm::Handle< std::vector< pat::Muon > > muons;
+  //~ iEvent.getByToken(muonToken_, muons);
   
   getPdgId_.loadGenParticles(iEvent);
 
@@ -232,6 +253,61 @@ signalNominatorTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 	}
 
   }
+  
+  int nISRJets = 0;
+  
+  for(std::vector<pat::Jet>::const_iterator it = jets->begin(); it != jets->end() ; ++it){
+	if ((*it).pt() >=35.0 && fabs((*it).eta())<2.4){		
+		bool matchedJet = false;
+		for (std::vector<reco::GenParticle>::const_iterator itGenParticle = genParticles->begin(); itGenParticle != genParticles->end(); itGenParticle++) {	
+			if (matchedJet) break;
+			if ( abs((*itGenParticle).pdgId()) > 5 || (*itGenParticle).status() != 23) continue;
+			int momid =  abs((*itGenParticle).mother()->pdgId());
+			if(!(momid == 6 || momid == 23 || momid == 24 || momid == 25 || momid > 1e6)) continue;
+			//check against daughter in case of hard initial splitting
+			for (size_t idau(0); idau < (*itGenParticle).numberOfDaughters(); idau++) {
+				//~ //TLorentzVector jetVector( (*it).px(), (*it).py(), (*it).pz(), (*it).energy() );
+				//~ //float dR = jetVector.DeltaR( (*itGenParticle).daughter(idau)->p4() );
+				float dR = deltaR((*it), (*itGenParticle).daughter(idau)->p4() );
+				if (dR < 0.3) {
+					matchedJet = true;
+					break;
+				}
+			}
+		}
+		if (!matchedJet) nISRJets++;	
+	}
+	
+  }
+  intEventProperties["nISRJets"] = nISRJets;
+  
+  floatEventProperties["ISRCorrection"] = 1.;
+  floatEventProperties["ISRUncertainty"] = 0.;
+  
+  if (nISRJets==1) {
+	  floatEventProperties["ISRCorrection"] = 0.882;
+	  floatEventProperties["ISRUncertainty"] = 0.059;	  
+  }
+  if (nISRJets==2) {
+	  floatEventProperties["ISRCorrection"] = 0.792;
+	  floatEventProperties["ISRUncertainty"] = 0.104;	  
+  }
+  if (nISRJets==3) {
+	  floatEventProperties["ISRCorrection"] = 0.702;
+	  floatEventProperties["ISRUncertainty"] = 0.149;	  
+  }
+  if (nISRJets==4) {
+	  floatEventProperties["ISRCorrection"] = 0.648;
+	  floatEventProperties["ISRUncertainty"] = 0.176;	  
+  }
+  if (nISRJets==5) {
+	  floatEventProperties["ISRCorrection"] = 0.601;
+	  floatEventProperties["ISRUncertainty"] = 0.199;	  
+  }
+  if (nISRJets>=6) {
+	  floatEventProperties["ISRCorrection"] = 0.515;
+	  floatEventProperties["ISRUncertainty"] = 0.242;	  
+  }
 
   
   for(std::map<std::string, int>::const_iterator it = intEventProperties.begin(); it != intEventProperties.end(); ++it){
@@ -243,6 +319,20 @@ signalNominatorTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& i
     *(floatBranches_["Tree"][(*it).first]) = (*it).second;
   }
   trees_["Tree"]->Fill();
+}
+
+void
+signalNominatorTrees::beginLuminosityBlock(edm::LuminosityBlock const& iLumi, edm::EventSetup const&)
+{
+   newLumiBlock_=true;
+   
+   edm::Handle<GenLumiInfoHeader> gen_header;
+   iLumi.getByLabel("generator",gen_header);
+   modelName_ = "";
+   if (gen_header.isValid()) {
+	   modelName_ = gen_header->configDescription();
+	   std::cout << modelName_ << std::endl;
+   }
 }
 
 

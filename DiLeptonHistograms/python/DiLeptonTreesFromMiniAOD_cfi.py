@@ -40,8 +40,8 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
 						"HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",			# 	0 		1
 						"HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",			# 	1 		1
 						"HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v",				    # 	1 		1
-						"HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",				# 	1 		1
-						"HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",				# 	1 		1
+						"HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v",				# 	1 		1
+						"HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v",				# 	1 		1
 						"HLT_Mu27_TkMu8_v",										#	50 		1
 						"HLT_Mu30_TkMu11_v",									#	1 		1
 						#~ "HLT_Mu17_v",											#	1 		1			??????

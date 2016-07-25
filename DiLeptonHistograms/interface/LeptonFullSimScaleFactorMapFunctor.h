@@ -30,51 +30,64 @@ public:
             
             std::string dataMCScaleFactorFile_mu_ID_ = params.getParameter<std::string>("dataMCScaleFactorFile_mu_ID");
             std::string dataMCScaleFactorFile_mu_Iso_ = params.getParameter<std::string>("dataMCScaleFactorFile_mu_Iso");
+            std::string dataMCScaleFactorFile_mu_Impact_ = params.getParameter<std::string>("dataMCScaleFactorFile_mu_Impact");
+            std::string dataMCScaleFactorFile_mu_Track_ = params.getParameter<std::string>("dataMCScaleFactorFile_mu_Track");
             std::string dataMCScaleFactorFile_ele_ = params.getParameter<std::string>("dataMCScaleFactorFile_ele");
             
             std::string dataMCScaleFactorHisto_mu_ID_ = params.getParameter<std::string>("dataMCScaleFactorHisto_mu_ID");
             std::string dataMCScaleFactorHisto_mu_Iso_ = params.getParameter<std::string>("dataMCScaleFactorHisto_mu_Iso");
+            std::string dataMCScaleFactorHisto_mu_Impact_ = params.getParameter<std::string>("dataMCScaleFactorHisto_mu_Impact");
+            std::string dataMCScaleFactorHisto_mu_Track_ = params.getParameter<std::string>("dataMCScaleFactorHisto_mu_Track");
             std::string dataMCScaleFactorHisto_ele_ID_ = params.getParameter<std::string>("dataMCScaleFactorHisto_ele_ID");
             std::string dataMCScaleFactorHisto_ele_Iso_ = params.getParameter<std::string>("dataMCScaleFactorHisto_ele_Iso");
+            std::string dataMCScaleFactorHisto_ele_ConvHit_ = params.getParameter<std::string>("dataMCScaleFactorHisto_ele_ConvHit");
             
             
 			
 			getFullSimScaleFactorHistos(dataMCScaleFactorFile_mu_ID_, 
 								dataMCScaleFactorFile_mu_Iso_, 
+								dataMCScaleFactorFile_mu_Impact_, 
+								dataMCScaleFactorFile_mu_Track_, 
 								dataMCScaleFactorFile_ele_, 
 								dataMCScaleFactorHisto_mu_ID_, 
 								dataMCScaleFactorHisto_mu_Iso_, 
+								dataMCScaleFactorHisto_mu_Impact_, 
+								dataMCScaleFactorHisto_mu_Track_, 
 								dataMCScaleFactorHisto_ele_ID_, 
-								dataMCScaleFactorHisto_ele_Iso_
+								dataMCScaleFactorHisto_ele_Iso_,
+								dataMCScaleFactorHisto_ele_ConvHit_
 											);
     
   }
   
   
   
-  const double operator()(const  pat::Electron &ele, double pt, double absEta, double nVertices){
+  const double operator()(const  pat::Electron &ele, double pt, double eta, double nVertices){
 
 	  float result = 1.0;
 	  
-	  result *= dataMCScaleFactorHisto_ele_ID_->GetBinContent(dataMCScaleFactorHisto_ele_ID_->GetXaxis()->FindBin(pt),dataMCScaleFactorHisto_ele_ID_->GetYaxis()->FindBin(absEta));
-	  result *= dataMCScaleFactorHisto_ele_Iso_->GetBinContent(dataMCScaleFactorHisto_ele_Iso_->GetXaxis()->FindBin(pt),dataMCScaleFactorHisto_ele_Iso_->GetYaxis()->FindBin(absEta));
+	  result *= dataMCScaleFactorHisto_ele_ID_->GetBinContent(dataMCScaleFactorHisto_ele_ID_->GetXaxis()->FindBin(pt),dataMCScaleFactorHisto_ele_ID_->GetYaxis()->FindBin(fabs(eta)));
+	  result *= dataMCScaleFactorHisto_ele_Iso_->GetBinContent(dataMCScaleFactorHisto_ele_Iso_->GetXaxis()->FindBin(pt),dataMCScaleFactorHisto_ele_Iso_->GetYaxis()->FindBin(fabs(eta)));
+	  result *= dataMCScaleFactorHisto_ele_ConvHit_->GetBinContent(dataMCScaleFactorHisto_ele_ConvHit_->GetXaxis()->FindBin(pt),dataMCScaleFactorHisto_ele_ConvHit_->GetYaxis()->FindBin(fabs(eta)));
 	  
 	  return result;
   }
   
-  const double operator()(const  pat::Muon &mu, double pt, double absEta, double nVertices){
+  const double operator()(const  pat::Muon &mu, double pt, double eta, double nVertices){
 
 	  float result = 1.0;
 	  
 	  if(pt > 120.) pt= 119.;
 	  
-	  result *= dataMCScaleFactorHisto_mu_ID_->GetBinContent(dataMCScaleFactorHisto_mu_ID_->GetXaxis()->FindBin(pt),dataMCScaleFactorHisto_mu_ID_->GetYaxis()->FindBin(absEta));
-	  result *= dataMCScaleFactorHisto_mu_Iso_->GetBinContent(dataMCScaleFactorHisto_mu_Iso_->GetXaxis()->FindBin(pt),dataMCScaleFactorHisto_mu_Iso_->GetYaxis()->FindBin(absEta));
+	  result *= dataMCScaleFactorHisto_mu_ID_->GetBinContent(dataMCScaleFactorHisto_mu_ID_->GetXaxis()->FindBin(pt),dataMCScaleFactorHisto_mu_ID_->GetYaxis()->FindBin(fabs(eta)));
+	  result *= dataMCScaleFactorHisto_mu_Iso_->GetBinContent(dataMCScaleFactorHisto_mu_Iso_->GetXaxis()->FindBin(pt),dataMCScaleFactorHisto_mu_Iso_->GetYaxis()->FindBin(fabs(eta)));
+	  result *= dataMCScaleFactorHisto_mu_Impact_->GetBinContent(dataMCScaleFactorHisto_mu_Impact_->GetXaxis()->FindBin(pt),dataMCScaleFactorHisto_mu_Impact_->GetYaxis()->FindBin(fabs(eta)));
+	  result *= dataMCScaleFactorHisto_mu_Track_->GetBinContent(dataMCScaleFactorHisto_mu_Track_->GetXaxis()->FindBin(eta));
 	  
 	  return result;
   }
   
-  const double operator()(const  pat::Tau &tau, double pt, double absEta, double nVertices){
+  const double operator()(const  pat::Tau &tau, double pt, double eta, double nVertices){
 
 	  float result = 1.0;
 	  return result;
@@ -90,17 +103,25 @@ private:
   
   void getFullSimScaleFactorHistos(std::string dataMCScaleFactorFile_mu_ID, 
 							std::string dataMCScaleFactorFile_mu_Iso, 
+							std::string dataMCScaleFactorFile_mu_Impact, 
+							std::string dataMCScaleFactorFile_mu_Track, 
 							std::string dataMCScaleFactorFile_ele, 
 							std::string dataMCScaleFactorHisto_mu_ID, 
 							std::string dataMCScaleFactorHisto_mu_Iso, 
+							std::string dataMCScaleFactorHisto_mu_Impact, 
+							std::string dataMCScaleFactorHisto_mu_Track, 
 							std::string dataMCScaleFactorHisto_ele_ID, 
-							std::string dataMCScaleFactorHisto_ele_Iso
+							std::string dataMCScaleFactorHisto_ele_Iso,
+							std::string dataMCScaleFactorHisto_ele_ConvHit
 							);
 
   TH2F * dataMCScaleFactorHisto_mu_ID_;
   TH2F * dataMCScaleFactorHisto_mu_Iso_;
+  TH2F * dataMCScaleFactorHisto_mu_Impact_;
+  TH1F * dataMCScaleFactorHisto_mu_Track_;
   TH2F * dataMCScaleFactorHisto_ele_ID_;
   TH2F * dataMCScaleFactorHisto_ele_Iso_;
+  TH2F * dataMCScaleFactorHisto_ele_ConvHit_;
 };
 
 #endif /* LEPTONFULLSIMSCALEFACTORMAPFUNCTOR_H_ */
