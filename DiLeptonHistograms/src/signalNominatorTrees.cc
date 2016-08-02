@@ -86,13 +86,12 @@ private:
   void initFloatBranch( const std::string &name);
   void initIntBranch( const std::string &name);
   
-  virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
+  //~ virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
 
-  //~ edm::EDGetTokenT< std::vector< pat::Electron > > 			electronToken_;
-  //~ edm::EDGetTokenT< std::vector< pat::Muon > > 				muonToken_;
-  edm::EDGetTokenT< std::vector< reco::GenParticle > >	 	genParticleToken_;
-  
+  edm::EDGetTokenT< std::vector< pat::Electron > > 			electronToken_;
+  edm::EDGetTokenT< std::vector< pat::Muon > > 				muonToken_;
   edm::EDGetTokenT< std::vector< pat::Jet > >				jetToken_;  
+  edm::EDGetTokenT< std::vector< reco::GenParticle > >	 	genParticleToken_;
   //~ 
   edm::Handle< std::vector< pat::Jet > > jets;
   
@@ -106,20 +105,20 @@ private:
   
   std::string modelName_; 
   
-  bool newLumiBlock_;
+  //~ bool newLumiBlock_;
 
   bool debug;
 };
 
 // constructors and destructor
 signalNominatorTrees::signalNominatorTrees(const edm::ParameterSet& iConfig):
-  //~ electronToken_		(consumes< std::vector< pat::Electron > > 		(iConfig.getParameter<edm::InputTag>("electrons"))),
-  //~ muonToken_			(consumes< std::vector< pat::Muon > >			(iConfig.getParameter<edm::InputTag>("muons"))),
-  genParticleToken_		(consumes< std::vector< reco::GenParticle > >	(iConfig.getParameter<edm::InputTag>("genParticles"))), 
+  electronToken_		(consumes< std::vector< pat::Electron > > 		(iConfig.getParameter<edm::InputTag>("electrons"))),
+  muonToken_			(consumes< std::vector< pat::Muon > >			(iConfig.getParameter<edm::InputTag>("muons"))),
   jetToken_				(consumes< std::vector< pat::Jet > >			(iConfig.getParameter<edm::InputTag>("jets"))),
+  genParticleToken_		(consumes< std::vector< reco::GenParticle > >	(iConfig.getParameter<edm::InputTag>("genParticles"))), 
   
-  getPdgId_( iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition") , consumesCollector() ),
-  newLumiBlock_(true)
+  getPdgId_( iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition") , consumesCollector() )
+  //~ newLumiBlock_(true)
 {
   debug = false;
   mayConsume<GenLumiInfoHeader,edm::InLumi> (edm::InputTag("generator"));
@@ -138,6 +137,7 @@ signalNominatorTrees::signalNominatorTrees(const edm::ParameterSet& iConfig):
   initFloatBranch( "mNeutralino2" );
   initFloatBranch( "ISRCorrection" );
   initFloatBranch( "ISRUncertainty" );
+  initIntBranch( "nISRJets" );
 
 }
 
@@ -200,11 +200,13 @@ signalNominatorTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& i
   edm::Handle< std::vector< reco::GenParticle > > genParticles;
   iEvent.getByToken(genParticleToken_, genParticles);
   
-  //~ edm::Handle< std::vector< pat::Electron > > electrons;
-  //~ iEvent.getByToken(electronToken_, electrons);
-//~ 
-  //~ edm::Handle< std::vector< pat::Muon > > muons;
-  //~ iEvent.getByToken(muonToken_, muons);
+  edm::Handle< std::vector< pat::Electron > > electrons;
+  iEvent.getByToken(electronToken_, electrons);
+
+  edm::Handle< std::vector< pat::Muon > > muons;
+  iEvent.getByToken(muonToken_, muons);
+  
+  iEvent.getByToken(jetToken_, jets);
   
   getPdgId_.loadGenParticles(iEvent);
 
@@ -321,19 +323,19 @@ signalNominatorTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& i
   trees_["Tree"]->Fill();
 }
 
-void
-signalNominatorTrees::beginLuminosityBlock(edm::LuminosityBlock const& iLumi, edm::EventSetup const&)
-{
-   newLumiBlock_=true;
-   
-   edm::Handle<GenLumiInfoHeader> gen_header;
-   iLumi.getByLabel("generator",gen_header);
-   modelName_ = "";
-   if (gen_header.isValid()) {
-	   modelName_ = gen_header->configDescription();
-	   std::cout << modelName_ << std::endl;
-   }
-}
+//~ void
+//~ signalNominatorTrees::beginLuminosityBlock(edm::LuminosityBlock const& iLumi, edm::EventSetup const&)
+//~ {
+   //~ newLumiBlock_=true;
+   //~ 
+   //~ edm::Handle<GenLumiInfoHeader> gen_header;
+   //~ iLumi.getByLabel("generator",gen_header);
+   //~ modelName_ = "";
+   //~ if (gen_header.isValid()) {
+	   //~ modelName_ = gen_header->configDescription();
+	   //~ std::cout << modelName_ << std::endl;
+   //~ }
+//~ }
 
 
 

@@ -289,6 +289,7 @@ DiLeptonSystematicTreesFromMiniAOD::DiLeptonSystematicTreesFromMiniAOD(const edm
   initTLorentzVectorBranch( "genLepton2" );
   initTLorentzVectorBranch( "jet1" );
   initTLorentzVectorBranch( "jet2" );
+  initTLorentzVectorBranch( "unmatchedJet" );
   initTLorentzVectorBranch( "genJet1" );
   initTLorentzVectorBranch( "genJet2" );
   initTLorentzVectorBranch( "bJet1" );
@@ -343,6 +344,7 @@ DiLeptonSystematicTreesFromMiniAOD::DiLeptonSystematicTreesFromMiniAOD(const edm
   //initIntBranch( "nJetsNoPUMedium" );
   //initIntBranch( "nJetsNoPUTight" );      
   initIntBranch( "nJetsOld" );
+  initIntBranch( "nUnmatchedJets" );
   initIntBranch( "nISRJets" );
   initFloatBranch( "ISRCorrection" );
   initFloatBranch( "ISRUncertainty" );
@@ -878,6 +880,8 @@ DiLeptonSystematicTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm:
     shiftedJetsJESDown->push_back(ajetDown);
   }
   int nJets=0;
+  int nUnmatchedJets=0;
+  TLorentzVector unmatchedJet(0,0,0,0);
   int nISRJets=0;
   int nGenJets=0;
   //int nJetsNoPULoose = 0;
@@ -926,8 +930,32 @@ DiLeptonSystematicTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm:
 		floatEventProperties["ht"] += (*it).pt();
 	}
 	
+	if ((*it).pt() >=20.0 && fabs((*it).eta())<2.5){
+		
+		if (genParticles.isValid()){
+			
+			bool matched = false;
+			TLorentzVector jetVector( (*it).px(), (*it).py(), (*it).pz(), (*it).energy() );
+			
+			for(std::vector<reco::GenJet >::const_iterator itGenJet = genJets->begin(); itGenJet != genJets->end() ; ++itGenJet){
+				TLorentzVector genJetVector( (*itGenJet).px(), (*itGenJet).py(), (*itGenJet).pz(), (*itGenJet).energy() );
+				
+				if ( jetVector.DeltaR(genJetVector) < 0.3) {
+					matched = true;
+					break;
+				}
+			}
+			if (matched == false && (*it).chargedHadronEnergy()/(*it).energy() < 0.1) {
+				nUnmatchedJets+=1;
+				unmatchedJet = jetVector;
+			}
+		}
+	}
+	
   }
   intEventProperties["nJets"] = nJets;
+  intEventProperties["nUnmatchedJets"] = nUnmatchedJets;
+  tLorentzVectorEventProperties["unmatchedJet"] = unmatchedJet;
   intEventProperties["nISRJets"] = nISRJets;
   
   floatEventProperties["ISRCorrection"] = 1.;
@@ -1513,10 +1541,14 @@ DiLeptonSystematicTreesFromMiniAOD::fillTree( const std::string &treeName, const
   *(floatBranches_[treeName]["charge2"]) = b.charge();
   *(floatBranches_[treeName]["eta1"]) = aVec.Eta();
   *(floatBranches_[treeName]["eta2"]) = bVec.Eta();
-  *(floatBranches_[treeName]["leptonFullSimScaleFactor1"]) = fctLeptonFullSimScaleFactors_(a, a.pt(), a.eta(), *(intBranches_[treeName]["nVertices"]) );
-  *(floatBranches_[treeName]["leptonFullSimScaleFactor2"]) = fctLeptonFullSimScaleFactors_(b, b.pt(), b.eta(), *(intBranches_[treeName]["nVertices"]) );
-  *(floatBranches_[treeName]["leptonFastSimScaleFactor1"]) = fctLeptonFastSimScaleFactors_(a, a.pt(), fabs(a.eta()), *(intBranches_[treeName]["nVertices"]) );
-  *(floatBranches_[treeName]["leptonFastSimScaleFactor2"]) = fctLeptonFastSimScaleFactors_(b, b.pt(), fabs(b.eta()), *(intBranches_[treeName]["nVertices"]) );
+  //~ *(floatBranches_[treeName]["leptonFullSimScaleFactor1"]) = fctLeptonFullSimScaleFactors_(a, a.pt(), a.eta(), *(intBranches_[treeName]["nVertices"]) );
+  //~ *(floatBranches_[treeName]["leptonFullSimScaleFactor2"]) = fctLeptonFullSimScaleFactors_(b, b.pt(), b.eta(), *(intBranches_[treeName]["nVertices"]) );
+  *(floatBranches_[treeName]["leptonFullSimScaleFactor1"]) = fctLeptonFullSimScaleFactors_(a, a.pt(), a.eta() );
+  *(floatBranches_[treeName]["leptonFullSimScaleFactor2"]) = fctLeptonFullSimScaleFactors_(b, b.pt(), b.eta() );
+  //~ *(floatBranches_[treeName]["leptonFastSimScaleFactor1"]) = fctLeptonFastSimScaleFactors_(a, a.pt(), fabs(a.eta()), *(intBranches_[treeName]["nVertices"]) );
+  //~ *(floatBranches_[treeName]["leptonFastSimScaleFactor2"]) = fctLeptonFastSimScaleFactors_(b, b.pt(), fabs(b.eta()), *(intBranches_[treeName]["nVertices"]) );
+  *(floatBranches_[treeName]["leptonFastSimScaleFactor1"]) = fctLeptonFastSimScaleFactors_(a, a.pt(), fabs(a.eta()));
+  *(floatBranches_[treeName]["leptonFastSimScaleFactor2"]) = fctLeptonFastSimScaleFactors_(b, b.pt(), fabs(b.eta()) );
   *(floatBranches_[treeName]["miniIsoEffArea1"]) = getIso(a,"miniIsoEA");
   *(floatBranches_[treeName]["miniIsoEffArea2"]) = getIso(b,"miniIsoEA");
   *(floatBranches_[treeName]["mt1"]) = transverseMass(aVec, met);
