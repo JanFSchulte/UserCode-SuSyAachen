@@ -42,13 +42,19 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
 						"HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v",				    # 	1 		1
 						"HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v",				# 	1 		1
 						"HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v",				# 	1 		1
+						"HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",				
+						"HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",				
+						"HLT_TkMu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",				
 						"HLT_Mu27_TkMu8_v",										#	50 		1
 						"HLT_Mu30_TkMu11_v",									#	1 		1
-						#~ "HLT_Mu17_v",											#	1 		1			??????
 						"HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",	# 	0 		1
+						"HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v",	# 	1 		1
+						"HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ_v",	
 						"HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",	# 	1 		1
-						"HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",		# 	0 		1			
+						"HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",	
+						"HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",		# 	0 		1				
 						"HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",		# 	1 		1			
+						"HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",		# 	1 		1			
 						"HLT_Mu30_Ele30_CaloIdL_GsfTrkIdVL_v",					# 	1 		1
 						"HLT_PFHT125_v",
 						"HLT_PFHT200_v",
