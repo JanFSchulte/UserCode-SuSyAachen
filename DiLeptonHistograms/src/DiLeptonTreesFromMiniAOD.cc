@@ -96,9 +96,7 @@ private:
   void initFloatBranch( const std::string &name);
   void initIntBranch( const std::string &name);
   void initTLorentzVectorBranch( const std::string &name);
-  template <class aT, class bT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT >&b, const std::vector<pat::PackedCandidate>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons, const std::vector<pat::Jet>&jets, const std::vector<pat::Jet>&bJets35, const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
-  template <class aT> void makeCombinations( const std::string &treeName, const std::vector<aT> &a , const std::vector<pat::PackedCandidate>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&bJets35,   const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
-  template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<pat::PackedCandidate>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&bJets35,  const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho);
+  template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<pat::PackedCandidate>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&bJets35,  const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
   //~ std::pair<double, double> calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, const TLorentzVector& met);
   void fillPdfUncert(const edm::Handle< std::vector<double> >& weightHandle, const std::string& pdfIdentifier, const std::string& treeName);
 
@@ -207,13 +205,6 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   //~ consumes<pat::PackedTriggerPrescales>(edm::InputTag("patTrigger"));
   //~ consumes<std::vector<pat::TriggerObjectStandAlone>>(edm::InputTag("selectedPatTrigger"));
 	  
-  if(iConfig.existsAs<edm::VParameterSet>("electronCorrections")){
-    edm::VParameterSet bins = iConfig.getParameter<edm::VParameterSet>("electronCorrections");
-    for(edm::VParameterSet::const_iterator it = bins.begin(); it != bins.end(); ++it){
-      float absEta = (*it).getParameter<double>("absEta");
-      electronCorrections_[absEta] = (*it).getParameter<double>("correction");
-    }
-  }
 
   // init trees
   edm::Service<TFileService> file;
@@ -346,7 +337,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
 			  if(debug) std::cout << (*it).first <<" - "<< n.c_str() << std::endl;
 			  boolBranches_[(*it).first][n.c_str()] = new bool;
 			  (*it).second->Branch(n.c_str(), &triggerDecision_[n] ,(n+"/O").c_str() );
-  }
+		  }
 	  }
   }
       
@@ -585,34 +576,36 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   edm::Handle< std::vector< reco::GenParticle > > genParticles;
   iEvent.getByToken(genParticleToken_, genParticles);
   
-  edm::Handle<edm::TriggerResults> triggerBits;
-  edm::InputTag triggerTag("TriggerResults","","HLT");
-  iEvent.getByLabel(triggerTag, triggerBits);
-  
-  // for each lumiBlock, re-read the trigger indices (rather changes for new run)
-   if( triggerIndex_.size() && newLumiBlock_ ) {
-      newLumiBlock_=false;
-      // set all trigger indeces to -1 as "not available"-flag
-      for( auto& it : triggerIndex_ )
-        it.second = -1;
-
-      // store the indices of the trigger names that we really find
-      const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
-      for( unsigned i=0; i<triggerNames.size(); i++ ) {
-         for( auto& it : triggerIndex_ ) {
-            if( triggerNames.triggerName(i).find( it.first ) == 0 ) {
-               it.second = i;
-            }
-         }
-      } // end trigger names
-   } // found indices
-   
-   // set trigger decision
-   for( auto& it : triggerIndex_ ) {
-      if( it.second != -1 ) {
-         triggerDecision_[it.first] = triggerBits->accept( it.second );
-      }
-   }
+  if (writeTrigger_){ 
+	  edm::Handle<edm::TriggerResults> triggerBits;
+	  edm::InputTag triggerTag("TriggerResults","","HLT");
+	  iEvent.getByLabel(triggerTag, triggerBits);
+	  
+	  // for each lumiBlock, re-read the trigger indices (rather changes for new run)
+	   if( triggerIndex_.size() && newLumiBlock_ ) {
+	      newLumiBlock_=false;
+	      // set all trigger indices to -1 as "not available"-flag
+	      for( auto& it : triggerIndex_ )
+	        it.second = -1;
+	
+	      // store the indices of the trigger names that we really find
+	      const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
+	      for( unsigned i=0; i<triggerNames.size(); i++ ) {
+	         for( auto& it : triggerIndex_ ) {
+	            if( triggerNames.triggerName(i).find( it.first ) == 0 ) {
+	               it.second = i;
+	            }
+	         }
+	      } // end trigger names
+	   } // found indices
+	   
+	   // set trigger decision
+	   for( auto& it : triggerIndex_ ) {
+	      if( it.second != -1 ) {
+	         triggerDecision_[it.first] = triggerBits->accept( it.second );
+	      }
+	   }
+  }
    
   edm::Handle<reco::VertexCollection> vertices;
   iEvent.getByToken(vertexToken_, vertices);
@@ -1120,12 +1113,61 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   floatEventProperties["weight"] = fctVtxWeight_( iEvent );
   floatEventProperties["weightUp"] = fctVtxWeightUp_( iEvent );
   floatEventProperties["weightDown"] = fctVtxWeightDown_( iEvent );
-
-  makeCombinations< pat::Electron >("EE", *electrons,*pfCands, *looseElectrons, *looseMuons, *jets, *bJets35, iEvent, met, MHT,vertices, Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
-  makeCombinations< pat::Electron, pat::Muon >("EMu", *electrons, *muons,*pfCands, *looseElectrons, *looseMuons, *jets, *bJets35, iEvent, met, MHT,vertices, Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
-  makeCombinations< pat::Muon >("MuMu", *muons,*pfCands, *looseElectrons, *looseMuons, *jets, *bJets35, iEvent, met,MHT,vertices, Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties);
   
-  //  if( nMu != 2) std::cout << "-------! "<<nMu<<std::endl;
+  float pt1 = 0.;
+  float pt2 = 0.;
+  
+  std::string leptonFlavor1 = "None";
+  std::string leptonFlavor2 = "None";
+  int leptonNr1=-1;
+  int leptonNr2=-1;
+  
+  for(std::size_t it = 0; it < (*electrons).size() ; ++it){
+	  if ((*electrons).at(it).pt() > pt1){
+		  pt1 = (*electrons).at(it).pt();
+		  leptonFlavor1 = "Ele";
+		  leptonNr1 = it;
+	  }
+  }
+  for(std::size_t it = 0; it < (*muons).size() ; ++it){
+	  if ((*muons).at(it).pt() > pt1){
+		  pt1 = (*muons).at(it).pt();
+		  leptonFlavor1 = "Mu";
+		  leptonNr1 = it;
+	  }
+  }
+  for(std::size_t it = 0; it < (*electrons).size() ; ++it){
+	  if ((*electrons).at(it).pt() < pt1 && (*electrons).at(it).pt() > pt2){
+		  pt2 = (*electrons).at(it).pt();
+		  leptonFlavor2 = "Ele";
+		  leptonNr2 = it;
+	  }
+  }
+  
+  for(std::size_t it = 0; it < (*muons).size() ; ++it){
+	  if ((*muons).at(it).pt() < pt1 && (*muons).at(it).pt() > pt2){
+		  pt2 = (*muons).at(it).pt();
+		  leptonFlavor2 = "Mu";
+		  leptonNr2 = it;
+	  }
+  }
+  
+ 
+  
+  if (leptonFlavor1 == "Ele" && leptonFlavor2 == "Ele") {
+	  fillTree<pat::Electron, pat::Electron>( "EE", (*electrons).at(leptonNr1), (*electrons).at(leptonNr2),*pfCands,*looseElectrons,*looseMuons,*jets,*bJets35, met,MHT,vertices,Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties); 
+  }
+  else if (leptonFlavor1 == "Mu" && leptonFlavor2 == "Mu") {
+	  fillTree<pat::Muon, pat::Muon>( "MuMu", (*muons).at(leptonNr1), (*muons).at(leptonNr2),*pfCands,*looseElectrons,*looseMuons,*jets,*bJets35, met,MHT,vertices,Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties); 
+  }
+  else if (leptonFlavor1 == "Ele" && leptonFlavor2 == "Mu") {
+	  fillTree<pat::Electron, pat::Muon>( "EMu", (*electrons).at(leptonNr1), (*muons).at(leptonNr2),*pfCands,*looseElectrons,*looseMuons,*jets,*bJets35, met,MHT,vertices,Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties); 
+  }
+  // Change ordering for Mu E events, in such a way that the electron is always the first lepton (required by some tools that select the lepton flavor)
+  else if (leptonFlavor1 == "Mu" && leptonFlavor2 == "Ele") {
+	  fillTree<pat::Electron, pat::Muon>( "EMu", (*electrons).at(leptonNr2), (*muons).at(leptonNr1),*pfCands,*looseElectrons,*looseMuons,*jets,*bJets35, met,MHT,vertices,Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties); 
+  }
+	  
 
   delete jecUnc;
   delete shiftedJetsJESUp;
@@ -1134,14 +1176,11 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
 
 }
 
+
 template <class aT, class bT> void 
-DiLeptonTreesFromMiniAOD::makeCombinations ( const std::string &treeName, const std::vector<aT> &a, const std::vector<bT> &b,const std::vector<pat::PackedCandidate>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&bJets35, const edm::Event &ev, const pat::MET &patMet, const TLorentzVector &MHT,const edm::Handle<reco::VertexCollection> &vertices, const float &rho , const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties)
+DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, const bT& b,const std::vector<pat::PackedCandidate>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&bJets35, const pat::MET &patMet,const TLorentzVector &MHT,const edm::Handle<reco::VertexCollection> &vertices,const float &rho, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties)
 {
-  TLorentzVector met(patMet.px(), patMet.py(), patMet.pz(), patMet.energy());
-  TLorentzVector uncorrectedMet2;
-  uncorrectedMet2.SetPtEtaPhiE(patMet.uncorPt(), 0,\
-                              patMet.uncorPhi(), patMet.uncorPt());
-  *(tLorentzVectorBranches_[treeName]["vMet"]) = met;
+
   for(std::map<std::string, int>::const_iterator it = intEventProperties.begin(); it != intEventProperties.end(); ++it){
     assert(intBranches_[treeName].find((*it).first) != intBranches_[treeName].end());
     *(intBranches_[treeName][(*it).first]) = (*it).second;
@@ -1154,70 +1193,8 @@ DiLeptonTreesFromMiniAOD::makeCombinations ( const std::string &treeName, const 
  for(std::map<std::string, TLorentzVector>::const_iterator it = tLorentzVectorEventProperties.begin(); it != tLorentzVectorEventProperties.end(); ++it){
     assert(tLorentzVectorBranches_[treeName].find((*it).first) != tLorentzVectorBranches_[treeName].end());
     *(tLorentzVectorBranches_[treeName][(*it).first]) = (*it).second;
-  }
-  
-  //~ for ( std::vector<edm::ParameterSet>::iterator susyVar_i = susyVars_.begin(); susyVar_i != susyVars_.end(); ++susyVar_i ) {
-        //~ edm::InputTag var = susyVar_i->getParameter<edm::InputTag>( "var" );
-        //~ std::string type = susyVar_i->getParameter<std::string>( "type" );
-        //~ edm::Handle< double > var_;
-        //~ ev.getByToken(var, var_);
-        //~ if (type=="float") *(floatBranches_[treeName][convertInputTag(var)]) = float(*var_);
-        //~ else if (type=="int") *(intBranches_[treeName][convertInputTag(var)]) = int(*var_);
-  //~ }
-  //std::cout << std::endl;
-  for( typename std::vector<aT>::const_iterator itA = a.begin(); itA != a.end(); ++itA){
-    for( typename std::vector<bT>::const_iterator itB = b.begin(); itB != b.end(); ++itB){
-//      std::cout << treeName <<": "<< fakeRates_(*itA) << std::endl;
-//      weight *= fakeRates_();
-      fillTree<aT,bT>( treeName, *itA, *itB,pfCands,looseElectrons,looseMuons,jets,bJets35, patMet, MHT,vertices,rho); 
-    }
-  }
-}
-
-template <class aT> void 
-DiLeptonTreesFromMiniAOD::makeCombinations ( const std::string &treeName, const std::vector<aT> &a,const std::vector<pat::PackedCandidate>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&bJets35,const edm::Event &ev, const pat::MET &patMet , const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho , const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties)
-{
-  TLorentzVector met(patMet.px(), patMet.py(), patMet.pz(), patMet.energy());
-  TLorentzVector uncorrectedMet;
-  uncorrectedMet.SetPtEtaPhiE(patMet.uncorPt(), 0,\
-                              patMet.uncorPhi(), patMet.uncorPt());
-  *(tLorentzVectorBranches_[treeName]["vMet"]) = met;
-  for(std::map<std::string, int>::const_iterator it = intEventProperties.begin(); it != intEventProperties.end(); ++it){
-    assert(intBranches_[treeName].find((*it).first) != intBranches_[treeName].end());
-    *(intBranches_[treeName][(*it).first]) = (*it).second;  
-  }
-  for(std::map<std::string, float>::const_iterator it = floatEventProperties.begin(); it != floatEventProperties.end(); ++it){
-    assert(floatBranches_[treeName].find((*it).first) != floatBranches_[treeName].end());
-    *(floatBranches_[treeName][(*it).first]) = (*it).second;
-  }
-
- for(std::map<std::string, TLorentzVector>::const_iterator it = tLorentzVectorEventProperties.begin(); it != tLorentzVectorEventProperties.end(); ++it){
-    assert(tLorentzVectorBranches_[treeName].find((*it).first) != tLorentzVectorBranches_[treeName].end());
-    *(tLorentzVectorBranches_[treeName][(*it).first]) = (*it).second;
-  }
-
-  //~ for ( std::vector<edm::ParameterSet>::iterator susyVar_i = susyVars_.begin(); susyVar_i != susyVars_.end(); ++susyVar_i ) {
-        //~ edm::InputTag var = susyVar_i->getParameter<edm::InputTag>( "var" );
-        //~ std::string type = susyVar_i->getParameter<std::string>( "type" );
-        //~ edm::Handle< double > var_;
-        //~ ev.getByLabel(var, var_);
-        //~ if (type=="int") *(intBranches_[treeName][convertInputTag(var)]) = int(*var_);
-        //~ else if (type=="float") *(floatBranches_[treeName][convertInputTag(var)]) = float(*var_);
-  //~ }
-
-
-  for( typename std::vector<aT>::const_iterator itA = a.begin(); itA != a.end(); ++itA){
-    for( typename std::vector<aT>::const_iterator itB = a.begin(); itB != itA; ++itB){
-      //std::cout << treeName<<"("<<(*itA).pt()<<", "<<(*itA).eta() <<"): "<< fakeRates_(*itA) << std::endl;
-//      weight *= fakeRates_();
-      fillTree<aT, aT>( treeName, *itA, *itB,pfCands,looseElectrons,looseMuons,jets,bJets35, patMet,MHT,vertices,rho); 
-    }
-  }
-}
-
-template <class aT, class bT> void 
-DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, const bT& b,const std::vector<pat::PackedCandidate>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&bJets35, const pat::MET &patMet,const TLorentzVector &MHT,const edm::Handle<reco::VertexCollection> &vertices,const float &rho)
-{
+  }	
+	
   if(debug) std::cout << treeName << "- pts:"<< a.pt() << " " << b.pt();
   TLorentzVector aVec = getMomentum(a);//( a.px(), a.py(), a.pz(), a.energy() );
   TLorentzVector bVec = getMomentum(b); //( b.px(), b.py(), b.pz(), b.energy() );
@@ -1231,6 +1208,7 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
 
    *(floatBranches_[treeName]["leptHT"]) += aVec.Pt();	
    *(floatBranches_[treeName]["leptHT"]) += bVec.Pt();	
+   
 
   TLorentzVector comb = aVec+bVec;
   TLorentzVector MHT2 = comb + MHT;
