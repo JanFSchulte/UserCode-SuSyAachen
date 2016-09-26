@@ -55,6 +55,8 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
 						"HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",		# 	0 		1				
 						"HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",		# 	1 		1			
 						"HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",		# 	1 		1			
+						"HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",		# 	1 		1			
+						"HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",		# 	1 		1			
 						"HLT_Mu30_Ele30_CaloIdL_GsfTrkIdVL_v",					# 	1 		1
 						"HLT_PFHT125_v",
 						"HLT_PFHT200_v",
@@ -67,6 +69,9 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
 						"HLT_PFHT650_v",
 						"HLT_PFHT800_v",
 						"HLT_PFHT900_v",
+						"HLT_PFMET170_HBHECleaned_v",
+						"HLT_PFMET170_NotCleaned_v",
+						"HLT_PFMET170_BeamHaloCleaned_v",
 						"HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_PFHT250_v",		# 	1 		1		Emergency 0
 						"HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_PFHT300_v",		# 	1 		1
 						"HLT_DoubleMu8_Mass8_PFHT250_v",						# 	1 		1		Emergency 0
