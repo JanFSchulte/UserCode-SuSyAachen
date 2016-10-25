@@ -236,8 +236,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initTLorentzVectorBranch( "bJet2" );
   initTLorentzVectorBranch( "vMet" );   
   initTLorentzVectorBranch( "vMetUncorrected" ); 
-  initTLorentzVectorBranch( "vGenMet" ); 
-  initTLorentzVectorBranch( "vMHT" );   
+  initTLorentzVectorBranch( "vGenMet" );  
   initFloatBranch( "rho" );
   initFloatBranch( "pt1" );
   initFloatBranch( "pt2" );
@@ -1317,7 +1316,6 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   *(tLorentzVectorBranches_[treeName]["p4"]) = comb;
   *(tLorentzVectorBranches_[treeName]["lepton1"]) = aVec;
   *(tLorentzVectorBranches_[treeName]["lepton2"]) = bVec;
-  *(tLorentzVectorBranches_[treeName]["vMHT"]) = MHT2;
     *(floatBranches_[treeName]["mht"]) = MHT2.Pt();
   *(floatBranches_[treeName]["pt1"]) = aVec.Pt();
   *(floatBranches_[treeName]["pt2"]) = bVec.Pt();
