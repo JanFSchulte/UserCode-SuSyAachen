@@ -66,6 +66,9 @@
 #include <SuSyAachen/DiLeptonHistograms/interface/VertexWeightFunctor.h>
 #include <SuSyAachen/TagAndProbeTreeWriter/interface/IsolationFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/TriggerMatchFunctorMiniAOD.h>
+//~ #include <SuSyAachen/DiLeptonHistograms/interface/LeptonFullSimScaleFactorMapFunctor.h>
+#include <SuSyAachen/DiLeptonHistograms/interface/BTagCalibrationStandalone.h>
+#include <SuSyAachen/DiLeptonHistograms/interface/BTagEffMapFunctor.h>
 
 
 //ROOT
@@ -96,7 +99,7 @@ private:
   void initFloatBranch( const std::string &name);
   void initIntBranch( const std::string &name);
   void initTLorentzVectorBranch( const std::string &name);
-  template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<pat::PackedCandidate>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&bJets35,  const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties);
+  template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<pat::PackedCandidate>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsJESUp,const std::vector<pat::Jet>&shiftedJetsJESDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedJetsBJESUp,const std::vector<pat::Jet>&shiftedBJetsJESDown,  const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho, const std::map<std::string, long> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC);
   //~ std::pair<double, double> calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, const TLorentzVector& met);
   void fillPdfUncert(const edm::Handle< std::vector<double> >& weightHandle, const std::string& pdfIdentifier, const std::string& treeName);
 
@@ -109,8 +112,7 @@ private:
   float topPtWeightTOP(double topPt);
   float getIso(const  pat::Electron &e, const std::string &method);
   float getIso(const  pat::Muon &mu, const std::string &method);
-  float getDeltaB(const  pat::Electron &e);
-  float getDeltaB(const  pat::Muon &mu);
+  float getIso(const  pat::PackedCandidate &track, const std::string &method);
   float transverseMass(const TLorentzVector& p, const TLorentzVector& met);
   float getAEffEle(double eta);
   float getAEffMu(double eta);
@@ -134,16 +136,38 @@ private:
   edm::EDGetTokenT<LHEEventProduct>	 						LHEEventToken_;
   edm::EDGetTokenT<double>	 								rhoToken_;
   
+  edm::EDGetTokenT<bool>	 								badPFMuonFilterToken_;
+  edm::EDGetTokenT<bool>	 								badChargedCandidateFilterToken_;
+  edm::EDGetTokenT<bool>	 								cloneGlobalMuonFilterToken_;
+  edm::EDGetTokenT<bool>	 								badGlobalMuonFilterToken_;
+  
+  edm::EDGetTokenT<edm::TriggerResults>	 					metFilterToken_;
+  
 
   std::map<double, double> electronCorrections_;
   //data
   std::map<std::string, TTree*> trees_;  
   std::map<std::string, std::map< std::string, float*> > floatBranches_; 
-  std::map<std::string, std::map< std::string, unsigned int*> > intBranches_; 
+  std::map<std::string, std::map< std::string, long*> > intBranches_; 
   std::map<std::string, std::map< std::string, bool*> > boolBranches_; 
   std::map<std::string, std::map< std::string, TLorentzVector*> > tLorentzVectorBranches_;
 
   edm::Handle< std::vector< pat::Jet > > jets;
+  
+  BTagEffMapFunctor fctBTagEff_;
+  
+  BTagCalibration fctBTagCalibFullSim_;
+  BTagCalibrationReader fctBTagCalibReaderFullSimBJets_;
+  BTagCalibrationReader fctBTagCalibReaderFullSimCJets_;
+  BTagCalibrationReader fctBTagCalibReaderFullSimLightJets_;
+  BTagCalibrationReader fctBTagCalibReaderFullSimBJetsUp_;
+  BTagCalibrationReader fctBTagCalibReaderFullSimCJetsUp_;
+  BTagCalibrationReader fctBTagCalibReaderFullSimLightJetsUp_;
+  BTagCalibrationReader fctBTagCalibReaderFullSimBJetsDown_;
+  BTagCalibrationReader fctBTagCalibReaderFullSimCJetsDown_;
+  BTagCalibrationReader fctBTagCalibReaderFullSimLightJetsDown_;
+  
+  //~ LeptonFullSimScaleFactorMapFunctor fctLeptonFullSimScaleFactors_;
 
   VertexWeightFunctor fctVtxWeight_;
   VertexWeightFunctor fctVtxWeightUp_;
@@ -158,6 +182,8 @@ private:
   bool writeTrigger_;
   bool metUncert_;  
   bool triggerMatches_;
+  bool storeMetFilters_;
+  std::vector<std::string> metFilterNames_;
   std::vector<std::string> triggerNames_;
   bool newLumiBlock_;
   std::map<std::string, Bool_t > triggerDecision_;
@@ -182,26 +208,50 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   LHEEventToken_		(consumes<LHEEventProduct>						(iConfig.getParameter<edm::InputTag>("LHEInfo"))),
   rhoToken_				(consumes<double>								(iConfig.getParameter<edm::InputTag>("rho"))),
   
+  badPFMuonFilterToken_				(consumes<bool>						(iConfig.getParameter<edm::InputTag>("badPFMuonFilter"))),
+  badChargedCandidateFilterToken_	(consumes<bool>						(iConfig.getParameter<edm::InputTag>("badChargedCandidateFilter"))),
+  cloneGlobalMuonFilterToken_		(consumes<bool>						(iConfig.getParameter<edm::InputTag>("cloneGlobalMuonFilter"))),
+  badGlobalMuonFilterToken_			(consumes<bool>						(iConfig.getParameter<edm::InputTag>("badGlobalMuonFilter"))),
+  metFilterToken_					(consumes<edm::TriggerResults>		(edm::InputTag("TriggerResults",""))),
+	
+  fctBTagEff_    (iConfig.getParameter<edm::ParameterSet>("bTagEfficiencies") ),
+  
+  fctBTagCalibFullSim_    (iConfig.getParameter<edm::ParameterSet>("BTagCalibration").getParameter<std::string>("CSVFullSimTagger"),iConfig.getParameter<edm::ParameterSet>("BTagCalibration").getParameter<std::string>("CSVFullSimFileName") ),
+  fctBTagCalibReaderFullSimBJets_    (&fctBTagCalibFullSim_,BTagEntry::OP_MEDIUM,iConfig.getParameter<edm::ParameterSet>("BTagCalibrationReader").getParameter<std::string>("measurementType_bJets"),"central" ),
+  fctBTagCalibReaderFullSimCJets_    (&fctBTagCalibFullSim_,BTagEntry::OP_MEDIUM,iConfig.getParameter<edm::ParameterSet>("BTagCalibrationReader").getParameter<std::string>("measurementType_cJets"),"central" ),
+  fctBTagCalibReaderFullSimLightJets_    (&fctBTagCalibFullSim_,BTagEntry::OP_MEDIUM,iConfig.getParameter<edm::ParameterSet>("BTagCalibrationReader").getParameter<std::string>("measurementType_lightJets"),"central" ),
+  fctBTagCalibReaderFullSimBJetsUp_    (&fctBTagCalibFullSim_,BTagEntry::OP_MEDIUM,iConfig.getParameter<edm::ParameterSet>("BTagCalibrationReader").getParameter<std::string>("measurementType_bJets"),"up" ),
+  fctBTagCalibReaderFullSimCJetsUp_    (&fctBTagCalibFullSim_,BTagEntry::OP_MEDIUM,iConfig.getParameter<edm::ParameterSet>("BTagCalibrationReader").getParameter<std::string>("measurementType_cJets"),"up" ),
+  fctBTagCalibReaderFullSimLightJetsUp_    (&fctBTagCalibFullSim_,BTagEntry::OP_MEDIUM,iConfig.getParameter<edm::ParameterSet>("BTagCalibrationReader").getParameter<std::string>("measurementType_lightJets"),"up" ),
+  fctBTagCalibReaderFullSimBJetsDown_    (&fctBTagCalibFullSim_,BTagEntry::OP_MEDIUM,iConfig.getParameter<edm::ParameterSet>("BTagCalibrationReader").getParameter<std::string>("measurementType_bJets"),"down" ),
+  fctBTagCalibReaderFullSimCJetsDown_    (&fctBTagCalibFullSim_,BTagEntry::OP_MEDIUM,iConfig.getParameter<edm::ParameterSet>("BTagCalibrationReader").getParameter<std::string>("measurementType_cJets"),"down" ),
+  fctBTagCalibReaderFullSimLightJetsDown_    (&fctBTagCalibFullSim_,BTagEntry::OP_MEDIUM,iConfig.getParameter<edm::ParameterSet>("BTagCalibrationReader").getParameter<std::string>("measurementType_lightJets"),"down" ),
+  
+  //~ fctLeptonFullSimScaleFactors_ (iConfig.getParameter<edm::ParameterSet>("LeptonFullSimScaleFactors") ),
+  
   fctVtxWeight_   	(iConfig.getParameter<edm::ParameterSet>("vertexWeights") ,consumesCollector()),
   fctVtxWeightUp_   (iConfig.getParameter<edm::ParameterSet>("vertexWeightsUp") ,consumesCollector()),
   fctVtxWeightDown_ (iConfig.getParameter<edm::ParameterSet>("vertexWeightsDown"),consumesCollector() ),
   fctIsolation_  	(iConfig.getParameter<edm::ParameterSet>("isolationDefinitions"),consumesCollector()),
   fctTrigger_  		(iConfig.getParameter<edm::ParameterSet>("triggerDefinitions"),consumesCollector()),  
   getPdgId_			(iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition"),consumesCollector() ),
-  triggerNames_		(iConfig.getParameter< std::vector <std::string> >("triggerNames")),
+  metFilterNames_	(iConfig.getUntrackedParameter< std::vector <std::string> >("metFilterNames")),
+  triggerNames_		(iConfig.getUntrackedParameter< std::vector <std::string> >("triggerNames")),
   newLumiBlock_(true)
 {
   debug = false; 
   //~ writeID_ = iConfig.existsAs<edm::InputTag>("baseTrees");
   writeID_ = iConfig.getUntrackedParameter<bool>("writeID");
   writeTrigger_ = iConfig.getUntrackedParameter<bool>("writeTrigger");
+  storeMetFilters_ = iConfig.getUntrackedParameter<bool>("storeMetFilters");
   triggerMatches_ = iConfig.existsAs<edm::InputTag>("triggerSummaryTag");  
-  metUncert_ = iConfig.existsAs<edm::InputTag>("doMETUncert");  
+  metUncert_ = iConfig.getUntrackedParameter<bool>("doMETUncert");  
   
   consumes<std::vector< PileupSummaryInfo > >(edm::InputTag("slimmedAddPileupInfo"));
   
   consumes<edm::TriggerResults>(edm::InputTag("TriggerResults","","HLT"));
   consumes<edm::TriggerResults>(edm::InputTag("TriggerResults",""));
+  
   //~ consumes<pat::PackedTriggerPrescales>(edm::InputTag("patTrigger"));
   //~ consumes<std::vector<pat::TriggerObjectStandAlone>>(edm::InputTag("selectedPatTrigger"));
 	  
@@ -217,6 +267,11 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initFloatBranch( "weight" );
   initFloatBranch( "weightUp" );
   initFloatBranch( "weightDown" );
+  initFloatBranch( "bTagWeight" );
+  initFloatBranch( "bTagWeightErrHeavy" );
+  initFloatBranch( "bTagWeightErrLight" );
+  //~ initFloatBranch( "leptonFullSimScaleFactor1" );
+  //~ initFloatBranch( "leptonFullSimScaleFactor2" );
   initFloatBranch( "genPtTop1" );
   initFloatBranch( "genPtTop2" );
   initFloatBranch( "chargeProduct" );
@@ -235,7 +290,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initTLorentzVectorBranch( "bJet1" );
   initTLorentzVectorBranch( "bJet2" );
   initTLorentzVectorBranch( "vMet" );   
-  initTLorentzVectorBranch( "vMetUncorrected" ); 
+  //~ initTLorentzVectorBranch( "vMetUncorrected" ); 
   initTLorentzVectorBranch( "vGenMet" );  
   initFloatBranch( "rho" );
   initFloatBranch( "pt1" );
@@ -243,23 +298,27 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initFloatBranch( "ptErr1" );
   initFloatBranch( "ptErr2" );
   initFloatBranch( "pt3" );
+  initFloatBranch( "ptTrack3" );
   initFloatBranch( "eta1" );
   initFloatBranch( "eta2" );
   initFloatBranch( "miniIsoEffArea1" );
   initFloatBranch( "miniIsoEffArea2" );
 
-  
   initFloatBranch( "mt1" );
   initFloatBranch( "mt2" );
   //~ initFloatBranch( "fakeWeight1" );
   //~ initFloatBranch( "fakeWeight2" );
   initFloatBranch( "deltaPhi" );
   initFloatBranch( "deltaR" );
-  initFloatBranch( "angle3D" );
+  //~ initFloatBranch( "angle3D" );
   initFloatBranch( "min_mlb" );
   initFloatBranch( "max_mlb" );
   initFloatBranch( "sumMlb" );
+  initFloatBranch( "sumMlbJESUp" );
+  initFloatBranch( "sumMlbJESDown" );
   initFloatBranch( "MT2" );
+  initFloatBranch( "deltaPhiJetMet1" );
+  initFloatBranch( "deltaPhiJetMet2" );
   initFloatBranch( "jzbResponse" );
   initFloatBranch( "jzbResponseUncorr" ); 
   initFloatBranch( "jzb" );
@@ -267,11 +326,12 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initFloatBranch( "ht" );
   initFloatBranch( "htJESUp" );
   initFloatBranch( "htJESDown" );
-  initFloatBranch( "ht40" );  
-  initFloatBranch( "leptHT" );  
-  initFloatBranch( "genLeptHT" );  
+  //~ initFloatBranch( "ht40" );  
+  //~ initFloatBranch( "leptHT" );  
+  //~ initFloatBranch( "genLeptHT" );  
   initFloatBranch( "mht" );
   initFloatBranch( "met" );
+  initFloatBranch( "caloMet" );
   initFloatBranch( "genMet" );
   initFloatBranch( "uncorrectedMet" ); 
   initFloatBranch( "metJESUp" );
@@ -280,11 +340,12 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   //~ initFloatBranch( "pZetaVis" );
   initIntBranch( "nJets" );
   initIntBranch( "nGenJets" );
+  initIntBranch( "nBadMuonJets" );
   //~ initIntBranch( "nJets30" );  
   //initIntBranch( "nJetsNoPULoose" );
   //initIntBranch( "nJetsNoPUMedium" );
   //initIntBranch( "nJetsNoPUTight" );     
-  initIntBranch( "nJetsOld" );
+  //~ initIntBranch( "nJetsOld" );
   initIntBranch( "nBJets" );
   initIntBranch( "nBJets35" );
   initIntBranch( "nShiftedJetsJESUp" );
@@ -293,6 +354,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initIntBranch( "nGenVertices" );
   initIntBranch( "nLightLeptons" );
   initIntBranch( "nLooseLeptons" );
+  initIntBranch( "nIsoTracks" );
   initFloatBranch( "jet1pt" );
   initFloatBranch( "jet2pt" );
   initFloatBranch( "jet3pt" );
@@ -324,6 +386,19 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initIntBranch( "isPromptHardProcess2" );
   initIntBranch( "isFromTauHardProcess1" );
   initIntBranch( "isFromTauHardProcess2" );
+  
+  if (storeMetFilters_){
+  
+	  initIntBranch( "badPFMuonFilter" );
+	  initIntBranch( "badChargedCandidateFilter" );
+	  initIntBranch( "cloneGlobalMuonFilter" );
+	  initIntBranch( "badGlobalMuonFilter" );
+	  
+	  for (const auto& n : metFilterNames_){
+		  initIntBranch( n.c_str() );
+	  }
+	  
+  }
   
   if (writeTrigger_){
 	  for (const auto& n : triggerNames_){
@@ -468,15 +543,6 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   
   }  
   
-  //~ for ( std::vector<edm::ParameterSet>::iterator susyVar_i = susyVars_.begin(); susyVar_i != susyVars_.end(); ++susyVar_i ) {
-    //~ edm::InputTag var = susyVar_i->getParameter<edm::InputTag>( "var" );
-    //~ std::string type = susyVar_i->getParameter<std::string>( "type" );
-    //~ if(debug) std::cout << var << " of type " << type << std::endl;
-    //~ if (type=="int") initIntBranch( convertInputTag(var) );
-    //~ else if (type=="float") initFloatBranch( convertInputTag(var) );
-    //~ else throw cms::Exception("Unrecognized type") << 
-      //~ "Unknown type " << type << " for variable" << var << " found\n";
-  //~ }
 }
 
 void 
@@ -507,8 +573,8 @@ DiLeptonTreesFromMiniAOD::initIntBranch(const std::string &name)
   for( std::map<std::string, TTree*>::const_iterator it = trees_.begin();
        it != trees_.end(); ++it){
     if(debug) std::cout << (*it).first <<" - "<< name << std::endl;
-    intBranches_[(*it).first][name] = new unsigned int;
-    (*it).second->Branch(name.c_str(), intBranches_[(*it).first][name], (name+"/I").c_str());
+    intBranches_[(*it).first][name] = new long;
+    (*it).second->Branch(name.c_str(), intBranches_[(*it).first][name], (name+"/L").c_str());
   }
 }
 
@@ -522,9 +588,9 @@ DiLeptonTreesFromMiniAOD::~DiLeptonTreesFromMiniAOD()
       delete (*it2).second;
     }
   }
-  for( std::map<std::string, std::map< std::string, unsigned int*> >::const_iterator it = intBranches_.begin();
+  for( std::map<std::string, std::map< std::string, long*> >::const_iterator it = intBranches_.begin();
        it != intBranches_.end(); ++it){
-    for( std::map< std::string, unsigned int*>::const_iterator it2 = (*it).second.begin();
+    for( std::map< std::string, long*>::const_iterator it2 = (*it).second.begin();
 	 it2 != (*it).second.end(); ++it2){
       if(debug) std::cout << "deleting: " << (*it).first << " - "<< (*it2).first << std::endl;
       delete (*it2).second;
@@ -575,6 +641,9 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   edm::Handle< std::vector< reco::GenParticle > > genParticles;
   iEvent.getByToken(genParticleToken_, genParticles);
   
+  
+  bool isMC = genParticles.isValid();
+  
   if (writeTrigger_){ 
 	  edm::Handle<edm::TriggerResults> triggerBits;
 	  edm::InputTag triggerTag("TriggerResults","","HLT");
@@ -612,7 +681,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   getPdgId_.loadGenParticles(iEvent);
   fctIsolation_.init(iEvent);
   fctTrigger_.loadTrigger(iEvent);
-  std::map<std::string, int> intEventProperties;
+  std::map<std::string, long> intEventProperties;
   std::map<std::string, float> floatEventProperties;
   std::map<std::string, TLorentzVector> tLorentzVectorEventProperties;
 
@@ -634,7 +703,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
  	floatEventProperties["genWeight"] = 1; 
  	floatEventProperties["genWeightAbsValue"] = 1;
   
-  }	  
+  } 
   
 	// stolen from https://github.com/Aachen-3A/PxlSkimmer/blob/master/Skimming/src/PxlSkimmer_miniAOD.cc#L590
     edm::Handle<LHEEventProduct> lheInfoHandle;
@@ -668,7 +737,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   int nGenVertices = -1;
  
   
-  if (genParticles.isValid()){	  
+  if (isMC){	  
 	  edm::Handle<std::vector< PileupSummaryInfo > >  PupInfo;
 	  iEvent.getByLabel(edm::InputTag("slimmedAddPileupInfo"), PupInfo);
 	
@@ -693,6 +762,60 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   iEvent.getByToken(rhoToken_,rho);
   floatEventProperties["rho"] = (float)(*rho);
   const float Rho = *rho;
+  
+  edm::Handle<bool> iFilterBadPFMuon;
+  iEvent.getByToken(badPFMuonFilterToken_, iFilterBadPFMuon);
+  
+  edm::Handle<bool> iFilterBadChargedCandidate;
+  iEvent.getByToken(badChargedCandidateFilterToken_, iFilterBadChargedCandidate);
+  
+  edm::Handle<bool> iFilterCloneGlobalMuon;
+  iEvent.getByToken(cloneGlobalMuonFilterToken_, iFilterCloneGlobalMuon);
+  
+  edm::Handle<bool> iFilterBadGlobalMuon;
+  iEvent.getByToken(badGlobalMuonFilterToken_, iFilterBadGlobalMuon);
+  
+  edm::Handle<edm::TriggerResults> metFilterBits;
+  iEvent.getByToken(metFilterToken_, metFilterBits);
+  const edm::TriggerNames &allFilterNames = iEvent.triggerNames(*metFilterBits);
+  
+  
+  if (storeMetFilters_){ 
+	    
+	  if (*iFilterBadPFMuon) intEventProperties["badPFMuonFilter"] = 1;
+	  else intEventProperties["badPFMuonFilter"] = 0;  
+	  
+	  if (*iFilterBadChargedCandidate) intEventProperties["badChargedCandidateFilter"] = 1;
+	  else intEventProperties["badChargedCandidateFilter"] = 0;  
+	  
+	  if (*iFilterCloneGlobalMuon) intEventProperties["cloneGlobalMuonFilter"] = 1;
+	  else intEventProperties["cloneGlobalMuonFilter"] = 0;  
+	  
+	  if (*iFilterBadGlobalMuon) intEventProperties["badGlobalMuonFilter"] = 1;
+	  else intEventProperties["badGlobalMuonFilter"] = 0;
+	  
+	  
+	  for (std::string const &filterName : metFilterNames_){
+		  const unsigned index = allFilterNames.triggerIndex(filterName);
+		  if (index >= allFilterNames.size()) std::cerr << "MET filter " << filterName << "not found!" << std::endl;
+		  if (metFilterBits->accept(index)) intEventProperties[filterName] = 1;
+		  else intEventProperties[filterName] = 0;
+
+	  }  
+  }
+ else{ 
+	    
+	  if (!*iFilterBadPFMuon) return;
+	  if (!*iFilterBadChargedCandidate) return;
+	  if (!*iFilterCloneGlobalMuon) return;
+	  if (!*iFilterBadGlobalMuon) return;	  
+	  
+	  for (std::string const &filterName : metFilterNames_){
+		  const unsigned index = allFilterNames.triggerIndex(filterName);
+		  if (index >= allFilterNames.size()) std::cerr << "MET filter " << filterName << "not found!" << std::endl;
+		  if (!metFilterBits->accept(index)) return;
+	  }  
+  }
 
 
   intEventProperties["nBJets"] = bJets->size();
@@ -707,16 +830,18 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
 
 
   pat::MET met = mets->front();
-  TLorentzVector metVector(mets->front().px(), mets->front().py(), mets->front().pz(), mets->front().energy());
+  TLorentzVector metVector(met.px(), met.py(), met.pz(), met.energy());
   TLorentzVector uncorrectedMetVector;
-  uncorrectedMetVector.SetPtEtaPhiE(mets->front().uncorPt(), 0,	mets->front().uncorPhi(), mets->front().uncorPt());
- 
+  uncorrectedMetVector.SetPtEtaPhiE(met.uncorPt(), 0,	met.uncorPhi(), met.uncorPt());
+  
   
   floatEventProperties["met"] = metVector.Pt();
   tLorentzVectorEventProperties["vMet"] = metVector; 
   
-  tLorentzVectorEventProperties["vMetUncorrected"] = uncorrectedMetVector;
+  //~ tLorentzVectorEventProperties["vMetUncorrected"] = uncorrectedMetVector;
   floatEventProperties["uncorrectedMet"] = uncorrectedMetVector.Pt();
+  
+  floatEventProperties["caloMet"] = met.caloMETPt();
   
   pat::METCollection const& metsForUncert = *mets;	
   	
@@ -737,13 +862,13 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
  	floatEventProperties["metUnclusteredEnDown"] = metsForUncert[0].shiftedPt(pat::MET::UnclusteredEnDown);  
   
   }
-  
+   
   TLorentzVector genMetVector(0.,0.,0.,0.);
   TLorentzVector vGenParticle(0.,0.,0.,0.);
   
   floatEventProperties["genPtTop1"] = -1;
   floatEventProperties["genPtTop2"] = -1;
-  if (genParticles.isValid()){
+  if (isMC){
 	  	
 	genMetVector.SetPxPyPzE(mets->front().genMET()->px(),mets->front().genMET()->py(),mets->front().genMET()->pz(),mets->front().genMET()->energy());
 	
@@ -773,9 +898,6 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   TLorentzVector tempMHT;
   
   floatEventProperties["ht"] = 0.0;
-  floatEventProperties["ht40"] = 0.0;
-  floatEventProperties["leptHT"] = 0.0;  
-  floatEventProperties["genLeptHT"] = 0.0; 
   floatEventProperties["htJESUp"] = 0.0;
   floatEventProperties["htJESDown"] = 0.0;
   floatEventProperties["mht"] = 0.0;
@@ -790,19 +912,19 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   //~ JetCorrectionUncertainty jecUnc(JetCorPar);
 
 
-  TLorentzVector changeUp(0,0,0,0);
-  TLorentzVector changeDown(0,0,0,0);
-  TLorentzVector tempChangeUp;
-  TLorentzVector tempChangeDown;
+  TLorentzVector JESChangeUp(0,0,0,0);
+  TLorentzVector JESChangeDown(0,0,0,0);
+  TLorentzVector tempJESChangeUp;
+  TLorentzVector tempJESChangeDown;
   // loop over jets
   std::vector<pat::Jet> * shiftedJetsJESUp = new std::vector<pat::Jet>(); 
   std::vector<pat::Jet> * shiftedJetsJESDown = new std::vector<pat::Jet>(); 
+  std::vector<pat::Jet> * shiftedBJetsJESUp = new std::vector<pat::Jet>(); 
+  std::vector<pat::Jet> * shiftedBJetsJESDown = new std::vector<pat::Jet>(); 
 
 
-
+  // Shift jets by JEC
   for (std::vector<pat::Jet>::const_iterator itJet = jets->begin(); itJet != jets->end(); itJet++) {
-	
-	
 
     pat::Jet ajetUp( *itJet );
     pat::Jet ajetDown( *itJet );
@@ -820,49 +942,65 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
     ajetDown.setP4( itJet->p4() * (1.0 - correction) );
 
     //keep track of the change, in order to correct JEC-corrected MET, too.
-    tempChangeUp.SetPxPyPzE((ajetUp.px()-(*itJet).px()), (ajetUp.py()-(*itJet).py()), (ajetUp.pz()-(*itJet).pz()), (ajetUp.energy()-(*itJet).energy()));	
-    tempChangeDown.SetPxPyPzE((ajetDown.px()-itJet->px()), (ajetDown.py()-itJet->py()), (ajetDown.pz()-itJet->pz()), (ajetDown.energy()-itJet->energy()));	
-    changeUp +=tempChangeUp;
-    changeDown += tempChangeDown;
+    tempJESChangeUp.SetPxPyPzE((ajetUp.px()-(*itJet).px()), (ajetUp.py()-(*itJet).py()), (ajetUp.pz()-(*itJet).pz()), (ajetUp.energy()-(*itJet).energy()));	
+    tempJESChangeDown.SetPxPyPzE((ajetDown.px()-itJet->px()), (ajetDown.py()-itJet->py()), (ajetDown.pz()-itJet->pz()), (ajetDown.energy()-itJet->energy()));	
+    JESChangeUp +=tempJESChangeUp;
+    JESChangeDown += tempJESChangeDown;
 
     shiftedJetsJESUp->push_back(ajetUp);
     shiftedJetsJESDown->push_back(ajetDown);
   }
-  int nJets=0;
-  int nGenJets=0;
-  //int nJetsNoPULoose = 0;
-  //int nJetsNoPUMedium = 0;
-  //int nJetsNoPUTight = 0;
+
+  // Shift b-jets by JEC
+  for (std::vector<pat::Jet>::const_iterator itBJet = bJets35->begin(); itBJet != bJets35->end(); itBJet++) {
+	
+    pat::Jet ajetUp( *itBJet );
+    pat::Jet ajetDown( *itBJet );
+    jecUnc->setJetEta(itBJet->eta());
+    jecUnc->setJetPt(itBJet->pt()); // IMPORTANT: the uncertainty is a function of the CORRECTED pt
+    double correction = jecUnc->getUncertainty(true);
+    //double correction = itJet->relCorrUncert(dir_); 
+    
+    //use pat::Jet::relCorrUncert
+    if (correction==0.0){
+	correction = 0.045; 
+    }
+    //    std::cout << "jet pt = "<<itJet->p4()<<", uncertainty = "<<correction<<std::endl;
+    ajetUp.setP4( itBJet->p4() * (1.0 + correction) );
+    ajetDown.setP4( itBJet->p4() * (1.0 - correction) );
+
+    shiftedBJetsJESUp->push_back(ajetUp);
+    shiftedBJetsJESDown->push_back(ajetDown);
+  }
   
-  //float puJetID = 0.;	
+  int nJets=0;
+  int nBadMuonJets=0;
+  int nGenJets=0;
+
   
   for(std::vector<pat::Jet>::const_iterator it = jets->begin(); it != jets->end() ; ++it){
 	if ((*it).pt() >=35.0 && fabs((*it).eta())<2.4){
 		nJets++;
 		
-		//puJetID =  it->userFloat("pileupJetId:fullIdLoose");
-		//std::cout << puJetID << endl;
-      	//if( PileupJetIdentifier::passJetId( puJetID, PileupJetIdentifier::kLoose )) {
-        //   nJetsNoPULoose++;
-      	//}
-     	//if( PileupJetIdentifier::passJetId( puJetID, PileupJetIdentifier::kMedium )) {
-        //   nJetsNoPUMedium++;
-        //}
-        //if( PileupJetIdentifier::passJetId( puJetID, PileupJetIdentifier::kTight )) {
-        //   nJetsNoPUTight++;		
-		//}
+
 		tempMHT.SetPxPyPzE((*it).px(), (*it).py(), (*it).pz(), (*it).energy());	
 		MHT = MHT + tempMHT;
 		floatEventProperties["ht"] += (*it).pt();
 		
+		if ((*it).pt() >=200.0 && (*it).muonEnergyFraction() > 0.5 && fabs(tempMHT.DeltaPhi( metVector )) > M_PI - 0.4 ){
+			nBadMuonJets++;
+		}
+		
 	}
+	
 	
   }
   intEventProperties["nJets"] = nJets;
-  
+  intEventProperties["nBadMuonJets"] = nBadMuonJets;
+    
   float genHT = 0.;
   
-  if (genParticles.isValid()){
+  if (isMC){
 	  for(std::vector<reco::GenJet >::const_iterator it = genJets->begin(); it != genJets->end() ; ++it){
 		  
 		if ((*it).pt() >=35.0 && fabs((*it).eta())<2.4){
@@ -907,41 +1045,25 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   intEventProperties["nGenJets"] = nGenJets;
   floatEventProperties["genHT"] = genHT;
  
-  
-  //~ nJets30 = 0;
-  //~ 
-  //~ for(std::vector<pat::Jet>::const_iterator it = jets->begin(); it != jets->end() ; ++it){
-	//~ if ((*it).pt() >=30.0 && fabs((*it).eta())<2.4){
-		//~ nJets30++;
-	//~ }
-  //~ }
-  //~ intEventProperties["nJets30"] = nJets30;  
-  //~ 
-  //~ //intEventProperties["nJetsNoPULoose"] = nJetsNoPULoose;
-  //~ //intEventProperties["nJetsNoPUMedium"] = nJetsNoPUMedium;
-  //~ //intEventProperties["nJetsNoPUTight"] = nJetsNoPUTight;    
-  int nJetsOld=0;
-  for(std::vector<pat::Jet>::const_iterator it = jets->begin(); it != jets->end() ; ++it){
-	if ((*it).pt() >=40.0){
-		nJetsOld++;
-		floatEventProperties["leptHT"] += (*it).pt();	
-		floatEventProperties["ht40"] += (*it).pt();						
-	}
-  }
-  intEventProperties["nJetsOld"] = nJetsOld;
 
 
   TLorentzVector jet1Vector(0.,0.,0.,0.);
   TLorentzVector jet2Vector(0.,0.,0.,0.); 
+  
+  floatEventProperties["deltaPhiJetMet1"] = -9999.;
+  floatEventProperties["deltaPhiJetMet2"] = -9999.;
 
 
   if (nJets > 0)
     jet1Vector.SetPxPyPzE(jets->at(0).px(),jets->at(0).py(),jets->at(0).pz(),jets->at(0).energy());
+    floatEventProperties["deltaPhiJetMet1"] = fabs(jet1Vector.DeltaPhi( metVector ));
   if (nJets > 1)
     jet2Vector.SetPxPyPzE(jets->at(1).px(),jets->at(1).py(),jets->at(1).pz(),jets->at(1).energy());
+    floatEventProperties["deltaPhiJetMet2"] = fabs(jet2Vector.DeltaPhi( metVector ));
   
   tLorentzVectorEventProperties["jet1"] = jet1Vector;
   tLorentzVectorEventProperties["jet2"] = jet2Vector;
+  
 
   TLorentzVector genJet1Vector(0.,0.,0.,0.);
   TLorentzVector genJet2Vector(0.,0.,0.,0.);
@@ -956,7 +1078,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   int nJetsJESUp=0;
   for(std::vector<pat::Jet>::const_iterator it = shiftedJetsJESUp->begin(); it != shiftedJetsJESUp->end() ; ++it){
-	if ((*it).pt() >=35.0){
+	if ((*it).pt() >=35.0 && fabs((*it).eta())<2.4){
         	nJetsJESUp++;
 		floatEventProperties["htJESUp"] += (*it).pt();
 	}
@@ -964,26 +1086,20 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   intEventProperties["nShiftedJetsJESUp"] = nJetsJESUp;
   int nJetsJESDown=0;
   for(std::vector<pat::Jet>::const_iterator it = shiftedJetsJESDown->begin(); it != shiftedJetsJESDown->end() ; ++it){
-	if ((*it).pt() >=35.0){	
+	if ((*it).pt() >=35.0 && fabs((*it).eta())<2.4){	
         	nJetsJESDown++;
 		floatEventProperties["htJESDown"] += (*it).pt();
 	}
   }
   intEventProperties["nShiftedJetsJESDown"] = nJetsJESDown;
-  TLorentzVector metVectorJESUp = metVector + changeUp;
-  TLorentzVector metVectorJESDown = metVector + changeDown;
+  TLorentzVector metVectorJESUp = metVector + JESChangeUp;
+  TLorentzVector metVectorJESDown = metVector + JESChangeDown;
   floatEventProperties["metJESUp"] = metVectorJESUp.Pt();
 
 
   floatEventProperties["metJESDown"] = metVectorJESDown.Pt();
 
-//   floatEventProperties["metJESUp"] = 0.;
-// 
-// 
-//   floatEventProperties["metJESDown"] = 0.;
 
-
-//   floatEventProperties["mht"] = MHT.Pt();
 
   // Jet pt
   floatEventProperties["jet1pt"] = -1.0;
@@ -1003,9 +1119,9 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   floatEventProperties["genJet2pt"] = -1.0;
   floatEventProperties["genJet3pt"] = -1.0;
   floatEventProperties["genJet4pt"] = -1.0;
+    
   
-  
-  if (genParticles.isValid()){
+  if (isMC){
 	  int genJet = 0;
 	  for(std::vector<reco::GenJet >::const_iterator it = genJets->begin(); it != genJets->end() ; ++it){
 		if ((*it).pt() >=10.0 && fabs((*it).eta())<3.0){	
@@ -1072,43 +1188,97 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   tLorentzVectorEventProperties["bJet1"] = bJet1Vector;
   tLorentzVectorEventProperties["bJet2"] = bJet2Vector;
   
+   floatEventProperties["bTagWeight"] = -9999.;
+  floatEventProperties["bTagWeightErrHeavy"] = -9999.;
+  floatEventProperties["bTagWeightErrLight"] = -9999.;
   
+  // Calculate btagging weights
   if (genParticles.isValid()){
-	  for(std::vector<reco::GenJet >::const_iterator it = genJets->begin(); it != genJets->end() ; ++it){
-		  if ((*it).pt() >=40.0 && fabs((*it).eta())<3.0){
+	  
+	  float P_MC = 1.;
+	  float P_Data = 1.;
+	  float err1 = 0.;
+	  float err2 = 0.;
+	  float err3 = 0.;
+	  float err4 = 0.;
+	  
+	  for(std::vector<pat::Jet>::const_iterator it = jets->begin(); it != jets->end() ; ++it){
+		  if ((*it).pt() >=35.0 && fabs((*it).eta())<2.4){
 			  
-			  bool leptonClean = true;
-			  TLorentzVector genJetVector( (*it).px(), (*it).py(), (*it).pz(), (*it).energy() );
+			  int jetFlavor;
+			  float eff;
+			  float SF, SF_up, SF_down;
+			  float SF_err;
 			  
-			  for(std::vector< pat::Electron >::const_iterator itEle = electrons->begin(); itEle != electrons->end() ; ++itEle){
-				  if (leptonClean == false) break;
+			  jetFlavor = (*it).hadronFlavour();
+			  if (jetFlavor == 5)
+			  {
+				  SF = fctBTagCalibReaderFullSimBJets_.eval(BTagEntry::FLAV_B, (*it).eta(), (*it).pt());
+				  SF_up = fctBTagCalibReaderFullSimBJetsUp_.eval(BTagEntry::FLAV_B, (*it).eta(), (*it).pt());
+				  SF_down = fctBTagCalibReaderFullSimBJetsDown_.eval(BTagEntry::FLAV_B, (*it).eta(), (*it).pt());
 				  
-				  if (getIso((*itEle),"miniIsoEA")<0.1) {
-					  TLorentzVector eleVector( (*itEle).px(), (*itEle).py(), (*itEle).pz(), (*itEle).energy() );
-					  if (genJetVector.DeltaR( eleVector ) < 0.4){
-						  leptonClean = false;
+				 
+			  }
+			  else if (jetFlavor == 4)
+			  {
+				  SF = fctBTagCalibReaderFullSimCJets_.eval(BTagEntry::FLAV_C, (*it).eta(), (*it).pt());
+				  SF_up = fctBTagCalibReaderFullSimCJetsUp_.eval(BTagEntry::FLAV_C, (*it).eta(), (*it).pt());
+				  SF_down = fctBTagCalibReaderFullSimCJetsDown_.eval(BTagEntry::FLAV_C, (*it).eta(), (*it).pt());
+
+			  }
+			  else
+			  {
+				  SF = fctBTagCalibReaderFullSimLightJets_.eval(BTagEntry::FLAV_UDSG, (*it).eta(), (*it).pt());
+				  SF_up = fctBTagCalibReaderFullSimLightJetsUp_.eval(BTagEntry::FLAV_UDSG, (*it).eta(), (*it).pt());
+				  SF_down = fctBTagCalibReaderFullSimLightJetsDown_.eval(BTagEntry::FLAV_UDSG, (*it).eta(), (*it).pt());
+
+			  }
+			  
+			 			  
+			  eff = fctBTagEff_(jetFlavor, (*it).pt(), fabs((*it).eta()));
+			  
+			  SF_err = std::max(fabs(SF_up-SF),fabs(SF_down-SF));
+				  
+			  // check if jet is btagged
+			  bool tagged = false;
+			  if (bJets->size() > 0){
+				  for (unsigned int i = 0; i < bJets->size(); ++i){
+					  if ((*it).pt()==bJets->at(i).pt()){
+						  tagged = true;
+						  break;
 					  }
 				  }
 			  }
 			  
-			  for(std::vector< pat::Muon >::const_iterator itMu = muons->begin(); itMu != muons->end() ; ++itMu){
-				  if (leptonClean == false) break;
-				  
-				  if (getIso((*itMu),"miniIsoEA")<0.2) {
-					  TLorentzVector muVector( (*itMu).px(), (*itMu).py(), (*itMu).pz(), (*itMu).energy() );
-					  if (genJetVector.DeltaR( muVector ) < 0.4){
-						  leptonClean = false;
-					  }
-				  }
+			  if (tagged){
+				  P_MC = P_MC * eff;
+				  P_Data = P_Data * SF * eff;
+				  if (jetFlavor == 5 || jetFlavor == 4) err1 += SF_err/SF;
+				  else err3 += SF_err/SF;
 			  }
-			  if (leptonClean == true) {
-				  floatEventProperties["genLeptHT"] += (*it).pt();
+			  else{
+				  P_MC = P_MC * (1 - eff);
+				  P_Data = P_Data  * (1 - SF * eff);
+				  if (jetFlavor == 5 || jetFlavor == 4) err2 += (-eff*SF_err) / (1-eff*SF);
+				  else err4 += (-eff*SF_err) / (1-eff*SF);
 			  }
 		  }
 	  }
-  }	
+	  if (P_MC > 0. && P_Data > 0.){
+		  floatEventProperties["bTagWeight"] = P_Data/P_MC;
+		  floatEventProperties["bTagWeightErrHeavy"] = (err1+err2)*P_Data/P_MC;
+		  floatEventProperties["bTagWeightErrLight"] = (err3+err4)*P_Data/P_MC;
+	  }
+	  else{
+		  floatEventProperties["bTagWeight"] = 0.;
+		  floatEventProperties["bTagWeightErrHeavy"] = 0.;
+		  floatEventProperties["bTagWeightErrLight"] = 0.;
+	  }
+  }
   
   
+  
+  	
   floatEventProperties["weight"] = fctVtxWeight_( iEvent );
   floatEventProperties["weightUp"] = fctVtxWeightUp_( iEvent );
   floatEventProperties["weightDown"] = fctVtxWeightDown_( iEvent );
@@ -1149,38 +1319,40 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
 		  leptonFlavor2 = "Mu";
 		  leptonNr2 = it;
 	  }
-  }
-  
+  } 
  
   
   if (leptonFlavor1 == "Ele" && leptonFlavor2 == "Ele") {
-	  fillTree<pat::Electron, pat::Electron>( "EE", (*electrons).at(leptonNr1), (*electrons).at(leptonNr2),*pfCands,*looseElectrons,*looseMuons,*jets,*bJets35, met,MHT,vertices,Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties); 
+	  fillTree<pat::Electron, pat::Electron>( "EE", (*electrons).at(leptonNr1), (*electrons).at(leptonNr2),*pfCands,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
+	  
   }
   else if (leptonFlavor1 == "Mu" && leptonFlavor2 == "Mu") {
-	  fillTree<pat::Muon, pat::Muon>( "MuMu", (*muons).at(leptonNr1), (*muons).at(leptonNr2),*pfCands,*looseElectrons,*looseMuons,*jets,*bJets35, met,MHT,vertices,Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties); 
+	  fillTree<pat::Muon, pat::Muon>( "MuMu", (*muons).at(leptonNr1), (*muons).at(leptonNr2),*pfCands,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
   }
   else if (leptonFlavor1 == "Ele" && leptonFlavor2 == "Mu") {
-	  fillTree<pat::Electron, pat::Muon>( "EMu", (*electrons).at(leptonNr1), (*muons).at(leptonNr2),*pfCands,*looseElectrons,*looseMuons,*jets,*bJets35, met,MHT,vertices,Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties); 
+	  fillTree<pat::Electron, pat::Muon>( "EMu", (*electrons).at(leptonNr1), (*muons).at(leptonNr2),*pfCands,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
   }
   // Change ordering for Mu E events, in such a way that the electron is always the first lepton (required by some tools that select the lepton flavor)
   else if (leptonFlavor1 == "Mu" && leptonFlavor2 == "Ele") {
-	  fillTree<pat::Electron, pat::Muon>( "EMu", (*electrons).at(leptonNr2), (*muons).at(leptonNr1),*pfCands,*looseElectrons,*looseMuons,*jets,*bJets35, met,MHT,vertices,Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties); 
+	  fillTree<pat::Electron, pat::Muon>( "EMu", (*electrons).at(leptonNr2), (*muons).at(leptonNr1),*pfCands,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
   }
 	  
 
   delete jecUnc;
   delete shiftedJetsJESUp;
   delete shiftedJetsJESDown;
+  delete shiftedBJetsJESUp;
+  delete shiftedBJetsJESDown;
 
 
 }
 
 
 template <class aT, class bT> void 
-DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, const bT& b,const std::vector<pat::PackedCandidate>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&bJets35, const pat::MET &patMet,const TLorentzVector &MHT,const edm::Handle<reco::VertexCollection> &vertices,const float &rho, const std::map<std::string, int> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties)
+DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, const bT& b,const std::vector<pat::PackedCandidate>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsUp,const std::vector<pat::Jet>&shiftedJetsDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedBJetsUp,const std::vector<pat::Jet>&shiftedBJetsDown, const pat::MET &patMet,const TLorentzVector &MHT,const edm::Handle<reco::VertexCollection> &vertices,const float &rho, const std::map<std::string, long> &intEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC)
 {
 
-  for(std::map<std::string, int>::const_iterator it = intEventProperties.begin(); it != intEventProperties.end(); ++it){
+  for(std::map<std::string, long>::const_iterator it = intEventProperties.begin(); it != intEventProperties.end(); ++it){
     assert(intBranches_[treeName].find((*it).first) != intBranches_[treeName].end());
     *(intBranches_[treeName][(*it).first]) = (*it).second;
   }
@@ -1192,21 +1364,22 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
  for(std::map<std::string, TLorentzVector>::const_iterator it = tLorentzVectorEventProperties.begin(); it != tLorentzVectorEventProperties.end(); ++it){
     assert(tLorentzVectorBranches_[treeName].find((*it).first) != tLorentzVectorBranches_[treeName].end());
     *(tLorentzVectorBranches_[treeName][(*it).first]) = (*it).second;
-  }	
-	
+  }	  
+  
   if(debug) std::cout << treeName << "- pts:"<< a.pt() << " " << b.pt();
   TLorentzVector aVec = getMomentum(a);//( a.px(), a.py(), a.pz(), a.energy() );
   TLorentzVector bVec = getMomentum(b); //( b.px(), b.py(), b.pz(), b.energy() );
   TLorentzVector met(patMet.px(), patMet.py(), patMet.pz(), patMet.energy());
   TLorentzVector uncorrectedMet; 
   uncorrectedMet.SetPtEtaPhiE(patMet.uncorPt(), 0, \
-			      patMet.uncorPhi(), patMet.uncorPt());  
+			      patMet.uncorPhi(), patMet.uncorPt());
+			      
 
   //  std::cout << "met: "<<met.Et()<< ", unCorr met: "<< uncorrectedMet.Et()
   //<< "=> "<< met.Et()* 1./uncorrectedMet.Et()<< " (xCheck: "<< patMet.corSumEt()*1./patMet.uncorrectedPt(pat::MET::uncorrALL) <<")"<<std::endl;
 
-   *(floatBranches_[treeName]["leptHT"]) += aVec.Pt();	
-   *(floatBranches_[treeName]["leptHT"]) += bVec.Pt();	
+   //~ *(floatBranches_[treeName]["leptHT"]) += aVec.Pt();	
+   //~ *(floatBranches_[treeName]["leptHT"]) += bVec.Pt();	
    
 
   TLorentzVector comb = aVec+bVec;
@@ -1229,6 +1402,7 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   std::vector< pat::Jet > jet1Coll;
   std::vector< pat::Jet > jet2Coll;
   
+  // Calculate sum Mlb
   if (bJets35.size() >= 1) jet1Coll = bJets35;
   else jet1Coll = jets;
   
@@ -1275,14 +1449,107 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   
   *(floatBranches_[treeName]["min_mlb"]) = mlb_min; 
   *(floatBranches_[treeName]["max_mlb"]) = mlb_max; 
+  
+
+  // Calculate sum Mlb with JES shifted up
+  mlb_min = 1.E6;
+  mlb_max = 1.E6;
+  jet.SetPxPyPzE(0.,0.,0.,0.);
+  
+  if (shiftedBJetsUp.size() >= 1) jet1Coll = shiftedBJetsUp;
+  else jet1Coll = shiftedJetsUp;
+  
+  if (shiftedBJetsUp.size() >= 2) jet2Coll = shiftedBJetsUp;
+  else jet2Coll = shiftedJetsUp;
+  
+  for (int il=0; il < 2; ++il){
+	  for (std::size_t ij=0; ij < jet1Coll.size(); ++ij){
+		  jet.SetPxPyPzE(jet1Coll.at(ij).px(),jet1Coll.at(ij).py(),jet1Coll.at(ij).pz(),jet1Coll.at(ij).energy());
+		  if (jet.Pt() > 35. && abs(jet.Eta()) < 2.4){
+			  lepton.SetPxPyPzE(leptList[il].Px(),leptList[il].Py(),leptList[il].Pz(),leptList[il].Energy());
+			  
+			  temp_mlb = (jet+lepton).M();
+			  if (temp_mlb < mlb_min) {
+				  mlb_min = temp_mlb;
+				  lmin = il;
+				  jet1 = jet;
+			  }
+		  }
+	  }
+  }
+  for (int il=0; il < 2; ++il){
+	  if (il == lmin) continue;
+	  for (std::size_t ij=0; ij < jet2Coll.size(); ++ij){
+		  jet.SetPxPyPzE(jet2Coll.at(ij).px(),jet2Coll.at(ij).py(),jet2Coll.at(ij).pz(),jet2Coll.at(ij).energy());
+		  if (jet.Pt() > 35. && abs(jet.Eta()) < 2.4){
+			  if (shiftedBJetsUp.size() == 1 && jet.DeltaR (jet1) < 0.1) continue;
+			  if ( (shiftedBJetsUp.size() == 0 || shiftedBJetsUp.size() >= 2) && 	jet == jet1) continue;	
+			  lepton.SetPxPyPzE(leptList[il].Px(),leptList[il].Py(),leptList[il].Pz(),leptList[il].Energy());
+			  
+			  temp_mlb = (jet+lepton).M();
+			  if (temp_mlb < mlb_max) {
+				  mlb_max = temp_mlb;
+			  }
+		  }
+	  }
+  }
+	 
+  if (mlb_min < 1.E6 and mlb_max < 1.E6) *(floatBranches_[treeName]["sumMlbJESUp"]) = mlb_min + mlb_max; 
+  else *(floatBranches_[treeName]["sumMlbJESUp"]) = 1.E-6;
+  
+
+  // Calculate sum Mlb with JES shifted down
+  mlb_min = 1.E6;
+  mlb_max = 1.E6;
+  jet.SetPxPyPzE(0.,0.,0.,0.);
+  
+  if (shiftedBJetsDown.size() >= 1) jet1Coll = shiftedBJetsDown;
+  else jet1Coll = shiftedJetsDown;  
+
+  if (shiftedBJetsDown.size() >= 2) jet2Coll = shiftedBJetsDown;
+  else jet2Coll = shiftedJetsDown;
+  
+  for (int il=0; il < 2; ++il){
+	  for (std::size_t ij=0; ij < jet1Coll.size(); ++ij){
+		  jet.SetPxPyPzE(jet1Coll.at(ij).px(),jet1Coll.at(ij).py(),jet1Coll.at(ij).pz(),jet1Coll.at(ij).energy());
+		  if (jet.Pt() > 35. && abs(jet.Eta()) < 2.4){
+			  lepton.SetPxPyPzE(leptList[il].Px(),leptList[il].Py(),leptList[il].Pz(),leptList[il].Energy());
+			  
+			  temp_mlb = (jet+lepton).M();
+			  if (temp_mlb < mlb_min) {
+				  mlb_min = temp_mlb;
+				  lmin = il;
+				  jet1 = jet;
+			  }
+		  }
+	  }
+  }
+  for (int il=0; il < 2; ++il){
+	  if (il == lmin) continue;
+	  for (std::size_t ij=0; ij < jet2Coll.size(); ++ij){
+		  jet.SetPxPyPzE(jet2Coll.at(ij).px(),jet2Coll.at(ij).py(),jet2Coll.at(ij).pz(),jet2Coll.at(ij).energy());
+		  if (jet.Pt() > 35. && abs(jet.Eta()) < 2.4){
+			  if (shiftedBJetsDown.size() == 1 && jet.DeltaR (jet1) < 0.1) continue;
+			  if ( (shiftedBJetsDown.size() == 0 || shiftedBJetsDown.size() >= 2) && 	jet == jet1) continue;	
+			  lepton.SetPxPyPzE(leptList[il].Px(),leptList[il].Py(),leptList[il].Pz(),leptList[il].Energy());
+			  
+			  temp_mlb = (jet+lepton).M();
+			  if (temp_mlb < mlb_max) {
+				  mlb_max = temp_mlb;
+			  }
+		  }
+	  }
+  }
+	 
+  if (mlb_min < 1.E6 and mlb_max < 1.E6) *(floatBranches_[treeName]["sumMlbJESDown"]) = mlb_min + mlb_max; 
+  else *(floatBranches_[treeName]["sumMlbJESDown"]) = 1.E-6;
 
   
   double pa[3] = {aVec.M(),aVec.Px(),aVec.Py()};
   double pb[3] = {bVec.M(),bVec.Px(),bVec.Py()};
+  
   double pmiss[3] = {0.,met.Px(),met.Py()};
-  
   fctMT2_.set_momenta(pa,pb,pmiss);
-  
   *(floatBranches_[treeName]["MT2"]) = static_cast<float>(fctMT2_.get_mt2()); 
   
   *(floatBranches_[treeName]["pt3"]) = 0.;
@@ -1309,6 +1576,34 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
 	  *(floatBranches_[treeName]["pt3"]) = leptonPts[0];	 
   }
   
+  int nIsoTracks = 0;
+  double absIso = 0.;
+  
+  std::vector < float > trackPts;
+  
+  for(std::vector<pat::PackedCandidate>::const_iterator it = pfCands.begin(); it != pfCands.end() ; ++it){
+	
+	  if ((*it).charge()==0) continue;
+	  
+	  if ( (*it).pt() < 5. ) continue;
+	  if ( abs((*it).dz()) > 0.1 ) continue;
+	  if ( (*it).fromPV() <= 1 ) continue;
+	  
+	  absIso = getIso(*it,"trackIso");
+	  if (absIso >= min(0.2 * (*it).pt(),8.0) ) continue;
+	  
+	  if ( deltaR(a,(*it)) < 0.01 || deltaR(b,(*it)) < 0.01 ) continue;
+	  
+	  if ( abs((*it).pdgId()) == 11 || abs((*it).pdgId()) == 13 || ( (*it).pt() > 10. && abs((*it).pdgId()) == 211  && absIso < 0.1 * (*it).pt() ) ){
+		  nIsoTracks++;
+		  trackPts.push_back((*it).pt());
+	  }
+	  
+  }
+  *(intBranches_[treeName]["nIsoTracks"]) = nIsoTracks;
+  if (nIsoTracks > 0) *(floatBranches_[treeName]["ptTrack3"]) = *std::max_element(std::begin(trackPts),std::end(trackPts));
+  else *(floatBranches_[treeName]["ptTrack3"]) = 0.;
+  
 		  	  
   
   //~ std::pair<double, double> pZeta = calcPZeta(aVec, bVec, met);
@@ -1325,6 +1620,14 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   *(floatBranches_[treeName]["charge2"]) = b.charge();
   *(floatBranches_[treeName]["eta1"]) = aVec.Eta();
   *(floatBranches_[treeName]["eta2"]) = bVec.Eta();
+   //~ if (isMC){	
+	  //~ *(floatBranches_[treeName]["leptonFullSimScaleFactor1"]) = fctLeptonFullSimScaleFactors_(a, a.pt(), a.eta() );
+	  //~ *(floatBranches_[treeName]["leptonFullSimScaleFactor2"]) = fctLeptonFullSimScaleFactors_(b, b.pt(), b.eta() );
+  //~ }
+   //~ else{	
+	  //~ *(floatBranches_[treeName]["leptonFullSimScaleFactor1"]) = 1.;
+	  //~ *(floatBranches_[treeName]["leptonFullSimScaleFactor2"]) = 1.;
+  //~ }
   *(floatBranches_[treeName]["miniIsoEffArea1"]) = getIso(a,"miniIsoEA");
   *(floatBranches_[treeName]["miniIsoEffArea2"]) = getIso(b,"miniIsoEA");
   *(floatBranches_[treeName]["mt1"]) = transverseMass(aVec, met);
@@ -1333,7 +1636,7 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   //~ *(floatBranches_[treeName]["fakeWeight2"]) = fakeRates_(b);
   *(floatBranches_[treeName]["deltaPhi"]) = aVec.DeltaPhi( bVec );
   *(floatBranches_[treeName]["deltaR"]) = aVec.DeltaR( bVec );
-  *(floatBranches_[treeName]["angle3D"]) = aVec.Angle( bVec.Vect() );
+  //~ *(floatBranches_[treeName]["angle3D"]) = aVec.Angle( bVec.Vect() );
   *(floatBranches_[treeName]["jzb"]) = (met+comb).Pt() - comb.Pt();
   *(floatBranches_[treeName]["jzbUncorr"]) = (uncorrectedMet+comb).Pt() - comb.Pt();  
   *(floatBranches_[treeName]["jzbResponse"]) = (met+comb).Pt() / comb.Pt();
@@ -1395,8 +1698,8 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   if( matched == 3 && pdgIds1[1] == pdgIds2[1] ) {
     matched |= 4;
   }
-  *(floatBranches_[treeName]["genLeptHT"]) += genLepton1.Pt();	
-  *(floatBranches_[treeName]["genLeptHT"]) += genLepton2.Pt();	
+  //~ *(floatBranches_[treeName]["genLeptHT"]) += genLepton1.Pt();	
+  //~ *(floatBranches_[treeName]["genLeptHT"]) += genLepton2.Pt();	
   
   *(intBranches_[treeName]["matched"]) = matched; 
   *(tLorentzVectorBranches_[treeName]["p4Gen"]) = genVec;
@@ -1559,6 +1862,10 @@ float DiLeptonTreesFromMiniAOD::getIso(const  pat::Muon &mu, const std::string &
   return fctIsolation_(mu,method)* 1./mu.pt();
 }
 
+float DiLeptonTreesFromMiniAOD::getIso(const  pat::PackedCandidate &track, const std::string &method)
+{
+  return fctIsolation_(track,method);
+}
 
 void DiLeptonTreesFromMiniAOD::fillLeptonIDs(const std::string &treeName, const  pat::Electron &ele1, const  pat::Electron &ele2, const edm::Handle<reco::VertexCollection> &vertices)
 {
@@ -1796,19 +2103,6 @@ float DiLeptonTreesFromMiniAOD::topPtWeightTOP(double topPt){
   float p1 = 0.00137;
 
   float result = exp(p0 - p1 * topPt);
-  return result;
-}
-
-
-float DiLeptonTreesFromMiniAOD::getDeltaB(const  pat::Electron &e)
-{
-  float result = e.dB(pat::Electron::PV3D);
-  return result;
-}
-
-float DiLeptonTreesFromMiniAOD::getDeltaB(const  pat::Muon &mu)
-{
-  float result = mu.dB(pat::Muon::PV3D);
   return result;
 }
 

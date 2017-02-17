@@ -92,6 +92,8 @@ private:
   edm::EDGetTokenT< std::vector< pat::Muon > > 				muonToken_;
   edm::EDGetTokenT< std::vector< pat::Jet > >				jetToken_;  
   edm::EDGetTokenT< std::vector< reco::GenParticle > >	 	genParticleToken_;
+  edm::EDGetTokenT<reco::VertexCollection> 					vertexToken_;
+  
   //~ 
   edm::Handle< std::vector< pat::Jet > > jets;
   
@@ -115,13 +117,16 @@ signalNominatorTrees::signalNominatorTrees(const edm::ParameterSet& iConfig):
   electronToken_		(consumes< std::vector< pat::Electron > > 		(iConfig.getParameter<edm::InputTag>("electrons"))),
   muonToken_			(consumes< std::vector< pat::Muon > >			(iConfig.getParameter<edm::InputTag>("muons"))),
   jetToken_				(consumes< std::vector< pat::Jet > >			(iConfig.getParameter<edm::InputTag>("jets"))),
-  genParticleToken_		(consumes< std::vector< reco::GenParticle > >	(iConfig.getParameter<edm::InputTag>("genParticles"))), 
+  genParticleToken_		(consumes< std::vector< reco::GenParticle > >	(iConfig.getParameter<edm::InputTag>("genParticles"))),
+  vertexToken_			(consumes<reco::VertexCollection>				(iConfig.getParameter<edm::InputTag>("vertices"))), 
   
   getPdgId_( iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition") , consumesCollector() )
   //~ newLumiBlock_(true)
 {
   debug = false;
-  mayConsume<GenLumiInfoHeader,edm::InLumi> (edm::InputTag("generator"));
+  //~ mayConsume<GenLumiInfoHeader,edm::InLumi> (edm::InputTag("generator"));
+  
+  consumes<std::vector< PileupSummaryInfo > >(edm::InputTag("slimmedAddPileupInfo"));
   
   
   // read config
@@ -138,6 +143,8 @@ signalNominatorTrees::signalNominatorTrees(const edm::ParameterSet& iConfig):
   initFloatBranch( "ISRCorrection" );
   initFloatBranch( "ISRUncertainty" );
   initIntBranch( "nISRJets" );
+  initIntBranch( "nVertices" );
+  initIntBranch( "nGenVertices" );
 
 }
 
@@ -205,6 +212,9 @@ signalNominatorTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 
   edm::Handle< std::vector< pat::Muon > > muons;
   iEvent.getByToken(muonToken_, muons);
+  
+  edm::Handle<reco::VertexCollection> vertices;
+  iEvent.getByToken(vertexToken_, vertices);
   
   iEvent.getByToken(jetToken_, jets);
   
@@ -286,30 +296,54 @@ signalNominatorTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& i
   floatEventProperties["ISRCorrection"] = 1.;
   floatEventProperties["ISRUncertainty"] = 0.;
   
-  if (nISRJets==1) {
-	  floatEventProperties["ISRCorrection"] = 0.882;
-	  floatEventProperties["ISRUncertainty"] = 0.059;	  
+ if (nISRJets==1) {
+	  floatEventProperties["ISRCorrection"] = 0.920;
+	  floatEventProperties["ISRUncertainty"] = 0.040;	  
   }
   if (nISRJets==2) {
-	  floatEventProperties["ISRCorrection"] = 0.792;
-	  floatEventProperties["ISRUncertainty"] = 0.104;	  
+	  floatEventProperties["ISRCorrection"] = 0.821;
+	  floatEventProperties["ISRUncertainty"] = 0.090;	  
   }
   if (nISRJets==3) {
-	  floatEventProperties["ISRCorrection"] = 0.702;
-	  floatEventProperties["ISRUncertainty"] = 0.149;	  
+	  floatEventProperties["ISRCorrection"] = 0.715;
+	  floatEventProperties["ISRUncertainty"] = 0.143;	  
   }
   if (nISRJets==4) {
-	  floatEventProperties["ISRCorrection"] = 0.648;
-	  floatEventProperties["ISRUncertainty"] = 0.176;	  
+	  floatEventProperties["ISRCorrection"] = 0.662;
+	  floatEventProperties["ISRUncertainty"] = 0.169;	  
   }
   if (nISRJets==5) {
-	  floatEventProperties["ISRCorrection"] = 0.601;
-	  floatEventProperties["ISRUncertainty"] = 0.199;	  
+	  floatEventProperties["ISRCorrection"] = 0.561;
+	  floatEventProperties["ISRUncertainty"] = 0.219;	  
   }
   if (nISRJets>=6) {
-	  floatEventProperties["ISRCorrection"] = 0.515;
-	  floatEventProperties["ISRUncertainty"] = 0.242;	  
+	  floatEventProperties["ISRCorrection"] = 0.511;
+	  floatEventProperties["ISRUncertainty"] = 0.244;	  
   }
+  
+  intEventProperties["nVertices"] = vertices->size();
+  
+  int nGenVertices = -1;
+  
+  if (genParticles.isValid()){	  
+	  edm::Handle<std::vector< PileupSummaryInfo > >  PupInfo;
+	  iEvent.getByLabel(edm::InputTag("slimmedAddPileupInfo"), PupInfo);
+	
+	  std::vector<PileupSummaryInfo>::const_iterator PVI;
+
+  
+	  for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
+		
+		int BX = PVI->getBunchCrossing();
+		
+		if(BX == 0) { 
+		  nGenVertices = PVI->getTrueNumInteractions();
+		  continue;
+		}
+	  }
+  }
+  
+  intEventProperties["nGenVertices"] = nGenVertices;
 
   
   for(std::map<std::string, int>::const_iterator it = intEventProperties.begin(); it != intEventProperties.end(); ++it){

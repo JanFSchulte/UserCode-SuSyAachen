@@ -10,5 +10,5 @@ bTagEffMap = cms.PSet(
     cEffFastSimName = cms.string('h2_BTaggingEff_csv_med_Eff_c'),
     lightEffFastSimName = cms.string('h2_BTaggingEff_csv_med_Eff_udsg'),
     
-    useFastSim = cms.bool(False),
+    useFastSim = cms.bool(True),
 )

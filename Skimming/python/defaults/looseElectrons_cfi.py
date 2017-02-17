@@ -56,11 +56,14 @@ PATElectronIDSelector = cms.EDFilter("PATElectronIDSelector",
 
 PATElectronMVAIDSelector = cms.EDFilter("PATElectronMVAIDSelector", 
   filter = cms.bool(True),
-  workingPointCentralBarrel = cms.double(0.87),
-  workingPointOuterBarrel = cms.double(0.60),
-  workingPointEndcap = cms.double(0.17),
+  workingPointCentralBarrelHighPt = cms.double(-0.96),
+  workingPointCentralBarrelLowPt = cms.double(-0.86),
+  workingPointOuterBarrelHighPt = cms.double(-0.96),
+  workingPointOuterBarrelLowPt = cms.double(-0.85),
+  workingPointEndcapHighPt = cms.double(-0.95),
+  workingPointEndcapLowPt = cms.double(-0.81),
   src = cms.InputTag("cleanLayer1Electrons"),
-  idMapSource  = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Phys14NonTrigValues") #offlinePrimeryVertices
+  idMapSource  = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring16GeneralPurposeV1Values") #offlinePrimeryVertices
 )
 
 PATElectronLooseMVAIDSelector = cms.EDFilter("PATElectronLooseMVAIDSelector", 

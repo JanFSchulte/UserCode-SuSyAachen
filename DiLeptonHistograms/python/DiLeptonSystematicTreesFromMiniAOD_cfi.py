@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
 from SuSyAachen.DiLeptonHistograms.pdgIdDefinition_cff import defaultPdgIdDefinition
-from SuSyAachen.DiLeptonHistograms.LeptonFastSimScaleFactorMap_cfi import LeptonFastSimScaleFactorMap as LeptonFastSimScaleFactorMapPars
-from SuSyAachen.DiLeptonHistograms.LeptonFullSimScaleFactorMap_cfi import LeptonFullSimScaleFactorMap as LeptonFullSimScaleFactorMapPars
-from SuSyAachen.DiLeptonHistograms.btagEffMap_cfi import bTagEffMap as bTagEffMapPars
+#~ from SuSyAachen.DiLeptonHistograms.LeptonFastSimScaleFactorMap_cfi import LeptonFastSimScaleFactorMap as LeptonFastSimScaleFactorMapPars
+#~ from SuSyAachen.DiLeptonHistograms.LeptonFullSimScaleFactorMap_cfi import LeptonFullSimScaleFactorMap as LeptonFullSimScaleFactorMapPars
+from SuSyAachen.DiLeptonHistograms.btagEffMapFastSim_cfi import bTagEffMap as bTagEffMapPars
 from SuSyAachen.DiLeptonHistograms.BTagCalibration_cfi import BTagCalibration as BTagCalibrationPars
 from SuSyAachen.DiLeptonHistograms.BTagCalibrationReader_cfi import BTagCalibrationReader as BTagCalibrationReaderPars
-from SuSyAachen.DiLeptonHistograms.vertexWeights_cfi import vertexWeights as vertexWeightPars
-from SuSyAachen.DiLeptonHistograms.vertexWeightsUp_cfi import vertexWeightsUp as vertexWeightParsUp
-from SuSyAachen.DiLeptonHistograms.vertexWeightsDown_cfi import vertexWeightsDown as vertexWeightParsDown
+from SuSyAachen.DiLeptonHistograms.vertexWeightsSignal_cfi import vertexWeights as vertexWeightPars
+from SuSyAachen.DiLeptonHistograms.vertexWeightsSignalUp_cfi import vertexWeightsUp as vertexWeightParsUp
+from SuSyAachen.DiLeptonHistograms.vertexWeightsSignalDown_cfi import vertexWeightsDown as vertexWeightParsDown
 from SuSyAachen.TagAndProbeTreeWriter.isolationFunctor_cfi import isolationDefinitions
 DiLeptonSystematicTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonSystematicTreesFromMiniAOD",
    electrons = cms.InputTag("triggerMatchedPatElectronsPF"),
@@ -20,8 +20,8 @@ DiLeptonSystematicTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonSystematicTre
    genJets = cms.InputTag("slimmedGenJets"),		   	   
    bJets = cms.InputTag("qualityBJets"),
    bJets35 = cms.InputTag("qualityBJets35"),	
-   #~ met = cms.InputTag("slimmedMETs","","Analysis"),  	 	  
-   met = cms.InputTag("slimmedMETs"),  	 	  
+   met = cms.InputTag("slimmedMETs","","Analysis"),  	 	  
+   #~ met = cms.InputTag("slimmedMETs"),  	 	  
    vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
    pfCands = cms.InputTag("packedPFCandidates"),
    genParticles = cms.InputTag("prunedGenParticles"),
@@ -32,13 +32,29 @@ DiLeptonSystematicTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonSystematicTre
    bTagEfficiencies = bTagEffMapPars,
    BTagCalibration = BTagCalibrationPars,
    BTagCalibrationReader = BTagCalibrationReaderPars,
-   LeptonFastSimScaleFactors = LeptonFastSimScaleFactorMapPars,
-   LeptonFullSimScaleFactors = LeptonFullSimScaleFactorMapPars,
+   #~ LeptonFastSimScaleFactors = LeptonFastSimScaleFactorMapPars,
+   #~ LeptonFullSimScaleFactors = LeptonFullSimScaleFactorMapPars,
    vertexWeights = vertexWeightPars,
    vertexWeightsUp = vertexWeightParsUp,
    vertexWeightsDown = vertexWeightParsDown,   	   	   	   
    pdgIdDefinition = defaultPdgIdDefinition,
-   isolationDefinitions = isolationDefinitions, 
+   isolationDefinitions = isolationDefinitions,
+   writeID = cms.untracked.bool(False), 
+   doMETUncert = cms.untracked.bool(True),
+   storeMetFilters = cms.untracked.bool(True),
+   badPFMuonFilter = cms.InputTag("badPFMuonFilter"),
+   badChargedCandidateFilter = cms.InputTag("badChargedCandidateFilter"),
+   cloneGlobalMuonFilter = cms.InputTag("cloneGlobalMuonFilter"),
+   badGlobalMuonFilter = cms.InputTag("badGlobalMuonFilter"), 
+   metFilterNames=cms.untracked.vstring(													
+						"Flag_HBHENoiseFilter",	
+						"Flag_HBHENoiseIsoFilter",
+						"Flag_globalTightHalo2016Filter",	
+						"Flag_goodVertices",	
+						"Flag_EcalDeadCellTriggerPrimitiveFilter",	
+						"Flag_eeBadScFilter",							
+
+	), 
 
 
 )

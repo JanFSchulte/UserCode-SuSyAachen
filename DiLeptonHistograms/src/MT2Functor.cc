@@ -270,9 +270,9 @@ void MT2Functor::mt2_massless(){
 int MT2Functor::nsols_massless(double Dsq){
 	double delta;
 	delta = Dsq/(2*Easq);
-	d1    = d11*delta;
-	e1    = e11*delta;
-	f1    = f12*delta*delta+f10;
+	//~ d1    = d11*delta;
+	//~ e1    = e11*delta;
+	//~ f1    = f12*delta*delta+f10;
 	d2    = d21*delta+d20;
 	e2    = e21*delta+e20;
 	f2    = f22*delta*delta+f21*delta+f20;

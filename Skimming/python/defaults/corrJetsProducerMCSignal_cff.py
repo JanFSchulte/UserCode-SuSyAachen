@@ -7,6 +7,7 @@ def corrJetsProducerMCSignal(process):
 	usePrivateSQlite=True
 	
 	if usePrivateSQlite:
+		era="Spring16_25nsFastSimMC_V1"
 		process.load("CondCore.DBCommon.CondDBCommon_cfi")
 		from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
 		process.jec = cms.ESSource("PoolDBESSource",
@@ -17,7 +18,7 @@ def corrJetsProducerMCSignal(process):
 		      toGet = cms.VPSet(
 		      cms.PSet(
 		            record = cms.string('JetCorrectionsRecord'),
-		            tag    = cms.string('JetCorrectorParametersCollection_Spring16_25nsFastSimMC_V1_AK4PFchs'),
+		            tag    = cms.string('JetCorrectorParametersCollection_'+era+'_AK4PFchs'),
 		            #~ tag    = cms.string('JetCorrectorParametersCollection_Spring16_25nsV6_MC_AK4PFchs'),
 		            label  = cms.untracked.string('AK4PFchs')
 		            ),
@@ -26,7 +27,7 @@ def corrJetsProducerMCSignal(process):
 			## here you add as many jet types as you need
 			## note that the tag name is specific for the particular sqlite file 
 			 ), 
-			connect = cms.string('sqlite_file:Spring16_25nsFastSimMC_V1.db')
+			connect = cms.string('sqlite_file:'+era+'.db')
 			#~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Spring16_25nsFastSimMC_V1.db'),
 			#~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Spring16_25nsV6_MC.db'),
 			 # uncomment above tag lines and this comment to use MC JEC

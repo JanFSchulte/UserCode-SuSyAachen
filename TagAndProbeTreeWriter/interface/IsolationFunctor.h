@@ -32,15 +32,11 @@ public:
   IsolationFunctor(const edm::ParameterSet & cfg, edm::ConsumesCollector && iC  ):
     rhoToken_(iC.consumes<double>(cfg.getParameter<edm::InputTag>("rhoSource"))), 
     candidateToken_(iC.consumes< std::vector<pat::PackedCandidate>  >(cfg.getParameter<edm::InputTag>("candSource"))), 
-    //~ rhoSrc_( cfg.getParameter<edm::InputTag>( "rhoSource" ) ),
-    //~ candidateSrc_( cfg.getParameter<edm::InputTag>( "candSource" ) ),    
     rhoIso_(0.) {}
 
   const void init(const edm::Event &ev)
   {
-    edm::Handle<double> rhoIso_h;
-    //~ ev.getByLabel(rhoSrc_, rhoIso_h);
-    //~ ev.getByLabel(candidateSrc_, pfCands);        
+    edm::Handle<double> rhoIso_h;     
     ev.getByToken(rhoToken_, rhoIso_h);
     ev.getByToken(candidateToken_, pfCands);        
     rhoIso_ = *(rhoIso_h.product());
@@ -138,6 +134,19 @@ private:
 	
 	}
 
+
+
+    return iso;
+  }
+
+  const virtual double GetIsolation(const pat::PackedCandidate& track, const std::string& method)
+  {
+	double iso = 0.;
+	if (method == "trackIso"){
+		
+		iso = GetTrackIsolation(track, *pfCands);
+	
+	}
 
 
     return iso;
@@ -286,6 +295,32 @@ double GetMiniIsolation(const T& lepton, const std::vector<pat::PackedCandidate>
 	  if (iso>0) iso += iso_ch;
 	  else iso = iso_ch;
   }
+
+  return iso;
+ } 
+
+
+
+const double GetTrackIsolation(const pat::PackedCandidate &track, const std::vector<pat::PackedCandidate> &pfCands)
+{
+  double r_cone = 0.3;
+  
+  float iso = 0.;
+  
+  for (std::vector<pat::PackedCandidate>::const_iterator itPFC = pfCands.begin(); itPFC != pfCands.end(); itPFC++) {
+	  if ((*itPFC).charge()==0) continue; // skip neutrals  
+	  
+	  double dr = deltaR((*itPFC), track);
+	  
+	  if (dr > r_cone) continue;
+	  if (dr == 0. && track.pt()==(*itPFC).pt()) continue;
+	  
+	  // Only consider charged pions from PV  
+	  if ((*itPFC).pt() > 0. && (*itPFC).fromPV()>1){
+		  if (abs((*itPFC).pdgId())==211) iso += (*itPFC).pt();
+	  }
+  }
+	  
 
   return iso;
  } 

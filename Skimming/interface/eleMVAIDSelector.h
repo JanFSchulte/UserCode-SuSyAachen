@@ -19,9 +19,12 @@ struct eleMVAIDSelector {
   typedef containerType container;
   typedef typename container::const_iterator const_iterator;
   eleMVAIDSelector ( const edm::ParameterSet & cfg, edm::ConsumesCollector iC):
-    workingPointCentralBarrel_( cfg.getParameter<double>( "workingPointCentralBarrel") ),
-    workingPointOuterBarrel_( cfg.getParameter<double>( "workingPointOuterBarrel") ),
-    workingPointEndcap_( cfg.getParameter<double>( "workingPointEndcap") ),
+    workingPointCentralBarrelHighPt_( cfg.getParameter<double>( "workingPointCentralBarrelHighPt") ),
+    workingPointCentralBarrelLowPt_( cfg.getParameter<double>( "workingPointCentralBarrelLowPt") ),
+    workingPointOuterBarrelHighPt_( cfg.getParameter<double>( "workingPointOuterBarrelHighPt") ),
+    workingPointOuterBarrelLowPt_( cfg.getParameter<double>( "workingPointOuterBarrelLowPt") ),
+    workingPointEndcapHighPt_( cfg.getParameter<double>( "workingPointEndcapHighPt") ),
+    workingPointEndcapLowPt_( cfg.getParameter<double>( "workingPointEndcapLowPt") ),
     idMapToken_(iC.consumes<edm::ValueMap<float> >(cfg.getParameter<edm::InputTag>( "idMapSource" )))  { }
   
   const_iterator begin() const { return selected_.begin(); }
@@ -30,6 +33,9 @@ struct eleMVAIDSelector {
     
     edm::Handle<edm::ValueMap<float> > id_values;
     ev.getByToken(idMapToken_, id_values);
+    
+    float slope;
+    //~ int eventNr;
 
 
     selected_.clear();
@@ -39,12 +45,28 @@ struct eleMVAIDSelector {
 
 		//std::cout << "pt: " << (*it).pt() << " eta: " << (*it).eta() << " MVA value: " << mvaValue << endl;
 		float workingPoint = -9999.;
-		if (fabs((*it).eta()) < 0.8) workingPoint =  workingPointCentralBarrel_;
-		else if (fabs((*it).eta()) > 0.8 && fabs((*it).eta()) < 1.479) workingPoint = workingPointOuterBarrel_;
-		else workingPoint = workingPointEndcap_;
+		if (fabs((*it).eta()) < 0.8) {
+			slope = (workingPointCentralBarrelHighPt_ - workingPointCentralBarrelLowPt_) / 10.;
+			workingPoint =  std::min(workingPointCentralBarrelLowPt_, std::max(workingPointCentralBarrelHighPt_, workingPointCentralBarrelLowPt_ + slope * ( static_cast<float>((*it).pt() - 15.))));
+		}
+		else if (fabs((*it).eta()) > 0.8 && fabs((*it).eta()) < 1.479) {
+			slope = (workingPointOuterBarrelHighPt_ - workingPointOuterBarrelLowPt_) / 10.;
+			workingPoint =  std::min(workingPointOuterBarrelLowPt_, std::max(workingPointOuterBarrelHighPt_, workingPointOuterBarrelLowPt_ + slope * ( static_cast<float>((*it).pt() - 15.))));
+		}
+		else {
+			slope = (workingPointEndcapHighPt_ - workingPointEndcapLowPt_) / 10.;
+			workingPoint =  std::min(workingPointEndcapLowPt_, std::max(workingPointEndcapHighPt_, workingPointEndcapLowPt_ + slope * ( static_cast<float>((*it).pt() - 15.))));
+		}
 		if (mvaValue > workingPoint){
 			selected_.push_back( & (*it) );
+			//~ eventNr = ev.id().event();
+	    	//~ eventNr = (eventNr>0?eventNr:eventNr+4294967296);
+	    	//~ if (eventNr == 11933833 || eventNr == 15994148 || eventNr == 16656578 || eventNr == 15817262 || eventNr == 13134895 || eventNr == 12128012 ||  eventNr == 13210877 ||  eventNr == 11933854){
+				//~ std::cout << "eventNr: " << eventNr << endl;
+				//~ std::cout << "pt: " << (*it).pt() << " eta: " << (*it).eta() << " MVA value: " << mvaValue << " working Point: " << workingPoint << endl;
+			//~ }
     	}
+    	
     }
   }
 
@@ -53,9 +75,12 @@ struct eleMVAIDSelector {
   size_t size() const { return selected_.size(); }
 private:
   container selected_;
-  float workingPointCentralBarrel_;
-  float workingPointOuterBarrel_;
-  float workingPointEndcap_;
+  float workingPointCentralBarrelHighPt_;
+  float workingPointCentralBarrelLowPt_;
+  float workingPointOuterBarrelHighPt_;
+  float workingPointOuterBarrelLowPt_;
+  float workingPointEndcapHighPt_;
+  float workingPointEndcapLowPt_;
   edm::EDGetTokenT<edm::ValueMap<float> > idMapToken_;
 };
 
