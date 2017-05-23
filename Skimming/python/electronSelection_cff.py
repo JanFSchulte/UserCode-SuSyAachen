@@ -61,7 +61,7 @@ isoElectrons = cms.EDFilter("PATElectronSelector", filter = filterElectrons,
   cut = cms.string('(trackIso + ecalIso + hcalIso) / pt < 0.4')
 )
 
-from SuSyAachen.TagAndProbeTreeWriter.isolationFunctor_cfi import isolationDefinitions
+from SuSyAachen.DiLeptonHistograms.isolationFunctor_cfi import isolationDefinitions
 effectiveAreaIsoElectrons = cms.EDFilter("PATElectronEffectiveAreaSelector", filter = cms.bool(True),
                                            src = cms.InputTag("cleanElectrons"),
                                            rhoSource = cms.InputTag("fixedGridRhoFastjetAll"),

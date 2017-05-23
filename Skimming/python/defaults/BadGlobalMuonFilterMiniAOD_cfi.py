@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-defaultSelector = cms.EDFilter("BadGlobalMuonTagger",
+defaultSelector = cms.EDFilter("OnTheFlyBadGlobalMuonTagger",
     src  = cms.InputTag("muons"),
     vtx   = cms.InputTag("offlineSlimmedPrimaryVertices"),
     muonPtCut = cms.double(20),

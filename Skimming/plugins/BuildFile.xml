@@ -12,10 +12,6 @@
   <use   name="DataFormats/ParticleFlowCandidate"/>
   <use   name="DataFormats/BeamSpot"/>
 </library>
-<library   name="SuSyAachenPatFlagSelectors" file="patFlagSelector.cc">
-  <use   name="CommonTools/UtilAlgos"/>
-  <use   name="DataFormats/PatCandidates"/>
-</library>
 <library   name="SuSyAachenPatConversionSelectors" file="patConversionSelector.cc">
   <use   name="RecoEgamma/EgammaTools"/>
   <use   name="RecoEcal/EgammaCoreTools"/>
@@ -30,15 +26,6 @@
          <use name="DataFormats/ParticleFlowCandidate"/>
          <use name="RecoEgamma/EgammaTools"/>
          <!--use name="Egamma/EGammaAnalysisTools"/-->
-</library>
-<library   name="SuSyAachenMCSelectors" file="MCSelectors.cc">
-  <use   name="CommonTools/UtilAlgos"/>
-  <use   name="DataFormats/HepMCCandidate"/>
-  <use   name="DataFormats/PatCandidates"/>
-</library>
-<library   name="SuSyAachenTauSelectors" file="tauSelectors.cc">
-  <use   name="CommonTools/UtilAlgos"/>
-  <use   name="DataFormats/PatCandidates"/>
 </library>
 <library   name="SuSyAachenJetSelectors" file="jetSelectors.cc">
   <use   name="CommonTools/UtilAlgos"/>

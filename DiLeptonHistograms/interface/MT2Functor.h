@@ -20,12 +20,12 @@ class MT2Functor{
   virtual ~MT2Functor();
   void   mt2_bisect();
   void   mt2_massless();
-  void   set_momenta(double *pa0, double *pb0, double* pmiss0);
+  void   set_momenta(double *pa0, double *pb0, double* pmiss0, unsigned long evtNr);
   void   set_mn(double mn);
-  inline void set_verbose(int vlevel){verbose = vlevel;};
+  //~ inline void set_verbose(int vlevel){verbose = vlevel;};
   double get_mt2();
   void   print();
-  int    nevt;
+  unsigned long    nevt;
 
  private:
 
@@ -40,7 +40,7 @@ class MT2Functor{
   int    signchange_n( long double t1, long double t2, long double t3, long double t4, long double t5);
   //inline
   int    signchange_p( long double t1, long double t2, long double t3, long double t4, long double t5);
-  int scan_high(double &Deltasq_high);
+  //~ int scan_high(double &Deltasq_high);
   int find_high(double &Deltasq_high);
   //data members
   double pax, pay, ma, Ea;

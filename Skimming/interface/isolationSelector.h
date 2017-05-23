@@ -9,7 +9,7 @@
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 
-#include "SuSyAachen/TagAndProbeTreeWriter/interface/IsolationFunctor.h"
+#include "SuSyAachen/DiLeptonHistograms/interface/IsolationFunctor.h"
 
 //STL
 #include <vector>

@@ -59,9 +59,11 @@ double MT2Functor::get_mt2(){
 	return mt2_b*scale;
 }
 
-void MT2Functor::set_momenta(double* pa0, double* pb0, double* pmiss0){
+void MT2Functor::set_momenta(double* pa0, double* pb0, double* pmiss0, unsigned long evtNr){
 	solved = false;     //reset solved tag when momenta are changed.
 	momenta_set = true;
+	
+	nevt = evtNr;
 
 	ma = fabs(pa0[0]);  // mass cannot be negative
 
@@ -522,30 +524,30 @@ int MT2Functor::find_high(double & Deltasq_high){
 	return 0;
 }
 
-int MT2Functor::scan_high(double & Deltasq_high){
-	int foundhigh = 0 ;
-	int nsols_high;
-
-
-        //        double Deltasq_low;
-	double tempmass, maxmass;
-	tempmass = mn + ma;
-	maxmass  = sqrt(mnsq + Deltasq_high);
-	if (nevt == 32334) cout << "MT2Functor::scan_high() ==> Deltasq_high = " << Deltasq_high << endl; // ???
-	for(double mass = tempmass + SCANSTEP; mass < maxmass; mass += SCANSTEP)
-	{
-		Deltasq_high = mass*mass - mnsq;
-		nsols_high   = nsols(Deltasq_high);
-
-		if( nsols_high > 0)
-		{
-                  // Deltasq_low = (mass-SCANSTEP)*(mass-SCANSTEP) - mnsq;
-			foundhigh   = 1;
-			break;
-		}
-	}
-	return foundhigh;
-}
+//~ int MT2Functor::scan_high(double & Deltasq_high){
+	//~ int foundhigh = 0 ;
+	//~ int nsols_high;
+//~ 
+//~ 
+        //~ //        double Deltasq_low;
+	//~ double tempmass, maxmass;
+	//~ tempmass = mn + ma;
+	//~ maxmass  = sqrt(mnsq + Deltasq_high);
+	//~ if (nevt == 32334) cout << "MT2Functor::scan_high() ==> Deltasq_high = " << Deltasq_high << endl; // ???
+	//~ for(double mass = tempmass + SCANSTEP; mass < maxmass; mass += SCANSTEP)
+	//~ {
+		//~ Deltasq_high = mass*mass - mnsq;
+		//~ nsols_high   = nsols(Deltasq_high);
+//~ 
+		//~ if( nsols_high > 0)
+		//~ {
+                  //~ // Deltasq_low = (mass-SCANSTEP)*(mass-SCANSTEP) - mnsq;
+			//~ foundhigh   = 1;
+			//~ break;
+		//~ }
+	//~ }
+	//~ return foundhigh;
+//~ }
 
 int MT2Functor::nsols(double Dsq){
 	double delta = (Dsq-masq)/(2*Easq);

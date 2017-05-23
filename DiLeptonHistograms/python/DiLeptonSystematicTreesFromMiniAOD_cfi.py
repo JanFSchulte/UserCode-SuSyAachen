@@ -9,7 +9,7 @@ from SuSyAachen.DiLeptonHistograms.BTagCalibrationReader_cfi import BTagCalibrat
 from SuSyAachen.DiLeptonHistograms.vertexWeightsSignal_cfi import vertexWeights as vertexWeightPars
 from SuSyAachen.DiLeptonHistograms.vertexWeightsSignalUp_cfi import vertexWeightsUp as vertexWeightParsUp
 from SuSyAachen.DiLeptonHistograms.vertexWeightsSignalDown_cfi import vertexWeightsDown as vertexWeightParsDown
-from SuSyAachen.TagAndProbeTreeWriter.isolationFunctor_cfi import isolationDefinitions
+from SuSyAachen.DiLeptonHistograms.isolationFunctor_cfi import isolationDefinitions
 DiLeptonSystematicTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonSystematicTreesFromMiniAOD",
    electrons = cms.InputTag("triggerMatchedPatElectronsPF"),
    looseElectrons = cms.InputTag("LooseElectrons"),
@@ -26,7 +26,7 @@ DiLeptonSystematicTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonSystematicTre
    pfCands = cms.InputTag("packedPFCandidates"),
    genParticles = cms.InputTag("prunedGenParticles"),
    pdfInfo = cms.InputTag("generator"),	
-   LHEInfo = cms.InputTag("externalLHEProducer"),		         	      
+   LHEInfo = cms.InputTag("source"),		         	      
    rho = cms.InputTag("fixedGridRhoFastjetCentralNeutral"),	   
    pdfWeightTags = cms.VInputTag(),
    bTagEfficiencies = bTagEffMapPars,

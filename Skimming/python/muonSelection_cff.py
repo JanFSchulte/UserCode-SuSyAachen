@@ -36,7 +36,7 @@ bJetMuonProducer = cms.EDProducer('bJetMuonProducer',
     user_bJetAlgo = cms.string("trackCountingHighPurBJetTags"),
     user_bTagDiscriminator = cms.double(3.),
 )
-from SuSyAachen.TagAndProbeTreeWriter.isolationFunctor_cfi import isolationDefinitions
+from SuSyAachen.DiLeptonHistograms.isolationFunctor_cfi import isolationDefinitions
 isoMuons = cms.EDFilter("PATMuonIsolationSelector", filter = cms.bool(True),
                                            src = cms.InputTag("cleanMuons"),
                                            isolationDefinitions = isolationDefinitions,

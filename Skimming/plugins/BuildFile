@@ -15,23 +15,12 @@
   <use   name="DataFormats/BeamSpot"/>
 </library>
 
-<library name=SuSyAachenPatFlagSelectors file=patFlagSelector.cc>
-	 <use name=CommonTools/UtilAlgos>	     
-	 <use name=DataFormats/PatCandidates>
-</library>
-
 <library name=SuSyAachenPatConversionSelectors file=patConversionSelector.cc>
     <use name=RecoEgamma/EgammaTools>
     <use name=RecoEcal/EgammaCoreTools>
     <use name=MagneticField/Engine>
     <use name=MagneticField/Records>
 	 <use name=CommonTools/UtilAlgos>	     
-	 <use name=DataFormats/PatCandidates>
-</library>
-
-<library name=SuSyAachenMCSelectors file=MCSelectors.cc>
-	 <use name=CommonTools/UtilAlgos>	     
-	 <use name=DataFormats/HepMCCandidate>	     
 	 <use name=DataFormats/PatCandidates>
 </library>
 

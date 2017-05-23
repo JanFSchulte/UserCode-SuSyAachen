@@ -8,7 +8,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 
-#include "SuSyAachen/TagAndProbeTreeWriter/interface/IsolationFunctor.h"
+#include "SuSyAachen/DiLeptonHistograms/interface/IsolationFunctor.h"
 
 //STL
 #include <vector>

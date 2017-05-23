@@ -33,12 +33,20 @@ public:
             std::string FastSimScaleFactorFile_mu_Id_ = params.getParameter<std::string>("FastSimScaleFactorFile_mu_Id");
             std::string FastSimScaleFactorFile_mu_Iso_ = params.getParameter<std::string>("FastSimScaleFactorFile_mu_Iso");
             std::string FastSimScaleFactorFile_mu_Impact_ = params.getParameter<std::string>("FastSimScaleFactorFile_mu_Impact");
-            std::string FastSimScaleFactorFile_ele_ = params.getParameter<std::string>("FastSimScaleFactorFile_ele");
+            std::string FastSimScaleFactorFile_mu_SIP3D_ = params.getParameter<std::string>("FastSimScaleFactorFile_mu_SIP3D");
+            
+            std::string FastSimScaleFactorFile_ele_Id_ = params.getParameter<std::string>("FastSimScaleFactorFile_ele_Id");
+            std::string FastSimScaleFactorFile_ele_Iso_ = params.getParameter<std::string>("FastSimScaleFactorFile_ele_Iso");
+            std::string FastSimScaleFactorFile_ele_ConvHit_ = params.getParameter<std::string>("FastSimScaleFactorFile_ele_ConvHit");
             
             std::string FastSimScaleFactorHisto_mu_Id_ = params.getParameter<std::string>("FastSimScaleFactorHisto_mu_Id");
             std::string FastSimScaleFactorHisto_mu_Iso_ = params.getParameter<std::string>("FastSimScaleFactorHisto_mu_Iso");
             std::string FastSimScaleFactorHisto_mu_Impact_ = params.getParameter<std::string>("FastSimScaleFactorHisto_mu_Impact");
-            std::string FastSimScaleFactorHisto_ele_ = params.getParameter<std::string>("FastSimScaleFactorHisto_ele");
+            std::string FastSimScaleFactorHisto_mu_SIP3D_ = params.getParameter<std::string>("FastSimScaleFactorHisto_mu_SIP3D");
+            
+            std::string FastSimScaleFactorHisto_ele_Id_ = params.getParameter<std::string>("FastSimScaleFactorHisto_ele_Id");
+            std::string FastSimScaleFactorHisto_ele_Iso_ = params.getParameter<std::string>("FastSimScaleFactorHisto_ele_Iso");
+            std::string FastSimScaleFactorHisto_ele_ConvHit_ = params.getParameter<std::string>("FastSimScaleFactorHisto_ele_ConvHit");
             
             
 			
@@ -46,12 +54,20 @@ public:
 								FastSimScaleFactorFile_mu_Id_, 
 								FastSimScaleFactorFile_mu_Iso_, 
 								FastSimScaleFactorFile_mu_Impact_, 
-								FastSimScaleFactorFile_ele_, 
+								FastSimScaleFactorFile_mu_SIP3D_, 
+								
+								FastSimScaleFactorFile_ele_Id_, 
+								FastSimScaleFactorFile_ele_Iso_, 
+								FastSimScaleFactorFile_ele_ConvHit_, 
 								
 								FastSimScaleFactorHisto_mu_Id_, 
 								FastSimScaleFactorHisto_mu_Iso_, 
 								FastSimScaleFactorHisto_mu_Impact_, 
-								FastSimScaleFactorHisto_ele_
+								FastSimScaleFactorHisto_mu_SIP3D_, 
+								
+								FastSimScaleFactorHisto_ele_Id_,
+								FastSimScaleFactorHisto_ele_Iso_,
+								FastSimScaleFactorHisto_ele_ConvHit_
 											);
     
   }
@@ -66,7 +82,9 @@ public:
 	  if(pt > 200.) pt= 199.;
 	  
 	  //~ result *= FastSimScaleFactorHisto_ele_->GetBinContent(FastSimScaleFactorHisto_ele_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_ele_->GetYaxis()->FindBin(absEta),FastSimScaleFactorHisto_ele_->GetZaxis()->FindBin(nVertices));
-	  result *= FastSimScaleFactorHisto_ele_->GetBinContent(FastSimScaleFactorHisto_ele_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_ele_->GetYaxis()->FindBin(absEta));
+	  result *= FastSimScaleFactorHisto_ele_Id_->GetBinContent(FastSimScaleFactorHisto_ele_Id_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_ele_Id_->GetYaxis()->FindBin(absEta));
+	  result *= FastSimScaleFactorHisto_ele_Iso_->GetBinContent(FastSimScaleFactorHisto_ele_Iso_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_ele_Iso_->GetYaxis()->FindBin(absEta));
+	  result *= FastSimScaleFactorHisto_ele_ConvHit_->GetBinContent(FastSimScaleFactorHisto_ele_ConvHit_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_ele_ConvHit_->GetYaxis()->FindBin(absEta));
 	  
 	  return result;
   }
@@ -76,25 +94,17 @@ public:
 
 	  float result = 1.0;
 	  
-	  if(pt > 200.) pt= 199.;
+	  if(pt > 120.) pt= 119.;
 	  
 	  //~ result *= FastSimScaleFactorHisto_mu_Id_->GetBinContent(FastSimScaleFactorHisto_mu_Id_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_mu_Id_->GetYaxis()->FindBin(absEta),FastSimScaleFactorHisto_mu_->GetZaxis()->FindBin(nVertices));
 	  result *= FastSimScaleFactorHisto_mu_Id_->GetBinContent(FastSimScaleFactorHisto_mu_Id_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_mu_Id_->GetYaxis()->FindBin(absEta));
 	  result *= FastSimScaleFactorHisto_mu_Iso_->GetBinContent(FastSimScaleFactorHisto_mu_Iso_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_mu_Iso_->GetYaxis()->FindBin(absEta));
 	  result *= FastSimScaleFactorHisto_mu_Impact_->GetBinContent(FastSimScaleFactorHisto_mu_Impact_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_mu_Impact_->GetYaxis()->FindBin(absEta));
+	  result *= FastSimScaleFactorHisto_mu_SIP3D_->GetBinContent(FastSimScaleFactorHisto_mu_SIP3D_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_mu_SIP3D_->GetYaxis()->FindBin(absEta));
 	  
 	  return result;
   }
-  
-  //~ const double operator()(const  pat::Tau &tau, double pt, double absEta, double nVertices){
-  const double operator()(const  pat::Tau &tau, double pt, double absEta){
 
-	  float result = 1.0;
-	  return result;
-  }
-  
-  
-  
   
 
 private:
@@ -105,22 +115,33 @@ private:
 							std::string FastSimScaleFactorFile_mu_Id, 
 							std::string FastSimScaleFactorFile_mu_Iso, 
 							std::string FastSimScaleFactorFile_mu_Impact, 
-							std::string FastSimScaleFactorFile_ele,
+							std::string FastSimScaleFactorFile_mu_SIP3D, 
+							
+							std::string FastSimScaleFactorFile_ele_Id,
+							std::string FastSimScaleFactorFile_ele_Iso,
+							std::string FastSimScaleFactorFile_ele_ConvHit,
 							 
 							std::string FastSimScaleFactorHisto_mu_Id, 
 							std::string FastSimScaleFactorHisto_mu_Iso, 
 							std::string FastSimScaleFactorHisto_mu_Impact, 
-							std::string FastSimScaleFactorHisto_ele
+							std::string FastSimScaleFactorHisto_mu_SIP3D, 
+							
+							std::string FastSimScaleFactorHisto_ele_Id,
+							std::string FastSimScaleFactorHisto_ele_Iso,
+							std::string FastSimScaleFactorHisto_ele_ConvHit
 							);
 
   
   //~ TH3F * FastSimScaleFactorHisto_mu_;
   //~ TH3F * FastSimScaleFactorHisto_ele_;
 //~ };
-  TH2F * FastSimScaleFactorHisto_mu_Id_;
-  TH2F * FastSimScaleFactorHisto_mu_Iso_;
-  TH2F * FastSimScaleFactorHisto_mu_Impact_;
-  TH2F * FastSimScaleFactorHisto_ele_;
+  TH2D * FastSimScaleFactorHisto_mu_Id_;
+  TH2D * FastSimScaleFactorHisto_mu_Iso_;
+  TH2D * FastSimScaleFactorHisto_mu_Impact_;
+  TH2D * FastSimScaleFactorHisto_mu_SIP3D_;
+  TH2D * FastSimScaleFactorHisto_ele_Id_;
+  TH2D * FastSimScaleFactorHisto_ele_Iso_;
+  TH2D * FastSimScaleFactorHisto_ele_ConvHit_;
 };
 
 #endif /* LEPTONFASTSIMSCALEFACTORMAPFUNCTOR_H_ */

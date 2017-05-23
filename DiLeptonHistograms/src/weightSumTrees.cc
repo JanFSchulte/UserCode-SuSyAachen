@@ -55,7 +55,7 @@
 #include <SuSyAachen/DiLeptonHistograms/interface/WeightFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/PdgIdFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/VertexWeightFunctor.h>
-#include <SuSyAachen/TagAndProbeTreeWriter/interface/IsolationFunctor.h>
+#include <SuSyAachen/DiLeptonHistograms/interface/IsolationFunctor.h>
 
 //ROOT
 #include "TTree.h"

@@ -10,7 +10,7 @@ from SuSyAachen.DiLeptonHistograms.vertexWeightsUp_cfi import vertexWeightsUp as
 from SuSyAachen.DiLeptonHistograms.vertexWeightsDown_cfi import vertexWeightsDown as vertexWeightParsDown
 from SuSyAachen.DiLeptonHistograms.isolationFunctor_cfi import isolationDefinitions
 from SuSyAachen.DiLeptonHistograms.triggerDefinitionMiniAOD_cff import defaultTriggerDefinition as triggerDefinitions
-DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
+DiLeptonTreesFromMiniAODNoTausMC = cms.EDAnalyzer("DiLeptonTreesFromMiniAODMC",
    electrons = cms.InputTag("triggerMatchedPatElectronsPF"),
    looseElectrons = cms.InputTag("LooseElectrons"),
    muons = cms.InputTag("triggerMatchedPatMuonsPF"),
@@ -19,11 +19,10 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
    jets = cms.InputTag("qualityJets"),	   	   
    genJets = cms.InputTag("slimmedGenJets"),	   	   
    bJets = cms.InputTag("qualityBJets"),
-   bJets35 = cms.InputTag("qualityBJets35"),	 	
-   met = cms.InputTag("slimmedMETsMuEGClean","","Analysis"),  	 
-   metNoEGCleaning = cms.InputTag("slimmedMETs","","Analysis"),  	
-   metNoOnTheFlyCorr = cms.InputTag("slimmedMETs"),  	
-   metNoCleaning = cms.InputTag("slimmedMETsUncorrected","","Analysis"), 	     	    
+   bJets35 = cms.InputTag("qualityBJets35"),	
+   metNoCleaning = cms.InputTag("slimmedMETs","","Analysis"),  	
+   met = cms.InputTag("slimmedMETsMuClean","","Analysis"),  	
+   #~ met = cms.InputTag("slimmedMETs"),  	 	     	    
    vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
    pfCands = cms.InputTag("packedPFCandidates"),
    genParticles = cms.InputTag("prunedGenParticles"),
@@ -51,32 +50,32 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
    writeID = cms.untracked.bool(False),
    writeTrigger = cms.untracked.bool(True),
    doMETUncert = cms.untracked.bool(False), 
-   triggerNames=cms.untracked.vstring(													
+   triggerNames=cms.untracked.vstring(													#	1e34	7e33
 						"HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",	
 						"HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
 						"HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v",	
 						"HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_MW_v",	
 						
-						"HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v",				
-						"HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v",				
+						"HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v",				# 	1 		1
+						"HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v",				# 	1 		1
 						"HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",				
 						"HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",				
 						"HLT_TkMu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",				
-						"HLT_Mu27_TkMu8_v",									
-						"HLT_Mu30_TkMu11_v",								
+						"HLT_Mu27_TkMu8_v",										#	50 		1
+						"HLT_Mu30_TkMu11_v",									#	1 		1
 						
-						"HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",	
-						"HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v",	
+						"HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",	# 	0 		1
+						"HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v",	# 	1 		1
 						"HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ_v",	
-						"HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",	
+						"HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",	# 	1 		1
 						"HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",	
-						"HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",				
-						"HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",			
-						"HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",				
-						"HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",			
-						"HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",			
-						"HLT_Mu30_Ele30_CaloIdL_GsfTrkIdVL_v",				
-						"HLT_Mu33_Ele33_CaloIdL_GsfTrkIdVL_v",				
+						"HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",		# 	0 		1				
+						"HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",		# 	1 		1			
+						"HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",		# 	1 		1			
+						"HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",		# 	1 		1			
+						"HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",		# 	1 		1			
+						"HLT_Mu30_Ele30_CaloIdL_GsfTrkIdVL_v",					# 	1 		1
+						"HLT_Mu33_Ele33_CaloIdL_GsfTrkIdVL_v",					# 	1 		1
 						
 						"HLT_PFHT125_v",
 						"HLT_PFHT200_v",
@@ -97,9 +96,6 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
 						"Flag_goodVertices",	
 						"Flag_EcalDeadCellTriggerPrimitiveFilter",	
 						"Flag_eeBadScFilter",							
-						"Flag_badMuons",							
-						"Flag_duplicateMuons",							
-						"Flag_noBadMuons",							
 
 	), 
 )

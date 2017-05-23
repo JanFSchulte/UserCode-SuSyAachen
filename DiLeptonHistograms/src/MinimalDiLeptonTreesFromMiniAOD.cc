@@ -60,8 +60,7 @@
 #include <SuSyAachen/DiLeptonHistograms/interface/WeightFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/PdgIdFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/VertexWeightFunctor.h>
-#include <SuSyAachen/TagAndProbeTreeWriter/interface/IsolationFunctor.h>
-#include <SuSyAachen/DiLeptonHistograms/interface/TriggerMatchFunctorMiniAOD.h>
+#include <SuSyAachen/DiLeptonHistograms/interface/IsolationFunctor.h>
 
 
 //ROOT
@@ -128,7 +127,6 @@ private:
   bool debug;
   bool writeID_;
   bool metUncert_;  
-  bool triggerMatches_;
 };
 
 // constructors and destructor

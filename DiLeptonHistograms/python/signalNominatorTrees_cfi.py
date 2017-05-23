@@ -10,8 +10,9 @@ signalNominatorTrees = cms.EDAnalyzer("signalNominatorTrees",
    pfCands = cms.InputTag("packedPFCandidates"),
    genParticles = cms.InputTag("prunedGenParticles"),
    pdfInfo = cms.InputTag("generator"),	
-   LHEInfo = cms.InputTag("externalLHEProducer"),		         	      
-   rho = cms.InputTag("fixedGridRhoFastjetCentralNeutral"),  	   	   	   
+   #~ LHEInfo = cms.InputTag("externalLHEProducer"),		         	      
+   LHEInfo = cms.InputTag("source"),		         	      
+   rho = cms.InputTag("fixedGridRhoFastjetCentralNeutral"), 	   	   
    pdgIdDefinition = defaultPdgIdDefinition,	
 )
 

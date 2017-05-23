@@ -14,11 +14,13 @@ def metProducerMiniAOD_ReReco(process):
 	#===================================================================
 
 	if usePrivateSQlite:
-		from CondCore.DBCommon.CondDBSetup_cfi import *
    		import os
 		era="Summer15_25nsV6_DATA"
-		process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-					      connect = cms.string( "sqlite_file:"+era+".db" ),
+		from CondCore.CondDB.CondDB_cfi import *
+		CondDBJECFile = CondDB.clone(connect = cms.string('sqlite_file:'+era+'.db'))
+		process.jec = cms.ESSource("PoolDBESSource",
+					      CondDBJECFile,
+					      timetype = cms.string('runnumber'),
 					      toGet =  cms.VPSet(
 			    cms.PSet(
 				record = cms.string("JetCorrectionsRecord"),

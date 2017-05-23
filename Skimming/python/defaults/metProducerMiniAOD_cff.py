@@ -16,14 +16,13 @@ def metProducerMiniAOD(process):
 	#===================================================================
 
 	if usePrivateSQlite:
-		from CondCore.DBCommon.CondDBSetup_cfi import *
    		import os
 		era="Summer16_23Sep2016AllV3_DATA"
-		#~ era="Spring16_25nsV6_DATA"
-		process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-					      connect = cms.string( "sqlite_file:"+era+".db" ),
+		from CondCore.CondDB.CondDB_cfi import *
+		CondDBJECFile = CondDB.clone(connect = cms.string('sqlite_file:'+era+'.db'))
+		process.jec = cms.ESSource("PoolDBESSource",
+					      CondDBJECFile,
 					      timetype = cms.string('runnumber'),
-					      #~ connect = cms.string('sqlite_file:/afs/cern.ch/user/c/cschomak/public/Spring16_25nsV6_DATA.db'),
 					      toGet =  cms.VPSet(
 			    cms.PSet(
 				record = cms.string("JetCorrectionsRecord"),
@@ -61,6 +60,16 @@ def metProducerMiniAOD(process):
 	#for a full met computation, remove the pfCandColl input
 	runMetCorAndUncFromMiniAOD(process,
     	                       isData=runOnData,
+    	                       )
+    	                       
+	runMetCorAndUncFromMiniAOD(process,
+    	                       isData=runOnData,
+    	                       postfix="MuEGClean",
+    	                       )
+
+	runMetCorAndUncFromMiniAOD(process,
+    	                       isData=runOnData,
+    	                       postfix="Uncorrected",
     	                       )
 
 	#~ if not useHFCandidates:

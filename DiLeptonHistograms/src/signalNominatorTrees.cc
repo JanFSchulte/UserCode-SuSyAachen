@@ -51,12 +51,12 @@
 
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenLumiInfoHeader.h"
+#include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 
 
 #include <SuSyAachen/DiLeptonHistograms/interface/WeightFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/PdgIdFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/VertexWeightFunctor.h>
-#include <SuSyAachen/TagAndProbeTreeWriter/interface/IsolationFunctor.h>
 
 //ROOT
 #include "TTree.h"
@@ -75,7 +75,6 @@ public:
   ~signalNominatorTrees();
 
 private:
-  //  typedef reco::Candidate candidate;
   typedef pat::Lepton<reco::Candidate> candidate;
   typedef edm::View<candidate> collection;
 
@@ -86,13 +85,13 @@ private:
   void initFloatBranch( const std::string &name);
   void initIntBranch( const std::string &name);
   
-  //~ virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
 
   edm::EDGetTokenT< std::vector< pat::Electron > > 			electronToken_;
   edm::EDGetTokenT< std::vector< pat::Muon > > 				muonToken_;
   edm::EDGetTokenT< std::vector< pat::Jet > >				jetToken_;  
   edm::EDGetTokenT< std::vector< reco::GenParticle > >	 	genParticleToken_;
   edm::EDGetTokenT<reco::VertexCollection> 					vertexToken_;
+  edm::EDGetTokenT<LHEEventProduct>	 						LHEEventToken_;
   
   //~ 
   edm::Handle< std::vector< pat::Jet > > jets;
@@ -105,9 +104,7 @@ private:
   std::map<std::string, std::map< std::string, float*> > floatBranches_; 
   std::map<std::string, std::map< std::string, unsigned int*> > intBranches_;
   
-  std::string modelName_; 
   
-  //~ bool newLumiBlock_;
 
   bool debug;
 };
@@ -119,20 +116,13 @@ signalNominatorTrees::signalNominatorTrees(const edm::ParameterSet& iConfig):
   jetToken_				(consumes< std::vector< pat::Jet > >			(iConfig.getParameter<edm::InputTag>("jets"))),
   genParticleToken_		(consumes< std::vector< reco::GenParticle > >	(iConfig.getParameter<edm::InputTag>("genParticles"))),
   vertexToken_			(consumes<reco::VertexCollection>				(iConfig.getParameter<edm::InputTag>("vertices"))), 
+  LHEEventToken_		(consumes<LHEEventProduct>						(iConfig.getParameter<edm::InputTag>("LHEInfo"))),
   
   getPdgId_( iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition") , consumesCollector() )
-  //~ newLumiBlock_(true)
 {
   debug = false;
-  //~ mayConsume<GenLumiInfoHeader,edm::InLumi> (edm::InputTag("generator"));
-  
+  consumes<GenEventInfoProduct>(edm::InputTag("generator"));
   consumes<std::vector< PileupSummaryInfo > >(edm::InputTag("slimmedAddPileupInfo"));
-  
-  
-  // read config
-  //~ LHEEventTag_ = iConfig.getParameter<edm::InputTag>("LHEInfo");
-
-
 
   // init trees
   edm::Service<TFileService> file;
@@ -145,6 +135,16 @@ signalNominatorTrees::signalNominatorTrees(const edm::ParameterSet& iConfig):
   initIntBranch( "nISRJets" );
   initIntBranch( "nVertices" );
   initIntBranch( "nGenVertices" );
+  
+  initFloatBranch( "scaleWeight1" );
+  initFloatBranch( "scaleWeight2" );
+  initFloatBranch( "scaleWeight3" );
+  initFloatBranch( "scaleWeight4" );
+  initFloatBranch( "scaleWeight5" );
+  initFloatBranch( "scaleWeight6" );
+  initFloatBranch( "scaleWeight7" );
+  initFloatBranch( "scaleWeight8" );
+  
 
 }
 
@@ -220,31 +220,49 @@ signalNominatorTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& i
   
   getPdgId_.loadGenParticles(iEvent);
 
-  //~ floatEventProperties["mSbottomLHE"] = -1.;
-  //~ floatEventProperties["mNeutralino2LHE"] = -1.;
-  //~ 
-  //~ edm::Handle<LHEEventProduct> lheInfoHandle;
-  //~ iEvent.getByLabel(LHEEventTag_ , lheInfoHandle);
-//~ 
-  //~ if (lheInfoHandle.isValid()) {
-        //~ lhef::HEPEUP lheParticleInfo = lheInfoHandle->hepeup();
-        //~ // get the five vector
-        //~ // (Px, Py, Pz, E and M in GeV)
-        //~ std::vector<lhef::HEPEUP::FiveVector> allParticles = lheParticleInfo.PUP;
-        //~ std::vector<int> statusCodes = lheParticleInfo.ISTUP;
-//~ 
-        //~ for (unsigned int i = 0; i < statusCodes.size(); i++) {
-            //~ if (statusCodes[i] == 1) {
-                //~ if (abs(lheParticleInfo.IDUP[i]) == 1000005) {
-                    //~ floatEventProperties["mSbottomLHE"] = allParticles[i][4];
-                //~ }
-                //~ if (abs(lheParticleInfo.IDUP[i]) == 1000023) {
-                    //~ floatEventProperties["mNeutralino2LHE"] = allParticles[i][4];
-                //~ }
-            //~ }
-        //~ }
-  //~ }
-  //~ 
+ 
+  if (genParticles.isValid()) {
+      edm::Handle<GenEventInfoProduct> GenEventInfoHandle;
+      iEvent.getByLabel("generator", GenEventInfoHandle);
+      auto weightsize = GenEventInfoHandle->weights().size();
+      if (weightsize < 2) {   // for old scans
+         edm::Handle<LHEEventProduct> LHEEventProductHandle;
+         iEvent.getByToken(LHEEventToken_, LHEEventProductHandle);
+         if (LHEEventProductHandle.isValid()) {               
+             
+             floatEventProperties["scaleWeight1"] = LHEEventProductHandle->weights()[1].wgt/LHEEventProductHandle->originalXWGTUP();
+             floatEventProperties["scaleWeight2"] = LHEEventProductHandle->weights()[2].wgt/LHEEventProductHandle->originalXWGTUP();
+             floatEventProperties["scaleWeight3"] = LHEEventProductHandle->weights()[3].wgt/LHEEventProductHandle->originalXWGTUP();
+             floatEventProperties["scaleWeight4"] = LHEEventProductHandle->weights()[4].wgt/LHEEventProductHandle->originalXWGTUP();
+             floatEventProperties["scaleWeight5"] = LHEEventProductHandle->weights()[5].wgt/LHEEventProductHandle->originalXWGTUP();
+             floatEventProperties["scaleWeight6"] = LHEEventProductHandle->weights()[6].wgt/LHEEventProductHandle->originalXWGTUP();
+             floatEventProperties["scaleWeight7"] = LHEEventProductHandle->weights()[7].wgt/LHEEventProductHandle->originalXWGTUP();
+             floatEventProperties["scaleWeight8"] = LHEEventProductHandle->weights()[8].wgt/LHEEventProductHandle->originalXWGTUP();
+             
+         }
+      } else { // for SMS scans
+          floatEventProperties["scaleWeight1"] = GenEventInfoHandle->weights()[2]/GenEventInfoHandle->weights()[1];
+          floatEventProperties["scaleWeight2"] = GenEventInfoHandle->weights()[3]/GenEventInfoHandle->weights()[1];
+          floatEventProperties["scaleWeight3"] = GenEventInfoHandle->weights()[4]/GenEventInfoHandle->weights()[1];
+          floatEventProperties["scaleWeight4"] = GenEventInfoHandle->weights()[5]/GenEventInfoHandle->weights()[1];
+          floatEventProperties["scaleWeight5"] = GenEventInfoHandle->weights()[6]/GenEventInfoHandle->weights()[1];
+          floatEventProperties["scaleWeight6"] = GenEventInfoHandle->weights()[7]/GenEventInfoHandle->weights()[1];
+          floatEventProperties["scaleWeight7"] = GenEventInfoHandle->weights()[8]/GenEventInfoHandle->weights()[1];
+          floatEventProperties["scaleWeight8"] = GenEventInfoHandle->weights()[9]/GenEventInfoHandle->weights()[1];
+
+      }
+   }
+   else {
+	   floatEventProperties["scaleWeight1"] = 1.;
+	   floatEventProperties["scaleWeight2"] = 1.;
+	   floatEventProperties["scaleWeight3"] = 1.;
+	   floatEventProperties["scaleWeight4"] = 1.;
+	   floatEventProperties["scaleWeight5"] = 1.;
+	   floatEventProperties["scaleWeight6"] = 1.;
+	   floatEventProperties["scaleWeight7"] = 1.;
+	   floatEventProperties["scaleWeight8"] = 1.; 
+   }
+
   
   floatEventProperties["mSbottom"] = -1;
   floatEventProperties["mNeutralino2"] = -1;
@@ -278,8 +296,6 @@ signalNominatorTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 			if(!(momid == 6 || momid == 23 || momid == 24 || momid == 25 || momid > 1e6)) continue;
 			//check against daughter in case of hard initial splitting
 			for (size_t idau(0); idau < (*itGenParticle).numberOfDaughters(); idau++) {
-				//~ //TLorentzVector jetVector( (*it).px(), (*it).py(), (*it).pz(), (*it).energy() );
-				//~ //float dR = jetVector.DeltaR( (*itGenParticle).daughter(idau)->p4() );
 				float dR = deltaR((*it), (*itGenParticle).daughter(idau)->p4() );
 				if (dR < 0.3) {
 					matchedJet = true;
@@ -356,22 +372,6 @@ signalNominatorTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& i
   }
   trees_["Tree"]->Fill();
 }
-
-//~ void
-//~ signalNominatorTrees::beginLuminosityBlock(edm::LuminosityBlock const& iLumi, edm::EventSetup const&)
-//~ {
-   //~ newLumiBlock_=true;
-   //~ 
-   //~ edm::Handle<GenLumiInfoHeader> gen_header;
-   //~ iLumi.getByLabel("generator",gen_header);
-   //~ modelName_ = "";
-   //~ if (gen_header.isValid()) {
-	   //~ modelName_ = gen_header->configDescription();
-	   //~ std::cout << modelName_ << std::endl;
-   //~ }
-//~ }
-
-
 
 
 
