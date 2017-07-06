@@ -104,28 +104,28 @@ BadChargedCandidateFilterMiniAOD::filter(edm::StreamID iID, edm::Event& iEvent, 
     {
        reco::TrackRef innerMuonTrack = muon.innerTrack();
         if (debug_) cout<<"muon "<<muon.pt()<<endl;
-	
+  
         if ( innerMuonTrack.isNull() ) { 
             if (debug_) cout<<"Skipping this muon because it has no inner track"<<endl; 
             continue; 
             };
 
-	if ( muon.pt() < minMuonPt_ && innerMuonTrack->pt() < minMuonPt_) {
+  if ( muon.pt() < minMuonPt_ && innerMuonTrack->pt() < minMuonPt_) {
           if (debug_) cout <<"skipping the muon because low muon pt" << endl;
           continue;
         }
 
-	// Consider only Global Muons  	
-	if (muon.isGlobalMuon() == 0) {
-	  if(debug_) cout << "Skipping this muon because not a Global Muon" << endl;
-	  continue;
-	}
+  // Consider only Global Muons   
+  if (muon.isGlobalMuon() == 0) {
+    if(debug_) cout << "Skipping this muon because not a Global Muon" << endl;
+    continue;
+  }
 
-	if (debug_) cout << "SegmentCompatibility :"<< muon::segmentCompatibility(muon) << "RelPtErr:" << bestMuonTrack->ptError()/bestMuonTrack->pt() << endl;
-	if (muon::segmentCompatibility(muon) > segmentCompatibility_ && bestMuonTrack->ptError()/bestMuonTrack->pt() < minMuonTrackRelErr_ && innerMuonTrack->ptError()/innerMuonTrack->pt() < innerTrackRelErr_ ) {
-	  if (debug_) cout <<"Skipping this muon because segment compatiblity > 0.3 and relErr(best track) <2 and relErr(inner track) < 1 " << endl;
-	  continue;
-	}
+  if (debug_) cout << "SegmentCompatibility :"<< muon::segmentCompatibility(muon) << "RelPtErr:" << bestMuonTrack->ptError()/bestMuonTrack->pt() << endl;
+  if (muon::segmentCompatibility(muon) > segmentCompatibility_ && bestMuonTrack->ptError()/bestMuonTrack->pt() < minMuonTrackRelErr_ && innerMuonTrack->ptError()/innerMuonTrack->pt() < innerTrackRelErr_ ) {
+    if (debug_) cout <<"Skipping this muon because segment compatiblity > 0.3 and relErr(best track) <2 and relErr(inner track) < 1 " << endl;
+    continue;
+  }
 
         for ( unsigned j=0; j < pfCandidates->size(); ++j ) {
             const reco::Candidate & pfCandidate = (*pfCandidates)[j];
@@ -150,7 +150,7 @@ BadChargedCandidateFilterMiniAOD::filter(edm::StreamID iID, edm::Event& iEvent, 
 
   if (debug_) cout<<"BadChargedCandidateFilter pass: "<<pass<<endl;
 
-  iEvent.put( std::auto_ptr<bool>(new bool(pass)) );
+  iEvent.put( std::unique_ptr<bool>(new bool(pass)) );
 
   return taggingMode_ || pass;
 }

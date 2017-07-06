@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 defaultSelector = cms.EDFilter("PATJetSelector", 
-	   filter = cms.bool(True),
+       filter = cms.bool(True),
            src = cms.InputTag("cleanLayer1Jets"),
            cut = cms.string('abs( eta ) <= 2.0 & pt >= 10')#GeV
 )

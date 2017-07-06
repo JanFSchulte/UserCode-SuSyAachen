@@ -137,9 +137,9 @@ BadPFMuonFilterMiniAOD::filter(edm::StreamID iID, edm::Event& iEvent, const edm:
       // require small  dR
       float dr = deltaR( muon.eta(), muon.phi(), pfCandidate.eta(), pfCandidate.phi() );
       if (dr < 0.001) {
-       	foundBadPFMuon=true;
-	if (debug_) cout <<"found bad muon! SC:" << muon::segmentCompatibility(muon) <<endl;
-	break;
+        foundBadPFMuon=true;
+  if (debug_) cout <<"found bad muon! SC:" << muon::segmentCompatibility(muon) <<endl;
+  break;
       }
     }
 
@@ -151,7 +151,7 @@ BadPFMuonFilterMiniAOD::filter(edm::StreamID iID, edm::Event& iEvent, const edm:
 
   if (debug_) cout<< "badPFmuon filter"<<"pass: "<<pass<<endl;
 
-  iEvent.put( std::auto_ptr<bool>(new bool(pass)) );
+  iEvent.put( std::unique_ptr<bool>(new bool(pass)) );
 
   return taggingMode_ || pass;
 }

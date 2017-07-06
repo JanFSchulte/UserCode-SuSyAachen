@@ -16,25 +16,25 @@ DiLeptonTreesFromMiniAODNoTausMC = cms.EDAnalyzer("DiLeptonTreesFromMiniAODMC",
    muons = cms.InputTag("triggerMatchedPatMuonsPF"),
    looseMuons = cms.InputTag("LooseMuons"),
 #   taus = cms.InputTag("triggerMatchedPatTausPF"),
-   jets = cms.InputTag("qualityJets"),	   	   
-   genJets = cms.InputTag("slimmedGenJets"),	   	   
+   jets = cms.InputTag("qualityJets"),          
+   genJets = cms.InputTag("slimmedGenJets"),          
    bJets = cms.InputTag("qualityBJets"),
-   bJets35 = cms.InputTag("qualityBJets35"),	
-   metNoCleaning = cms.InputTag("slimmedMETs","","Analysis"),  	
-   met = cms.InputTag("slimmedMETsMuClean","","Analysis"),  	
-   #~ met = cms.InputTag("slimmedMETs"),  	 	     	    
+   bJets35 = cms.InputTag("qualityBJets35"), 
+   #metNoCleaning = cms.InputTag("slimmedMETs","","Analysis"),    
+   #met = cms.InputTag("slimmedMETs","","Analysis"),   
+   met = cms.InputTag("slimmedMETs"),                  
    vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
    pfCands = cms.InputTag("packedPFCandidates"),
    genParticles = cms.InputTag("prunedGenParticles"),
-   pdfInfo = cms.InputTag("generator"),	
-   LHEInfo = cms.InputTag("externalLHEProducer"),		         	      
-   rho = cms.InputTag("fixedGridRhoFastjetCentralNeutral"),	   
+   pdfInfo = cms.InputTag("generator"),   
+   LHEInfo = cms.InputTag("externalLHEProducer"),                       
+   rho = cms.InputTag("fixedGridRhoFastjetCentralNeutral"),    
    idMapSource = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring16GeneralPurposeV1Values"),
    storeMetFilters = cms.untracked.bool(True),
    badPFMuonFilter = cms.InputTag("badPFMuonFilter"),
    badChargedCandidateFilter = cms.InputTag("badChargedCandidateFilter"),
    cloneGlobalMuonFilter = cms.InputTag("cloneGlobalMuonFilter"),
-   badGlobalMuonFilter = cms.InputTag("badGlobalMuonFilter"),	   
+   badGlobalMuonFilter = cms.InputTag("badGlobalMuonFilter"),     
    susyVars = cms.VPSet(),
    pdfWeightTags = cms.VInputTag(),
    bTagEfficiencies = bTagEffMapPars,
@@ -43,61 +43,61 @@ DiLeptonTreesFromMiniAODNoTausMC = cms.EDAnalyzer("DiLeptonTreesFromMiniAODMC",
    #~ LeptonFullSimScaleFactors = LeptonFullSimScaleFactorMapPars,
    vertexWeights = vertexWeightPars,
    vertexWeightsUp = vertexWeightParsUp,
-   vertexWeightsDown = vertexWeightParsDown,   	   	   	   
+   vertexWeightsDown = vertexWeightParsDown,                   
    pdgIdDefinition = defaultPdgIdDefinition,
    isolationDefinitions = isolationDefinitions,
    triggerDefinitions = triggerDefinitions,
    writeID = cms.untracked.bool(False),
-   writeTrigger = cms.untracked.bool(True),
+   writeTrigger = cms.untracked.bool(False),
    doMETUncert = cms.untracked.bool(False), 
-   triggerNames=cms.untracked.vstring(													#	1e34	7e33
-						"HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",	
-						"HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
-						"HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v",	
-						"HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_MW_v",	
-						
-						"HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v",				# 	1 		1
-						"HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v",				# 	1 		1
-						"HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",				
-						"HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",				
-						"HLT_TkMu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",				
-						"HLT_Mu27_TkMu8_v",										#	50 		1
-						"HLT_Mu30_TkMu11_v",									#	1 		1
-						
-						"HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",	# 	0 		1
-						"HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v",	# 	1 		1
-						"HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ_v",	
-						"HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",	# 	1 		1
-						"HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",	
-						"HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",		# 	0 		1				
-						"HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",		# 	1 		1			
-						"HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",		# 	1 		1			
-						"HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",		# 	1 		1			
-						"HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",		# 	1 		1			
-						"HLT_Mu30_Ele30_CaloIdL_GsfTrkIdVL_v",					# 	1 		1
-						"HLT_Mu33_Ele33_CaloIdL_GsfTrkIdVL_v",					# 	1 		1
-						
-						"HLT_PFHT125_v",
-						"HLT_PFHT200_v",
-						"HLT_PFHT250_v",
-						"HLT_PFHT300_v",
-						"HLT_PFHT350_v", 
-						"HLT_PFHT400_v",
-						"HLT_PFHT475_v",
-						"HLT_PFHT600_v",
-						"HLT_PFHT650_v",
-						"HLT_PFHT800_v",
-						"HLT_PFHT900_v",
-	), 
-   metFilterNames=cms.untracked.vstring(													
-						"Flag_HBHENoiseFilter",	
-						"Flag_HBHENoiseIsoFilter",
-						"Flag_globalTightHalo2016Filter",	
-						"Flag_goodVertices",	
-						"Flag_EcalDeadCellTriggerPrimitiveFilter",	
-						"Flag_eeBadScFilter",							
+   triggerNames=cms.untracked.vstring(                                     #  1e34  7e33
+                  "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",  
+                  "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
+                  "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v",   
+                  "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_MW_v",   
+                  
+                  "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v",           #  1     1
+                  "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v",            #  1     1
+                  "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",           
+                  "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",            
+                  "HLT_TkMu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",          
+                  "HLT_Mu27_TkMu8_v",                             #  50       1
+                  "HLT_Mu30_TkMu11_v",                         #  1     1
+                  
+                  "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",  #  0     1
+                  "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v",   #  1     1
+                  "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ_v",   
+                  "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",  #  1     1
+                  "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",  
+                  "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",      #  0     1           
+                  "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",      #  1     1        
+                  "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",      #  1     1        
+                  "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",     #  1     1        
+                  "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",     #  1     1        
+                  "HLT_Mu30_Ele30_CaloIdL_GsfTrkIdVL_v",             #  1     1
+                  "HLT_Mu33_Ele33_CaloIdL_GsfTrkIdVL_v",             #  1     1
+                  
+                  "HLT_PFHT125_v",
+                  "HLT_PFHT200_v",
+                  "HLT_PFHT250_v",
+                  "HLT_PFHT300_v",
+                  "HLT_PFHT350_v", 
+                  "HLT_PFHT400_v",
+                  "HLT_PFHT475_v",
+                  "HLT_PFHT600_v",
+                  "HLT_PFHT650_v",
+                  "HLT_PFHT800_v",
+                  "HLT_PFHT900_v",
+   ), 
+   metFilterNames=cms.untracked.vstring(                                      
+                  "Flag_HBHENoiseFilter", 
+                  "Flag_HBHENoiseIsoFilter",
+                  "Flag_globalTightHalo2016Filter",   
+                  "Flag_goodVertices", 
+                  "Flag_EcalDeadCellTriggerPrimitiveFilter",   
+                  "Flag_eeBadScFilter",                     
 
-	), 
+   ), 
 )
 
 

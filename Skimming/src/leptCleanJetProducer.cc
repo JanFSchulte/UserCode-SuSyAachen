@@ -106,7 +106,7 @@ jetLeptonCleaner<T1,T2>::produce(edm::Event& iEvent, const edm::EventSetup& iSet
    edm::Handle< std::vector< T2 > > leptons;
    iEvent.getByToken(leptonToken_, leptons);
 
-   std::auto_ptr<std::vector< T1 > > theJets ( new std::vector< T1 >() );
+   std::unique_ptr<std::vector< T1 > > theJets = std::make_unique<std::vector< T1 >>(  );
    double dR_ = 999999999.;
    double dRLJ = 999999999.;
    
@@ -122,7 +122,7 @@ jetLeptonCleaner<T1,T2>::produce(edm::Event& iEvent, const edm::EventSetup& iSet
      }
    }
    std::sort(theJets->begin(), theJets->end(), pTComparator_);
-   iEvent.put( theJets );
+   iEvent.put( std::move(theJets) );
  
 }
 

@@ -124,7 +124,7 @@ OnTheFlyBadGlobalMuonTagger::filter(edm::Event & iEvent, const edm::EventSetup &
     bool pass = !found;
 
     //~ iEvent.put(std::move(out), "bad");
-    iEvent.put( std::auto_ptr<bool>(new bool(pass)) );
+    iEvent.put( std::unique_ptr<bool>(new bool(pass)) );
     return taggingMode_ || pass;
 }
 
