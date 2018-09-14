@@ -59,6 +59,8 @@
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 
+#include <SuSyAachen/DiLeptonHistograms/interface/TtFullLepKinSolver.h>
+#include "DataFormats/Candidate/interface/LeafCandidate.h"
 
 #include <SuSyAachen/DiLeptonHistograms/interface/MT2Functor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/WeightFunctor.h>
@@ -69,6 +71,8 @@
 //~ #include <SuSyAachen/DiLeptonHistograms/interface/LeptonFullSimScaleFactorMapFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/BTagCalibrationStandalone.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/BTagEffMapFunctor.h>
+
+
 
 
 //ROOT
@@ -101,6 +105,8 @@ private:
   void initLongIntBranch( const std::string &name);
   void initTLorentzVectorBranch( const std::string &name);
   template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<pat::PackedCandidate>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsJESUp,const std::vector<pat::Jet>&shiftedJetsJESDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedJetsBJESUp,const std::vector<pat::Jet>&shiftedBJetsJESDown,  const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho, const std::map<std::string, int> &intEventProperties, const std::map<std::string, unsigned long> &longIntEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC);
+  
+  template<class aT> bool matchGenLepton(const reco::Candidate &genLep, const std::vector<aT> &recoLeptons, TLorentzVector &result);
   //~ std::pair<double, double> calcPZeta(const TLorentzVector& p1,const TLorentzVector& p2, const TLorentzVector& met);
   void fillPdfUncert(const edm::Handle< std::vector<double> >& weightHandle, const std::string& pdfIdentifier, const std::string& treeName);
 
@@ -120,7 +126,7 @@ private:
   virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
   std::string convertInputTag(const edm::InputTag tag);
   
-
+  
   edm::EDGetTokenT< std::vector< pat::Electron > >      electronToken_;
   edm::EDGetTokenT< std::vector< pat::Electron > >      looseElectronToken_;
   edm::EDGetTokenT< std::vector< pat::Muon > >        muonToken_;
@@ -130,7 +136,7 @@ private:
   edm::EDGetTokenT< std::vector< pat::Jet > >       bJetToken_;
   edm::EDGetTokenT< std::vector< pat::Jet > >       bJet35Token_;
   edm::EDGetTokenT< std::vector< pat::MET > >         metToken_;
-  //edm::EDGetTokenT< std::vector< pat::MET > >         metNoCleaningToken_;
+  edm::EDGetTokenT< std::vector< pat::MET > >         metNoCleaningToken_;
   edm::EDGetTokenT<reco::VertexCollection>          vertexToken_;
   edm::EDGetTokenT< std::vector<pat::PackedCandidate>  >  pfCandToken_;
   edm::EDGetTokenT< std::vector< reco::GenParticle > >    genParticleToken_;
@@ -191,6 +197,18 @@ private:
   bool newLumiBlock_;
   std::map<std::string, Bool_t > triggerDecision_;
   std::map<std::string, int > triggerIndex_;
+  
+  std::string resolutionSmearingFileName_;
+  
+  const int maxNJets_, maxNComb_;
+  TtFullLepKinSolver* solver;
+  struct Compare{
+      bool operator()(std::pair<double, int> a, std::pair<double, int> b){
+        return a.first > b.first;
+      }
+  };
+  
+  
 };
 
 // constructors and destructor
@@ -204,7 +222,7 @@ DiLeptonTreesFromMiniAODMC::DiLeptonTreesFromMiniAODMC(const edm::ParameterSet& 
   bJetToken_        (consumes< std::vector< pat::Jet > >      (iConfig.getParameter<edm::InputTag>("bJets"))),
   bJet35Token_        (consumes< std::vector< pat::Jet > >      (iConfig.getParameter<edm::InputTag>("bJets35"))),
   metToken_         (consumes< std::vector< pat::MET > >      (iConfig.getParameter<edm::InputTag>("met"))),
-  //metNoCleaningToken_   (consumes< std::vector< pat::MET > >      (iConfig.getParameter<edm::InputTag>("metNoCleaning"))),
+  metNoCleaningToken_   (consumes< std::vector< pat::MET > >      (iConfig.getParameter<edm::InputTag>("metNoCleaning"))),
   vertexToken_        (consumes<reco::VertexCollection>       (iConfig.getParameter<edm::InputTag>("vertices"))),
   pfCandToken_        (consumes< std::vector<pat::PackedCandidate>  > (iConfig.getParameter<edm::InputTag>("pfCands"))),
   genParticleToken_     (consumes< std::vector< reco::GenParticle > > (iConfig.getParameter<edm::InputTag>("genParticles"))),
@@ -238,10 +256,16 @@ DiLeptonTreesFromMiniAODMC::DiLeptonTreesFromMiniAODMC(const edm::ParameterSet& 
   fctVtxWeightDown_ (iConfig.getParameter<edm::ParameterSet>("vertexWeightsDown"),consumesCollector() ),
   fctIsolation_   (iConfig.getParameter<edm::ParameterSet>("isolationDefinitions"),consumesCollector()),
   fctTrigger_     (iConfig.getParameter<edm::ParameterSet>("triggerDefinitions"),consumesCollector()),  
-  getPdgId_     (iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition"),consumesCollector() ),
+  getPdgId_     (iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition"),consumesCollector()),
   metFilterNames_ (iConfig.getUntrackedParameter< std::vector <std::string> >("metFilterNames")),
   triggerNames_   (iConfig.getUntrackedParameter< std::vector <std::string> >("triggerNames")),
-  newLumiBlock_(true)
+  newLumiBlock_(true),
+  
+  resolutionSmearingFileName_(iConfig.getParameter<edm::ParameterSet>("resolutionSmearing").getParameter<std::string>("ResolutionSmearingFileName")),
+  
+  maxNJets_       ( iConfig.getParameter<int> ("maxNJets")),
+  maxNComb_       ( iConfig.getParameter<int> ("maxNComb"))
+  
 {
   debug = false; 
   //~ writeID_ = iConfig.existsAs<edm::InputTag>("baseTrees");
@@ -253,12 +277,13 @@ DiLeptonTreesFromMiniAODMC::DiLeptonTreesFromMiniAODMC(const edm::ParameterSet& 
   
   consumes<std::vector< PileupSummaryInfo > >(edm::InputTag("slimmedAddPileupInfo"));
   
-  //consumes<edm::TriggerResults>(edm::InputTag("TriggerResults","","HLT"));
-  //consumes<edm::TriggerResults>(edm::InputTag("TriggerResults",""));
+  consumes<edm::TriggerResults>(edm::InputTag("TriggerResults","","HLT"));
+  consumes<edm::TriggerResults>(edm::InputTag("TriggerResults",""));
   
   //~ consumes<pat::PackedTriggerPrescales>(edm::InputTag("patTrigger"));
   //~ consumes<std::vector<pat::TriggerObjectStandAlone>>(edm::InputTag("selectedPatTrigger"));
     
+  solver = new TtFullLepKinSolver(resolutionSmearingFileName_);
 
   // init trees
   edm::Service<TFileService> file;
@@ -266,6 +291,7 @@ DiLeptonTreesFromMiniAODMC::DiLeptonTreesFromMiniAODMC(const edm::ParameterSet& 
   trees_["EMu"] = file->make<TTree>("EMuDileptonTree", "EMu DileponTree");
   trees_["MuMu"] = file->make<TTree>("MuMuDileptonTree", "MuMu DileponTree");
 
+  initFloatBranch( "mll" );  
   initFloatBranch( "genWeight" );  
   initFloatBranch( "genWeightAbsValue" );    
   initFloatBranch( "weight" );
@@ -296,6 +322,8 @@ DiLeptonTreesFromMiniAODMC::DiLeptonTreesFromMiniAODMC(const edm::ParameterSet& 
   initTLorentzVectorBranch( "vMet" );   
   //~ initTLorentzVectorBranch( "vMetUncorrected" ); 
   initTLorentzVectorBranch( "vGenMet" );  
+  initTLorentzVectorBranch( "vGenMetNeutrinos" );  
+  initTLorentzVectorBranch( "vGenMetPromptNeutrinos" );  
   initFloatBranch( "rho" );
   initFloatBranch( "pt1" );
   initFloatBranch( "pt2" );
@@ -323,10 +351,6 @@ DiLeptonTreesFromMiniAODMC::DiLeptonTreesFromMiniAODMC(const edm::ParameterSet& 
   initFloatBranch( "MT2" );
   initFloatBranch( "deltaPhiJetMet1" );
   initFloatBranch( "deltaPhiJetMet2" );
-  initFloatBranch( "jzbResponse" );
-  initFloatBranch( "jzbResponseUncorr" ); 
-  initFloatBranch( "jzb" );
-  initFloatBranch( "jzbUncorr" );  
   initFloatBranch( "ht" );
   initFloatBranch( "htJESUp" );
   initFloatBranch( "htJESDown" );
@@ -335,9 +359,11 @@ DiLeptonTreesFromMiniAODMC::DiLeptonTreesFromMiniAODMC(const edm::ParameterSet& 
   //~ initFloatBranch( "genLeptHT" );  
   initFloatBranch( "mht" );
   initFloatBranch( "met" );
-  //initFloatBranch( "metNotCleaned" );
+  initFloatBranch( "metNotCleaned" );
   initFloatBranch( "caloMet" );
   initFloatBranch( "genMet" );
+  initFloatBranch( "genMetNeutrinos" );
+  initFloatBranch( "genMetPromptNeutrinos" );
   initFloatBranch( "uncorrectedMet" ); 
   initFloatBranch( "metJESUp" );
   initFloatBranch( "metJESDown" );
@@ -392,18 +418,77 @@ DiLeptonTreesFromMiniAODMC::DiLeptonTreesFromMiniAODMC(const edm::ParameterSet& 
   initIntBranch( "isFromTauHardProcess1" );
   initIntBranch( "isFromTauHardProcess2" );
   
-  //if (storeMetFilters_){
+  initTLorentzVectorBranch( "fitNu1" );
+  initTLorentzVectorBranch( "fitNu2" );
+  initTLorentzVectorBranch( "genNu1" );
+  initTLorentzVectorBranch( "genNu2" );
+  initIntBranch( "genNPromptN" );
   
-    //initIntBranch( "badPFMuonFilter" );
-    //initIntBranch( "badChargedCandidateFilter" );
-    //initIntBranch( "cloneGlobalMuonFilter" );
-    //initIntBranch( "badGlobalMuonFilter" );
+  initIntBranch( "nNuSols" );
+  initIntBranch( "nNuSolsActual" );
+  initIntBranch( "nNuSolsSmearing" );
+  initFloatBranch( "nuSolWeight" );
+  
+  initFloatBranch( "bJetERecoGenRatio" );
+  initFloatBranch( "bbarJetERecoGenRatio" );
+  initFloatBranch( "bJetAngleRecoGen" );
+  initFloatBranch( "bbarJetAngleRecoGen" );
+  initFloatBranch( "bJetEtaRecoGen" );
+  initFloatBranch( "bbarJetEtaRecoGen" );
+  initFloatBranch( "bJetPhiRecoGen" );
+  initFloatBranch( "bbarJetPhiRecoGen" );
+  initIntBranch( "bJetMatch" );
+  initIntBranch( "bbarJetMatch" );
+  initIntBranch( "genBJetMatch" );
+  initIntBranch( "genBbarJetMatch" );
+  initTLorentzVectorBranch( "bJetGen" );
+  initTLorentzVectorBranch( "bbarJetGen" );
+  initTLorentzVectorBranch( "bJetReco" );
+  initTLorentzVectorBranch( "bbarJetReco" );
+  
+  
+  initFloatBranch( "leptonMinusERecoGenRatio" );
+  initFloatBranch( "leptonPlusERecoGenRatio" );
+  initFloatBranch( "leptonMinusAngleRecoGen" );
+  initFloatBranch( "leptonPlusAngleRecoGen" );
+  initFloatBranch( "leptonMinusEtaRecoGen" );
+  initFloatBranch( "leptonPlusEtaRecoGen" );
+  initFloatBranch( "leptonMinusPhiRecoGen" );
+  initFloatBranch( "leptonPlusPhiRecoGen" );
+  initIntBranch( "leptonMinusMatch" );
+  initIntBranch( "leptonMinusPdgId" );
+  initIntBranch( "leptonPlusMatch" );
+  initIntBranch( "leptonPlusPdgId" );
+  initTLorentzVectorBranch( "leptonMinus" );
+  initTLorentzVectorBranch( "leptonPlus" );
+
+  initTLorentzVectorBranch( "genTop" );
+  initTLorentzVectorBranch( "genTopBar" );
+  initTLorentzVectorBranch( "recoTop" );
+  initTLorentzVectorBranch( "recoTopBar" );
+  
+  initFloatBranch( "genMassW1" );
+  initFloatBranch( "genMassW2" );
+  initFloatBranch( "genMassLeptonPlusB" );
+  initFloatBranch( "genMassLeptonMinusBbar" );
+  initFloatBranch( "massLeptonPlusB" );
+  initFloatBranch( "massLeptonMinusBbar" );
+  initIntBranch( "genNPromptB" );
+  initIntBranch( "genNPromptL" );
+  
+  
+  if (storeMetFilters_){
+  
+    initIntBranch( "badPFMuonFilter" );
+    initIntBranch( "badChargedCandidateFilter" );
+    initIntBranch( "cloneGlobalMuonFilter" );
+    initIntBranch( "badGlobalMuonFilter" );
     
-    //for (const auto& n : metFilterNames_){
-      //initIntBranch( n.c_str() );
-    //}
+    for (const auto& n : metFilterNames_){
+      initIntBranch( n.c_str() );
+    }
     
-  //}
+  }
   
   if (writeTrigger_){
     for (const auto& n : triggerNames_){
@@ -550,6 +635,7 @@ DiLeptonTreesFromMiniAODMC::DiLeptonTreesFromMiniAODMC(const edm::ParameterSet& 
   
 }
 
+
 void 
 DiLeptonTreesFromMiniAODMC::initTLorentzVectorBranch(const std::string &name)
 {
@@ -669,8 +755,8 @@ DiLeptonTreesFromMiniAODMC::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle< std::vector< pat::MET > > mets;
   iEvent.getByToken(metToken_, mets);
 
-  //edm::Handle< std::vector< pat::MET > > metNoCleaning;
-  //iEvent.getByToken(metNoCleaningToken_, metNoCleaning);
+  edm::Handle< std::vector< pat::MET > > metNoCleaning;
+  iEvent.getByToken(metNoCleaningToken_, metNoCleaning);
 
 
   edm::Handle< std::vector< reco::GenParticle > > genParticles;
@@ -799,59 +885,57 @@ DiLeptonTreesFromMiniAODMC::analyze(const edm::Event& iEvent, const edm::EventSe
   floatEventProperties["rho"] = (float)(*rho);
   const float Rho = *rho;
   
-  //edm::Handle<bool> iFilterBadPFMuon;
-  //iEvent.getByToken(badPFMuonFilterToken_, iFilterBadPFMuon);
+  edm::Handle<bool> iFilterBadPFMuon;
+  iEvent.getByToken(badPFMuonFilterToken_, iFilterBadPFMuon);
   
-  //edm::Handle<bool> iFilterBadChargedCandidate;
-  //iEvent.getByToken(badChargedCandidateFilterToken_, iFilterBadChargedCandidate);
+  edm::Handle<bool> iFilterBadChargedCandidate;
+  iEvent.getByToken(badChargedCandidateFilterToken_, iFilterBadChargedCandidate);
   
-  //edm::Handle<bool> iFilterCloneGlobalMuon;
-  //iEvent.getByToken(cloneGlobalMuonFilterToken_, iFilterCloneGlobalMuon);
+  edm::Handle<bool> iFilterCloneGlobalMuon;
+  iEvent.getByToken(cloneGlobalMuonFilterToken_, iFilterCloneGlobalMuon);
   
-  //edm::Handle<bool> iFilterBadGlobalMuon;
-  //iEvent.getByToken(badGlobalMuonFilterToken_, iFilterBadGlobalMuon);
+  edm::Handle<bool> iFilterBadGlobalMuon;
+  iEvent.getByToken(badGlobalMuonFilterToken_, iFilterBadGlobalMuon);
   
-  //edm::Handle<edm::TriggerResults> metFilterBits;
-  //iEvent.getByToken(metFilterToken_, metFilterBits);
-  //const edm::TriggerNames &allFilterNames = iEvent.triggerNames(*metFilterBits);
+  edm::Handle<edm::TriggerResults> metFilterBits;
+  iEvent.getByToken(metFilterToken_, metFilterBits);
+  const edm::TriggerNames &allFilterNames = iEvent.triggerNames(*metFilterBits);
   
   
-  //if (storeMetFilters_){ 
+  if (storeMetFilters_){ 
       
-    //if (*iFilterBadPFMuon) intEventProperties["badPFMuonFilter"] = 1;
-    //else intEventProperties["badPFMuonFilter"] = 0;  
+    if (*iFilterBadPFMuon) intEventProperties["badPFMuonFilter"] = 1;
+    else intEventProperties["badPFMuonFilter"] = 0;  
     
-    //if (*iFilterBadChargedCandidate) intEventProperties["badChargedCandidateFilter"] = 1;
-    //else intEventProperties["badChargedCandidateFilter"] = 0;  
+    if (*iFilterBadChargedCandidate) intEventProperties["badChargedCandidateFilter"] = 1;
+    else intEventProperties["badChargedCandidateFilter"] = 0;  
     
-    //if (*iFilterCloneGlobalMuon) intEventProperties["cloneGlobalMuonFilter"] = 1;
-    //else intEventProperties["cloneGlobalMuonFilter"] = 0;  
+    if (*iFilterCloneGlobalMuon) intEventProperties["cloneGlobalMuonFilter"] = 1;
+    else intEventProperties["cloneGlobalMuonFilter"] = 0;  
     
-    //if (*iFilterBadGlobalMuon) intEventProperties["badGlobalMuonFilter"] = 1;
-    //else intEventProperties["badGlobalMuonFilter"] = 0;
+    if (*iFilterBadGlobalMuon) intEventProperties["badGlobalMuonFilter"] = 1;
+    else intEventProperties["badGlobalMuonFilter"] = 0;
     
     
-    //for (std::string const &filterName : metFilterNames_){
-      //const unsigned index = allFilterNames.triggerIndex(filterName);
-      //if (index >= allFilterNames.size()) std::cerr << "MET filter " << filterName << "not found!" << std::endl;
-      //if (metFilterBits->accept(index)) intEventProperties[filterName] = 1;
-      //else intEventProperties[filterName] = 0;
-
-    //}  
-  //}
- //else{ 
+    for (std::string const &filterName : metFilterNames_){
+      const unsigned index = allFilterNames.triggerIndex(filterName);
+      if (index >= allFilterNames.size()) std::cerr << "MET filter " << filterName << "not found!" << std::endl;
+      if (metFilterBits->accept(index)) intEventProperties[filterName] = 1;
+      else intEventProperties[filterName] = 0;
+    }  
+  }else{ 
       
-    //if (!*iFilterBadPFMuon) return;
-    //if (!*iFilterBadChargedCandidate) return;
-    //if (!*iFilterCloneGlobalMuon) return;
-    //if (!*iFilterBadGlobalMuon) return;   
+    if (!*iFilterBadPFMuon) return;
+    if (!*iFilterBadChargedCandidate) return;
+    if (!*iFilterCloneGlobalMuon) return;
+    if (!*iFilterBadGlobalMuon) return;   
     
-    //for (std::string const &filterName : metFilterNames_){
-      //const unsigned index = allFilterNames.triggerIndex(filterName);
-      //if (index >= allFilterNames.size()) std::cerr << "MET filter " << filterName << "not found!" << std::endl;
-      //if (!metFilterBits->accept(index)) return;
-    //}  
-  //}
+    for (std::string const &filterName : metFilterNames_){
+      const unsigned index = allFilterNames.triggerIndex(filterName);
+      if (index >= allFilterNames.size()) std::cerr << "MET filter " << filterName << "not found!" << std::endl;
+      if (!metFilterBits->accept(index)) return;
+    }  
+  }
 
 
   intEventProperties["nBJets"] = bJets->size();
@@ -866,6 +950,8 @@ DiLeptonTreesFromMiniAODMC::analyze(const edm::Event& iEvent, const edm::EventSe
 
 
   pat::MET met = mets->front();
+  
+  
   TLorentzVector metVector(met.px(), met.py(), met.pz(), met.energy());
   TLorentzVector uncorrectedMetVector;
   uncorrectedMetVector.SetPtEtaPhiE(met.uncorPt(), 0, met.uncorPhi(), met.uncorPt());
@@ -879,8 +965,8 @@ DiLeptonTreesFromMiniAODMC::analyze(const edm::Event& iEvent, const edm::EventSe
   floatEventProperties["uncorrectedMet"] = uncorrectedMetVector.Pt();
   
   
-  //pat::MET metNotCleaned = metNoCleaning->front();  
-  //floatEventProperties["metNotCleaned"] = metNotCleaned.pt();
+  pat::MET metNotCleaned = metNoCleaning->front();  
+  floatEventProperties["metNotCleaned"] = metNotCleaned.pt();
   
   pat::METCollection const& metsForUncert = *mets;  
     
@@ -903,34 +989,396 @@ DiLeptonTreesFromMiniAODMC::analyze(const edm::Event& iEvent, const edm::EventSe
   }
    
   TLorentzVector genMetVector(0.,0.,0.,0.);
+  TLorentzVector genMetNeutrinosVector(0.,0.,0.,0.);
+  TLorentzVector genMetPromptNeutrinosVector(0.,0.,0.,0.);
+  TLorentzVector tempParticle(0.,0.,0.,0.);
   TLorentzVector vGenParticle(0.,0.,0.,0.);
-  
+  TLorentzVector genNu1Vector(0.,0.,0.,0.);
+  TLorentzVector genNu2Vector(0.,0.,0.,0.);
+  TLorentzVector genTopVector(0.,0.,0.,0.);
+  TLorentzVector genTopBarVector(0.,0.,0.,0.);
   floatEventProperties["genPtTop1"] = -1;
   floatEventProperties["genPtTop2"] = -1;
-  if (isMC){
-      
+  int nPromptB = 0;
+  int nPromptL = 0;
+  int nPromptN = 0;
+  
+  const reco::Candidate* genB_ = nullptr;
+  const reco::Candidate* genBbar_ = nullptr;
+  const reco::Candidate* genLeptonPlus = nullptr;
+  const reco::Candidate* genLeptonMinus = nullptr;
+  TLorentzVector genLeptonMinusVector;
+  TLorentzVector genLeptonPlusVector;
+  bool promptGenLeptonPlus = false;
+  bool promptGenLeptonMinus = false;
+  bool promptGenB = false;
+  bool promptGenBbar = false;
+  
+  
+  
   genMetVector.SetPxPyPzE(mets->front().genMET()->px(),mets->front().genMET()->py(),mets->front().genMET()->pz(),mets->front().genMET()->energy());
   
   for (std::vector<reco::GenParticle>::const_iterator itGenParticle = genParticles->begin(); itGenParticle != genParticles->end(); itGenParticle++) {
-
+    
+    if (abs((*itGenParticle).pdgId())== 5 && (*itGenParticle).isHardProcess()){
+      nPromptB++;
+      if ((*itGenParticle).pdgId()== 5){
+        genB_ = (const reco::Candidate*) &(*itGenParticle);
+        promptGenB = true;
+      }else if ((*itGenParticle).pdgId()== -5){
+        genBbar_ = (const reco::Candidate*) &(*itGenParticle);
+        promptGenBbar = true;
+      }
+    }    
+    if ( (abs((*itGenParticle).pdgId())== 11 || abs((*itGenParticle).pdgId())== 13) && ((*itGenParticle).isPromptFinalState() || (*itGenParticle).isDirectPromptTauDecayProductFinalState())){
+      nPromptL++;
+      if ((*itGenParticle).pdgId()== 11 || (*itGenParticle).pdgId()== 13){
+        // l-
+        genLeptonMinus = (const reco::Candidate*) &(*itGenParticle);
+        genLeptonMinusVector.SetPxPyPzE(genLeptonMinus->px(), genLeptonMinus->py(), genLeptonMinus->pz(), genLeptonMinus->energy());
+        promptGenLeptonMinus = true;
+      }else if ((*itGenParticle).pdgId()== -11 || (*itGenParticle).pdgId()== -13){
+        // l+
+        genLeptonPlus = (const reco::Candidate*) &(*itGenParticle);
+        genLeptonPlusVector.SetPxPyPzE(genLeptonPlus->px(), genLeptonPlus->py(), genLeptonPlus->pz(), genLeptonPlus->energy());
+        promptGenLeptonPlus = true;
+      }
+    }    
+    
+    if (abs((*itGenParticle).pdgId())== 24){
+      if ((*itGenParticle).pdgId() == 24){
+        floatEventProperties["genMassW1"] = (*itGenParticle).mass();
+      }else{
+        floatEventProperties["genMassW2"] = (*itGenParticle).mass();        
+      }
+    }
+    
     if (abs((*itGenParticle).pdgId())== 6){
 
       if ((*itGenParticle).pdgId()== 6){
         floatEventProperties["genPtTop1"] = (*itGenParticle).pt();
+        genTopVector.SetPxPyPzE((*itGenParticle).px(),(*itGenParticle).py(), (*itGenParticle).pz(), (*itGenParticle).energy());
       }
       else if ((*itGenParticle).pdgId()== -6){
         floatEventProperties["genPtTop2"] = (*itGenParticle).pt();
+        genTopBarVector.SetPxPyPzE((*itGenParticle).px(),(*itGenParticle).py(), (*itGenParticle).pz(), (*itGenParticle).energy());
       }
 
     }
+    
+    if (abs((*itGenParticle).pdgId())== 12 || abs((*itGenParticle).pdgId())== 14 || abs((*itGenParticle).pdgId())== 16){
+      tempParticle.SetPxPyPzE((*itGenParticle).px(),(*itGenParticle).py(),0, 0);
+      genMetNeutrinosVector = genMetNeutrinosVector + tempParticle;
 
-
-  }
+      //if (abs((*itGenParticle).mother()->pdgId()) == 24){
+      if ((*itGenParticle).isHardProcess()){
+        genMetPromptNeutrinosVector = genMetPromptNeutrinosVector + tempParticle;
+        if ((*itGenParticle).pdgId()== 12 || (*itGenParticle).pdgId()== 14){
+          genNu1Vector.SetPxPyPzE((*itGenParticle).px(),(*itGenParticle).py(),(*itGenParticle).pz(), (*itGenParticle).energy());
+          nPromptN++;
+        }else if ((*itGenParticle).pdgId()== -12 || (*itGenParticle).pdgId()== -14){
+          genNu2Vector.SetPxPyPzE((*itGenParticle).px(),(*itGenParticle).py(),(*itGenParticle).pz(), (*itGenParticle).energy());
+          nPromptN++;
+        }
+      }
+    }
 
   }
   
+  tLorentzVectorEventProperties["genTop"] = genTopVector;
+  tLorentzVectorEventProperties["genTopBar"] = genTopBarVector;
+  
+  intEventProperties["genNPromptB"] = nPromptB;
+  intEventProperties["genNPromptL"] = nPromptL;
+  intEventProperties["genNPromptN"] = nPromptN;
+  
+  
+  floatEventProperties["bbarJetERecoGenRatio"] = -1;
+  floatEventProperties["bbarJetAngleRecoGen"] = -1;
+  floatEventProperties["bbarJetEtaRecoGen"] = -1;
+  floatEventProperties["bbarJetPhiRecoGen"] = -1;
+  floatEventProperties["bJetERecoGenRatio"] = -1;
+  floatEventProperties["bJetAngleRecoGen"] = -1;
+  floatEventProperties["bJetEtaRecoGen"] = -1;
+  floatEventProperties["bJetPhiRecoGen"] = -1;
+  intEventProperties["bJetMatch"] = 0;
+  intEventProperties["bbarJetMatch"] = 0;
+  intEventProperties["genBJetMatch"] = 0;
+  intEventProperties["genBbarJetMatch"] = 0;
+  bool matchSuccessB = false;
+  bool matchSuccessBbar = false;
+  // Matching of gen b-quarks to gen jets
+  std::vector<reco::GenJet> trueGenJets;
+  TLorentzVector genBJetMatch_;
+  TLorentzVector genBbarJetMatch_;
+  if (genJets->size() >= 2 && nPromptB == 2 && promptGenB && promptGenBbar){
+    std::vector<const reco::Candidate*> partons;
+    partons.push_back(genB_);
+    partons.push_back(genBbar_);
+    
+    std::vector<reco::GenJet> genJetsVector;
+    for(std::vector<reco::GenJet >::const_iterator it = genJets->begin(); it != genJets->end() ; ++it){
+      genJetsVector.push_back((*it));
+    }
+    
+    std::vector< std::pair<double, unsigned int> > distances;
+    for(unsigned int ip=0; ip<partons.size(); ++ip){
+      for(unsigned int ij=0; ij<genJetsVector.size(); ++ij){ 
+        double dist = ROOT::Math::VectorUtil::DeltaR(genJetsVector[ij].p4(), partons[ip]->p4());
+        distances.push_back(std::pair<double, unsigned int>(dist, ip*genJetsVector.size()+ij));
+      }
+    }
+    std::sort(distances.begin(), distances.end());
+
+    std::vector< std::pair<unsigned int, int> > match;
+
+    while(match.size() < partons.size()){
+      unsigned int partonIndex = distances[0].second/genJetsVector.size();
+      int jetIndex = distances[0].second-genJetsVector.size()*partonIndex;
+      
+      // use primitive outlier rejection if desired
+      if(distances[0].first>0.4) jetIndex = -1;
+
+      // prevent underflow in case of too few jets
+      if( distances.empty() )
+        match.push_back(std::make_pair(partonIndex, -1));
+      else
+        match.push_back(std::make_pair(partonIndex, jetIndex));
+      
+      // remove all values for the matched parton 
+      // and the matched jet
+      for(unsigned int a=0; a<distances.size(); ++a){
+        unsigned int pIndex = distances[a].second/genJetsVector.size();
+        int jIndex = distances[a].second-genJetsVector.size()*pIndex;
+        if((pIndex == partonIndex) || (jIndex == jetIndex)){
+          distances.erase(distances.begin()+a, distances.begin()+a+1); 
+          --a;
+        }
+      }
+    }
+    
+    if (match[0].first == 0){
+      if (match[0].second != -1){
+        trueGenJets.push_back(genJetsVector[match[0].second]);
+        genBJetMatch_.SetPxPyPzE(genJetsVector[match[0].second].px(), genJetsVector[match[0].second].py(), genJetsVector[match[0].second].pz(), genJetsVector[match[0].second].energy());
+        matchSuccessB = true;
+        intEventProperties["genBJetMatch"] = 1;
+      }
+      if (match[1].second != -1){
+        trueGenJets.push_back(genJetsVector[match[1].second]);
+        genBbarJetMatch_.SetPxPyPzE(genJetsVector[match[1].second].px(), genJetsVector[match[1].second].py(), genJetsVector[match[1].second].pz(), genJetsVector[match[1].second].energy());
+        matchSuccessBbar = true;
+        intEventProperties["genBbarJetMatch"] = 1;
+      }        
+    }else{
+      if (match[1].second != -1){
+          trueGenJets.push_back(genJetsVector[match[1].second]);
+          genBJetMatch_.SetPxPyPzE(genJetsVector[match[1].second].px(), genJetsVector[match[1].second].py(), genJetsVector[match[1].second].pz(), genJetsVector[match[1].second].energy());
+          matchSuccessB = true;
+          intEventProperties["genBJetMatch"] = 1;
+        }
+         if (match[0].second != -1){
+          trueGenJets.push_back(genJetsVector[match[0].second]);
+          genBbarJetMatch_.SetPxPyPzE(genJetsVector[match[0].second].px(), genJetsVector[match[0].second].py(), genJetsVector[match[0].second].pz(), genJetsVector[match[0].second].energy());
+          matchSuccessBbar = true;
+          intEventProperties["genBbarJetMatch"] = 1;
+        }
+    }
+  }
+  
+  tLorentzVectorEventProperties["bJetGen"] = genBJetMatch_;
+  tLorentzVectorEventProperties["bbarJetGen"] = genBbarJetMatch_;
+  
+  // matching of gen jets to reco jets
+  std::vector<pat::Jet> recoMatchJets;
+  bool matchSuccessBJet = false;
+  bool matchSuccessBbarJet = false;
+  TLorentzVector recoBJetMatch_;
+  TLorentzVector recoBbarJetMatch_;
+  std::vector<pat::Jet> recoJetsVector;
+  if (matchSuccessB && matchSuccessBbar && jets->size() > 0){
+    for(std::vector<pat::Jet >::const_iterator it = jets->begin(); it != jets->end() ; ++it){
+      recoJetsVector.push_back((*it));
+    }
+    
+    std::vector< std::pair<double, unsigned int> > distancesR;
+    for(unsigned int ip=0; ip<trueGenJets.size(); ++ip){
+      for(unsigned int ij=0; ij<recoJetsVector.size(); ++ij){ 
+        double dist = ROOT::Math::VectorUtil::DeltaR(recoJetsVector[ij].p4(), trueGenJets[ip].p4());
+        distancesR.push_back(std::pair<double, unsigned int>(dist, ip*recoJetsVector.size()+ij));
+      }
+    }
+    std::sort(distancesR.begin(), distancesR.end());
+    
+    std::vector< std::pair<unsigned int, int> > match;
+
+    while(match.size() < trueGenJets.size()){
+      unsigned int genJetIndex = distancesR[0].second/recoJetsVector.size();
+      int jetIndex = distancesR[0].second-recoJetsVector.size()*genJetIndex;
+      
+      // use primitive outlier rejection if desired
+      if(distancesR[0].first>0.4) jetIndex = -1;
+
+      // prevent underflow in case of too few jets
+      if( distancesR.empty() )
+        match.push_back(std::make_pair(genJetIndex, -1));
+      else
+        match.push_back(std::make_pair(genJetIndex, jetIndex));
+      
+      // remove all values for the matched genJet 
+      // and the matched jet
+      for(unsigned int a=0; a<distancesR.size(); ++a){
+        unsigned int pIndex = distancesR[a].second/recoJetsVector.size();
+        int jIndex = distancesR[a].second-recoJetsVector.size()*pIndex;
+        if((pIndex == genJetIndex) || (jIndex == jetIndex)){
+          distancesR.erase(distancesR.begin()+a, distancesR.begin()+a+1); 
+          --a;
+        }
+      }
+    }
+    
+    if (match[0].first == 0){
+      if (match[0].second != -1){
+        recoMatchJets.push_back(recoJetsVector[match[0].second]);
+        recoBJetMatch_.SetPxPyPzE(recoJetsVector[match[0].second].px(), recoJetsVector[match[0].second].py(), recoJetsVector[match[0].second].pz(), recoJetsVector[match[0].second].energy());
+        matchSuccessBJet = true;
+      }
+      if (match[1].second != -1){
+        recoMatchJets.push_back(recoJetsVector[match[1].second]);
+        recoBbarJetMatch_.SetPxPyPzE(recoJetsVector[match[1].second].px(), recoJetsVector[match[1].second].py(), recoJetsVector[match[1].second].pz(), recoJetsVector[match[1].second].energy());
+        matchSuccessBbarJet = true;
+      }        
+    }else{
+      if (match[1].second != -1){
+          recoMatchJets.push_back(recoJetsVector[match[1].second]);
+          recoBJetMatch_.SetPxPyPzE(recoJetsVector[match[1].second].px(), recoJetsVector[match[1].second].py(), recoJetsVector[match[1].second].pz(), recoJetsVector[match[1].second].energy());
+          matchSuccessBJet = true;
+        }
+         if (match[0].second != -1){
+          recoMatchJets.push_back(recoJetsVector[match[0].second]);
+          recoBbarJetMatch_.SetPxPyPzE(recoJetsVector[match[0].second].px(), recoJetsVector[match[0].second].py(), recoJetsVector[match[0].second].pz(), recoJetsVector[match[0].second].energy());
+          matchSuccessBbarJet = true;
+        }
+    }
+    if (matchSuccessBJet){
+      floatEventProperties["bJetERecoGenRatio"] = genBJetMatch_.Energy()/recoBJetMatch_.Energy();
+      floatEventProperties["bJetAngleRecoGen"] = recoBJetMatch_.Angle(genBJetMatch_.Vect());
+      floatEventProperties["bJetEtaRecoGen"] = recoBJetMatch_.Eta()-genBJetMatch_.Eta();
+      floatEventProperties["bJetPhiRecoGen"] = recoBJetMatch_.DeltaPhi(genBJetMatch_);
+      intEventProperties["bJetMatch"] = 1;
+  
+    }
+    if (matchSuccessBbarJet){
+      floatEventProperties["bbarJetERecoGenRatio"] = genBbarJetMatch_.Energy()/recoBbarJetMatch_.Energy();
+      floatEventProperties["bbarJetAngleRecoGen"] = recoBbarJetMatch_.Angle(genBbarJetMatch_.Vect());
+      floatEventProperties["bbarJetEtaRecoGen"] = recoBbarJetMatch_.Eta()-genBbarJetMatch_.Eta();
+      floatEventProperties["bbarJetPhiRecoGen"] = recoBbarJetMatch_.DeltaPhi(genBbarJetMatch_);
+      intEventProperties["bbarJetMatch"] = 1;
+    }
+  }
+  
+  tLorentzVectorEventProperties["bJetReco"] = recoBJetMatch_;
+  tLorentzVectorEventProperties["bbarJetReco"] = recoBbarJetMatch_;
+
+  
+
+  floatEventProperties["leptonMinusERecoGenRatio"] = -1; 
+  floatEventProperties["leptonMinusAngleRecoGen"] = -1; 
+  floatEventProperties["leptonMinusEtaRecoGen"] = -1; 
+  floatEventProperties["leptonMinusPhiRecoGen"] = -1; 
+  intEventProperties["leptonMinusMatch"] = 0; 
+  intEventProperties["leptonMinusPdgId"] = 0; 
+  floatEventProperties["leptonPlusERecoGenRatio"] = -1; 
+  floatEventProperties["leptonPlusAngleRecoGen"] = -1; 
+  floatEventProperties["leptonPlusEtaRecoGen"] = -1; 
+  floatEventProperties["leptonPlusPhiRecoGen"] = -1;
+  intEventProperties["leptonPlusMatch"] = 0; 
+  intEventProperties["leptonPlusPdgId"] = 0; 
+  
+  TLorentzVector recoLeptonMinusVector;
+  TLorentzVector recoLeptonPlusVector;
+  bool matchSuccessLeptonMinus = false;
+  bool matchSuccessLeptonPlus = false;
+  // matching of gen leptons to reco leptons
+  if (promptGenLeptonPlus && promptGenLeptonMinus && nPromptL == 2){
+    std::vector<const reco::Candidate*> trueLeptons;
+    trueLeptons.push_back(genLeptonMinus);
+    trueLeptons.push_back(genLeptonPlus);
+    std::vector<pat::Electron> electronVector;
+    std::vector<pat::Muon> muonVector;
+    for(std::vector<pat::Electron>::const_iterator it = electrons->begin(); it != electrons->end() ; ++it){
+      electronVector.push_back((pat::Electron) (*it));
+    }
+    for(std::vector<pat::Muon>::const_iterator it = muons->begin(); it != muons->end() ; ++it){
+      muonVector.push_back((pat::Muon) (*it));
+    }
+    
+    //recoLeptonMinus;
+    if (genLeptonMinus->pdgId() == 11){
+      matchSuccessLeptonMinus = matchGenLepton<pat::Electron>(*genLeptonMinus, electronVector,recoLeptonMinusVector);
+    }else if (genLeptonMinus->pdgId() == 13){
+      matchSuccessLeptonMinus = matchGenLepton<pat::Muon>(*genLeptonMinus, muonVector,recoLeptonMinusVector);
+    }
+    if (matchSuccessLeptonMinus){
+      floatEventProperties["leptonMinusERecoGenRatio"] = genLeptonMinusVector.Energy()/recoLeptonMinusVector.Energy(); 
+      floatEventProperties["leptonMinusAngleRecoGen"] = genLeptonMinusVector.Angle(recoLeptonMinusVector.Vect()); 
+      floatEventProperties["leptonMinusEtaRecoGen"] = recoLeptonMinusVector.Eta()-genLeptonMinusVector.Eta(); 
+      floatEventProperties["leptonMinusPhiRecoGen"] = recoLeptonMinusVector.DeltaPhi(genLeptonMinusVector); 
+      intEventProperties["leptonMinusMatch"] = 1; 
+      intEventProperties["leptonMinusPdgId"] = (*genLeptonMinus).pdgId(); 
+  
+    }
+    
+    //recoLeptonPlus;
+    if (genLeptonPlus->pdgId() == -11){
+      matchSuccessLeptonPlus = matchGenLepton<pat::Electron>(*genLeptonPlus, electronVector,recoLeptonPlusVector);
+    }else if (genLeptonPlus->pdgId() == -13){
+      matchSuccessLeptonPlus = matchGenLepton<pat::Muon>(*genLeptonPlus, muonVector,recoLeptonPlusVector);
+    }
+    if (matchSuccessLeptonPlus){
+      floatEventProperties["leptonPlusERecoGenRatio"] = genLeptonPlusVector.Energy()/recoLeptonPlusVector.Energy(); 
+      floatEventProperties["leptonPlusAngleRecoGen"] = genLeptonPlusVector.Angle(recoLeptonPlusVector.Vect()); 
+      floatEventProperties["leptonPlusEtaRecoGen"] = recoLeptonPlusVector.Eta()-genLeptonPlusVector.Eta(); 
+      floatEventProperties["leptonPlusPhiRecoGen"] = recoLeptonPlusVector.DeltaPhi(genLeptonPlusVector); 
+      intEventProperties["leptonPlusMatch"] = 1; 
+      intEventProperties["leptonPlusPdgId"] = (*genLeptonPlus).pdgId(); 
+    }
+  }
+  
+  tLorentzVectorEventProperties["leptonMinus"] = recoLeptonMinusVector;
+  tLorentzVectorEventProperties["leptonPlus"]= recoLeptonPlusVector;
+  
+  floatEventProperties["massLeptonPlusB"] = -1;
+  floatEventProperties["genMassLeptonPlusB"] = -1;
+  
+  if (matchSuccessBJet && matchSuccessLeptonPlus){
+    floatEventProperties["genMassLeptonPlusB"] = (recoBJetMatch_ + genLeptonPlusVector).M();
+  }
+  if (matchSuccessB && promptGenLeptonPlus){
+    floatEventProperties["genMassLeptonPlusB"] = (genBJetMatch_ + genLeptonPlusVector).M();
+  }
+  
+  floatEventProperties["massLeptonMinusBbar"] = -1;
+  floatEventProperties["genMassLeptonMinusBbar"] = -1;
+  
+  if (matchSuccessBbarJet && matchSuccessLeptonMinus){
+    floatEventProperties["massLeptonMinusBbar"] = (recoBbarJetMatch_ + genLeptonMinusVector).M();
+  }
+  
+  if (matchSuccessBbar && promptGenLeptonMinus){
+    floatEventProperties["genMassLeptonMinusBbar"] =(genBbarJetMatch_ + genLeptonMinusVector).M();
+  }
+  
+  
   floatEventProperties["genMet"] = genMetVector.Pt();
+  floatEventProperties["genMetNeutrinos"] = genMetNeutrinosVector.Pt();
+  floatEventProperties["genMetPromptNeutrinos"] = genMetPromptNeutrinosVector.Pt();
   tLorentzVectorEventProperties["vGenMet"] = genMetVector;  
+  tLorentzVectorEventProperties["vGenMetNeutrinos"] = genMetNeutrinosVector;  
+  tLorentzVectorEventProperties["vGenMetPromptNeutrinos"] = genMetPromptNeutrinosVector;    
+  
+  tLorentzVectorEventProperties["genNu1"] = genNu1Vector;    
+  tLorentzVectorEventProperties["genNu2"] = genNu2Vector;    
   
   TLorentzVector MHT;
   TLorentzVector genMHT;  
@@ -974,7 +1422,7 @@ DiLeptonTreesFromMiniAODMC::analyze(const edm::Event& iEvent, const edm::EventSe
     
     //use pat::Jet::relCorrUncert
     if (correction==0.0){
-  correction = 0.045; 
+      correction = 0.045; 
     }
     //    std::cout << "jet pt = "<<itJet->p4()<<", uncertainty = "<<correction<<std::endl;
     ajetUp.setP4( itJet->p4() * (1.0 + correction) );
@@ -1002,7 +1450,7 @@ DiLeptonTreesFromMiniAODMC::analyze(const edm::Event& iEvent, const edm::EventSe
     
     //use pat::Jet::relCorrUncert
     if (correction==0.0){
-  correction = 0.045; 
+      correction = 0.045; 
     }
     //    std::cout << "jet pt = "<<itJet->p4()<<", uncertainty = "<<correction<<std::endl;
     ajetUp.setP4( itBJet->p4() * (1.0 + correction) );
@@ -1037,46 +1485,57 @@ DiLeptonTreesFromMiniAODMC::analyze(const edm::Event& iEvent, const edm::EventSe
   intEventProperties["nJets"] = nJets;
   intEventProperties["nBadMuonJets"] = nBadMuonJets;
     
+    
   float genHT = 0.;
+  std::vector<reco::GenJet> genJetsCleaned;
   
+  floatEventProperties["genJet1pt"] = -1.0;
+  floatEventProperties["genJet2pt"] = -1.0;
+  floatEventProperties["genJet3pt"] = -1.0;
+  floatEventProperties["genJet4pt"] = -1.0;
   if (isMC){
     for(std::vector<reco::GenJet >::const_iterator it = genJets->begin(); it != genJets->end() ; ++it){
       
-    if ((*it).pt() >=35.0 && fabs((*it).eta())<2.4){
-      
-      bool leptonClean = true;
-      TLorentzVector genJetVector( (*it).px(), (*it).py(), (*it).pz(), (*it).energy() );
-      
-      for(std::vector< pat::Electron >::const_iterator itEle = electrons->begin(); itEle != electrons->end() ; ++itEle){
+      if ((*it).pt() >=35.0 && fabs((*it).eta())<2.4){
         
-        if (leptonClean == false) break;
+        bool leptonClean = true;
+        TLorentzVector genJetVector( (*it).px(), (*it).py(), (*it).pz(), (*it).energy() );
         
-        if (getIso((*itEle),"miniIsoEA")<0.1) {
-          TLorentzVector eleVector( (*itEle).px(), (*itEle).py(), (*itEle).pz(), (*itEle).energy() );
-          if (genJetVector.DeltaR( eleVector ) < 0.4){
-            leptonClean = false;
+        for(std::vector< pat::Electron >::const_iterator itEle = electrons->begin(); itEle != electrons->end() ; ++itEle){
+          
+          if (leptonClean == false) break;
+          
+          if (getIso((*itEle),"miniIsoEA")<0.1) {
+            TLorentzVector eleVector( (*itEle).px(), (*itEle).py(), (*itEle).pz(), (*itEle).energy() );
+            if (genJetVector.DeltaR( eleVector ) < 0.4){
+              leptonClean = false;
+            }
           }
         }
-      }
-      
-      for(std::vector< pat::Muon >::const_iterator itMu = muons->begin(); itMu != muons->end() ; ++itMu){
         
-        if (leptonClean == false) break;
-        
-        if (getIso((*itMu),"miniIsoEA")<0.2) {
-          TLorentzVector muVector( (*itMu).px(), (*itMu).py(), (*itMu).pz(), (*itMu).energy() );
-          if (genJetVector.DeltaR( muVector ) < 0.4){
-            leptonClean = false;
+        for(std::vector< pat::Muon >::const_iterator itMu = muons->begin(); itMu != muons->end() ; ++itMu){
+          
+          if (leptonClean == false) break;
+          
+          if (getIso((*itMu),"miniIsoEA")<0.2) {
+            TLorentzVector muVector( (*itMu).px(), (*itMu).py(), (*itMu).pz(), (*itMu).energy() );
+            if (genJetVector.DeltaR( muVector ) < 0.4){
+              leptonClean = false;
+            }
           }
         }
-      }
-      
-      if (leptonClean == true) {
-        nGenJets++;
-        genHT += (*it).pt();
-      }
-      
-    } 
+        
+        if (leptonClean == true) {
+          nGenJets++;
+          genHT += (*it).pt();
+          genJetsCleaned.push_back(*it);
+          if (nGenJets == 1) floatEventProperties["genJet1pt"] =(*it).pt();
+          if (nGenJets == 2) floatEventProperties["genJet2pt"] =(*it).pt();
+          if (nGenJets == 3) floatEventProperties["genJet3pt"] =(*it).pt();
+          if (nGenJets == 4) floatEventProperties["genJet4pt"] =(*it).pt();
+        }
+        
+      } 
     
     }
     
@@ -1108,9 +1567,9 @@ DiLeptonTreesFromMiniAODMC::analyze(const edm::Event& iEvent, const edm::EventSe
   TLorentzVector genJet2Vector(0.,0.,0.,0.);
 
   if (nGenJets > 0)
-    genJet1Vector.SetPxPyPzE(genJets->at(0).px(),genJets->at(0).py(),genJets->at(0).pz(),genJets->at(0).energy());
+    genJet1Vector.SetPxPyPzE(genJetsCleaned.at(0).px(),genJetsCleaned.at(0).py(),genJetsCleaned.at(0).pz(),genJetsCleaned.at(0).energy());
   if (nGenJets > 1)
-    genJet2Vector.SetPxPyPzE(genJets->at(1).px(),genJets->at(1).py(),genJets->at(1).pz(),genJets->at(1).energy());
+    genJet2Vector.SetPxPyPzE(genJetsCleaned.at(1).px(),genJetsCleaned.at(1).py(),genJetsCleaned.at(1).pz(),genJetsCleaned.at(1).energy());
   tLorentzVectorEventProperties["genJet1"] = genJet1Vector;
   tLorentzVectorEventProperties["genJet2"] = genJet2Vector;
 
@@ -1134,10 +1593,7 @@ DiLeptonTreesFromMiniAODMC::analyze(const edm::Event& iEvent, const edm::EventSe
   TLorentzVector metVectorJESUp = metVector + JESChangeUp;
   TLorentzVector metVectorJESDown = metVector + JESChangeDown;
   floatEventProperties["metJESUp"] = metVectorJESUp.Pt();
-
-
   floatEventProperties["metJESDown"] = metVectorJESDown.Pt();
-
 
 
   // Jet pt
@@ -1154,75 +1610,25 @@ DiLeptonTreesFromMiniAODMC::analyze(const edm::Event& iEvent, const edm::EventSe
   if (jets->size() > 3)
     floatEventProperties["jet4pt"] = jets->at(3).pt();
 
-  floatEventProperties["genJet1pt"] = -1.0;
-  floatEventProperties["genJet2pt"] = -1.0;
-  floatEventProperties["genJet3pt"] = -1.0;
-  floatEventProperties["genJet4pt"] = -1.0;
-    
   
-  if (isMC){
-    int genJet = 0;
-    for(std::vector<reco::GenJet >::const_iterator it = genJets->begin(); it != genJets->end() ; ++it){
-    if ((*it).pt() >=10.0 && fabs((*it).eta())<3.0){  
-          
-      bool leptonClean = true;
-      TLorentzVector genJetVector( (*it).px(), (*it).py(), (*it).pz(), (*it).energy() );
-      
-      for(std::vector< pat::Electron >::const_iterator itEle = electrons->begin(); itEle != electrons->end() ; ++itEle){
-        
-        if (leptonClean == false) break;
-        
-        if (getIso((*itEle),"miniIsoEA")<0.1) {
-          TLorentzVector eleVector( (*itEle).px(), (*itEle).py(), (*itEle).pz(), (*itEle).energy() );
-          if (genJetVector.DeltaR( eleVector ) < 0.4){
-            leptonClean = false;
-          }
-        }
-      }
-      
-      for(std::vector< pat::Muon >::const_iterator itMu = muons->begin(); itMu != muons->end() ; ++itMu){
-        
-        if (leptonClean == false) break;
-        
-        if (getIso((*itMu),"miniIsoEA")<0.2) {
-          TLorentzVector muVector( (*itMu).px(), (*itMu).py(), (*itMu).pz(), (*itMu).energy() );
-          if (genJetVector.DeltaR( muVector ) < 0.4){
-            leptonClean = false;
-          }
-        }
-      }
-      
-      if (leptonClean == true) {
-        genJet++;
-        if (genJet == 1) floatEventProperties["genJet1pt"] =(*it).pt();
-        if (genJet == 2) floatEventProperties["genJet2pt"] =(*it).pt();
-        if (genJet == 3) floatEventProperties["genJet3pt"] =(*it).pt();
-        if (genJet == 4) floatEventProperties["genJet4pt"] =(*it).pt();
-        
-      } 
-    } 
-    
-    }
-    
-  }
+
   
   // bjet pt
-
   TLorentzVector bJet1Vector(0.,0.,0.,0.);
   TLorentzVector bJet2Vector(0.,0.,0.,0.);
-
-
 
   floatEventProperties["bjet1pt"] = -1.0;
   floatEventProperties["bjet2pt"] = -1.0;
   if (bJets->size() > 0){
     floatEventProperties["bjet1pt"] = bJets->at(0).pt();
     bJet1Vector.SetPxPyPzE(bJets->at(0).px(),bJets->at(0).py(),bJets->at(0).pz(),bJets->at(0).energy());
+
   }
   if (bJets->size() > 1){
     floatEventProperties["bjet2pt"] = bJets->at(1).pt();
     bJet2Vector.SetPxPyPzE(bJets->at(1).px(),bJets->at(1).py(),bJets->at(1).pz(),bJets->at(1).energy());
   }
+  
  
   tLorentzVectorEventProperties["bJet1"] = bJet1Vector;
   tLorentzVectorEventProperties["bJet2"] = bJet2Vector;
@@ -1385,14 +1791,13 @@ DiLeptonTreesFromMiniAODMC::analyze(const edm::Event& iEvent, const edm::EventSe
   delete shiftedBJetsJESUp;
   delete shiftedBJetsJESDown;
 
-
 }
 
 
 template <class aT, class bT> void 
 DiLeptonTreesFromMiniAODMC::fillTree( const std::string &treeName, const aT& a, const bT& b,const std::vector<pat::PackedCandidate>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsUp,const std::vector<pat::Jet>&shiftedJetsDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedBJetsUp,const std::vector<pat::Jet>&shiftedBJetsDown, const pat::MET &patMet,const TLorentzVector &MHT,const edm::Handle<reco::VertexCollection> &vertices,const float &rho, const std::map<std::string, int> &intEventProperties, const std::map<std::string, unsigned long> &longIntEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC)
 {
-
+  
   for(std::map<std::string, int>::const_iterator it = intEventProperties.begin(); it != intEventProperties.end(); ++it){
     assert(intBranches_[treeName].find((*it).first) != intBranches_[treeName].end());
     *(intBranches_[treeName][(*it).first]) = (*it).second;
@@ -1419,6 +1824,7 @@ DiLeptonTreesFromMiniAODMC::fillTree( const std::string &treeName, const aT& a, 
   uncorrectedMet.SetPtEtaPhiE(patMet.uncorPt(), 0, \
             patMet.uncorPhi(), patMet.uncorPt());
             
+  
 
   //  std::cout << "met: "<<met.Et()<< ", unCorr met: "<< uncorrectedMet.Et()
   //<< "=> "<< met.Et()* 1./uncorrectedMet.Et()<< " (xCheck: "<< patMet.corSumEt()*1./patMet.uncorrectedPt(pat::MET::uncorrALL) <<")"<<std::endl;
@@ -1654,6 +2060,7 @@ DiLeptonTreesFromMiniAODMC::fillTree( const std::string &treeName, const aT& a, 
   
   //~ std::pair<double, double> pZeta = calcPZeta(aVec, bVec, met);
   *(floatBranches_[treeName]["chargeProduct"]) = a.charge()*b.charge();
+  *(floatBranches_[treeName]["mll"]) = comb.M();
   *(tLorentzVectorBranches_[treeName]["p4"]) = comb;
   *(tLorentzVectorBranches_[treeName]["lepton1"]) = aVec;
   *(tLorentzVectorBranches_[treeName]["lepton2"]) = bVec;
@@ -1683,11 +2090,307 @@ DiLeptonTreesFromMiniAODMC::fillTree( const std::string &treeName, const aT& a, 
   *(floatBranches_[treeName]["deltaPhi"]) = aVec.DeltaPhi( bVec );
   *(floatBranches_[treeName]["deltaR"]) = aVec.DeltaR( bVec );
   //~ *(floatBranches_[treeName]["angle3D"]) = aVec.Angle( bVec.Vect() );
-  *(floatBranches_[treeName]["jzb"]) = (met+comb).Pt() - comb.Pt();
-  *(floatBranches_[treeName]["jzbUncorr"]) = (uncorrectedMet+comb).Pt() - comb.Pt();  
-  *(floatBranches_[treeName]["jzbResponse"]) = (met+comb).Pt() / comb.Pt();
-  *(floatBranches_[treeName]["jzbResponseUncorr"]) = (uncorrectedMet+comb).Pt() / comb.Pt();    
- 
+  
+  // TopKinFit
+  
+  std::vector<std::vector<int> > idcsV;
+  std::vector<TLorentzVector> nusV;
+  std::vector<TLorentzVector> nuBarsV;
+  std::vector<TLorentzVector> topsV;
+  std::vector<TLorentzVector> topBarsV;
+  std::vector<int> nSmearSols;
+  std::vector<std::pair<double, int> > weightsV;
+  
+  
+  int nSol=0;
+  int nSolActual=0;
+  
+  std::vector<pat::Jet> coll1;
+  std::vector<pat::Jet> coll2;
+  
+
+  coll1 = jets;
+  coll2 = jets;
+    
+  int stop1=maxNJets_;
+  int stop2=maxNJets_;
+  if(coll1.size()< static_cast<unsigned int>(stop1) || stop1<0) stop1=coll1.size();
+  if(coll2.size()< static_cast<unsigned int>(stop2) || stop2<0) stop2=coll2.size();
+  
+  
+  
+  // consider all permutations
+  for (int ib = 0; ib<stop1; ib++) {
+    // second loop of the permutations
+    for (int ibbar = 0; ibbar<stop2; ibbar++) {
+      // avoid the diagonal: b and bbar must be distinct jets
+      if(ib==ibbar) continue;
+      
+      // if min two b-jets exist, require use
+      if(bJets35.size() >= 2){
+        if(coll1.at(ib).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.8484 || coll2.at(ibbar).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.8484){
+          continue;
+        }
+      // if one b-jet exists, require use
+      }else if(bJets35.size() == 1){
+        if(coll1.at(ib).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.8484 && coll2.at(ibbar).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.8484){
+          continue;
+        }
+      }
+      
+      
+      std::vector<int> idcs;
+
+      // push back the indices of the jets
+      idcs.push_back(ib);
+      idcs.push_back(ibbar);
+      
+      // leptons
+      TLorentzVector LV_l1 = TLorentzVector(
+            aVec.Px(),
+            aVec.Py(),
+            aVec.Pz(),
+            aVec.E() );
+      TLorentzVector LV_l2 = TLorentzVector(
+            bVec.Px(),
+            bVec.Py(),
+            bVec.Pz(),
+            bVec.E() );
+      
+      // jets      
+      TLorentzVector LV_b    = TLorentzVector(
+            coll1.at(ib).px(),
+            coll1.at(ib).py(),
+            coll1.at(ib).pz(),
+            coll1.at(ib).energy() );
+      TLorentzVector LV_bbar = TLorentzVector(
+            coll2.at(ibbar).px(),
+            coll2.at(ibbar).py(),
+            coll2.at(ibbar).pz(),
+            coll2.at(ibbar).energy());
+            
+      TtFullLepKinSolver::NeutrinoSolution nuSol= solver->getNuSolution( LV_l1, LV_l2 , LV_b, LV_bbar, met);
+      
+      if(nuSol.smearingsWithSols>0){
+        // add the leptons and jets indices to the vector of combinations
+        idcsV.push_back(idcs);
+
+        // add the neutrinos
+        nusV.push_back(TLorentzVector(nuSol.neutrino.px(), nuSol.neutrino.py(), nuSol.neutrino.pz(), nuSol.neutrino.energy()));
+        nuBarsV.push_back(TLorentzVector(nuSol.neutrinoBar.px(), nuSol.neutrinoBar.py(), nuSol.neutrinoBar.pz(), nuSol.neutrinoBar.energy()));
+        topsV.push_back(nuSol.LV_t);
+        topBarsV.push_back(nuSol.LV_t_);
+
+        // add the solution weight
+        weightsV.push_back(std::make_pair(nuSol.weight, nSol));
+        
+        nSmearSols.push_back(nuSol.smearingsWithSols);
+        nSolActual = nSolActual+nuSol.smearingsWithSols;
+        nSol++;
+      }
+      
+      
+    }
+  }
+  
+  // consider combinations with 1 b-tag if no solutions found and two bJets exists (and thus were used)
+  if(bJets35.size() >= 2 && nSol == 0){
+    // consider all permutations
+    for (int ib = 0; ib<stop1; ib++) {
+      // second loop of the permutations
+      for (int ibbar = 0; ibbar<stop2; ibbar++) {
+        // avoid the diagonal: b and bbar must be distinct jets
+        if(ib==ibbar) continue;
+        
+        if( 
+          (coll1.at(ib).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.8484 && coll2.at(ibbar).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.8484) ||
+          (coll1.at(ib).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.8484 && coll2.at(ibbar).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.8484)
+          ){
+            continue;
+        }
+        
+
+        std::vector<int> idcs;
+
+        // push back the indices of the jets
+        idcs.push_back(ib);
+        idcs.push_back(ibbar);
+        
+        // leptons
+        TLorentzVector LV_l1 = TLorentzVector(
+              aVec.Px(),
+              aVec.Py(),
+              aVec.Pz(),
+              aVec.E() );
+        TLorentzVector LV_l2 = TLorentzVector(
+              bVec.Px(),
+              bVec.Py(),
+              bVec.Pz(),
+              bVec.E() );
+        
+        // jets      
+        TLorentzVector LV_b    = TLorentzVector(
+              coll1.at(ib).px(),
+              coll1.at(ib).py(),
+              coll1.at(ib).pz(),
+              coll1.at(ib).energy() );
+        TLorentzVector LV_bbar = TLorentzVector(
+              coll2.at(ibbar).px(),
+              coll2.at(ibbar).py(),
+              coll2.at(ibbar).pz(),
+              coll2.at(ibbar).energy());
+              
+        TtFullLepKinSolver::NeutrinoSolution nuSol= solver->getNuSolution( LV_l1, LV_l2 , LV_b, LV_bbar, met);
+        
+        if(nuSol.smearingsWithSols>0){
+          // add the leptons and jets indices to the vector of combinations
+          idcsV.push_back(idcs);
+
+          // add the neutrinos
+          nusV.push_back(TLorentzVector(nuSol.neutrino.px(), nuSol.neutrino.py(), nuSol.neutrino.pz(), nuSol.neutrino.energy()));
+          nuBarsV.push_back(TLorentzVector(nuSol.neutrinoBar.px(), nuSol.neutrinoBar.py(), nuSol.neutrinoBar.pz(), nuSol.neutrinoBar.energy()));
+          topsV.push_back(nuSol.LV_t);
+          topBarsV.push_back(nuSol.LV_t_);
+          
+          // add the solution weight
+          weightsV.push_back(std::make_pair(nuSol.weight, nSol));
+          
+          nSmearSols.push_back(nuSol.smearingsWithSols);
+          nSolActual = nSolActual+nuSol.smearingsWithSols;
+          nSol++;
+        }
+        
+        
+      }
+    }
+  }
+  
+  // consider combinations without b-tags if no solutions were found and b-jets were previously preferred
+  if ((bJets35.size() >= 1 && nSol == 0)){
+    // consider all permutations
+    for (int ib = 0; ib<stop1; ib++) {
+      // second loop of the permutations
+      for (int ibbar = 0; ibbar<stop2; ibbar++) {
+        // avoid the diagonal: b and bbar must be distinct jets
+        if(ib==ibbar) continue;
+        
+        if(coll1.at(ib).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.8484 || coll2.at(ibbar).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.8484){
+            continue;
+        }
+        
+
+        std::vector<int> idcs;
+
+        // push back the indices of the jets
+        idcs.push_back(ib);
+        idcs.push_back(ibbar);
+        
+        // leptons
+        TLorentzVector LV_l1 = TLorentzVector(
+              aVec.Px(),
+              aVec.Py(),
+              aVec.Pz(),
+              aVec.E() );
+        TLorentzVector LV_l2 = TLorentzVector(
+              bVec.Px(),
+              bVec.Py(),
+              bVec.Pz(),
+              bVec.E() );
+        
+        // jets      
+        TLorentzVector LV_b    = TLorentzVector(
+              coll1.at(ib).px(),
+              coll1.at(ib).py(),
+              coll1.at(ib).pz(),
+              coll1.at(ib).energy() );
+        TLorentzVector LV_bbar = TLorentzVector(
+              coll2.at(ibbar).px(),
+              coll2.at(ibbar).py(),
+              coll2.at(ibbar).pz(),
+              coll2.at(ibbar).energy());
+              
+        TtFullLepKinSolver::NeutrinoSolution nuSol= solver->getNuSolution( LV_l1, LV_l2 , LV_b, LV_bbar, met);
+        
+        if(nuSol.smearingsWithSols>0){
+          // add the leptons and jets indices to the vector of combinations
+          idcsV.push_back(idcs);
+
+          // add the neutrinos
+          nusV.push_back(TLorentzVector(nuSol.neutrino.px(), nuSol.neutrino.py(), nuSol.neutrino.pz(), nuSol.neutrino.energy()));
+          nuBarsV.push_back(TLorentzVector(nuSol.neutrinoBar.px(), nuSol.neutrinoBar.py(), nuSol.neutrinoBar.pz(), nuSol.neutrinoBar.energy()));
+          topsV.push_back(nuSol.LV_t);
+          topBarsV.push_back(nuSol.LV_t_);
+
+          // add the solution weight
+          weightsV.push_back(std::make_pair(nuSol.weight, nSol));
+          
+          nSmearSols.push_back(nuSol.smearingsWithSols);
+          nSolActual = nSolActual+nuSol.smearingsWithSols;
+          nSol++;
+        }
+        
+        
+      }
+    }
+  }
+  
+  
+  // sort vectors by weight in decreasing order
+  if(weightsV.size()>1){
+    sort(weightsV.begin(), weightsV.end(), Compare());
+  }
+
+  // determine the number of solutions which is written in the event
+  int stop_=weightsV.size();
+  if(maxNComb_>0 && maxNComb_< stop_) stop_=maxNComb_;
+  
+  
+  std::vector<std::vector<int> > pIdcs;
+  std::vector<TLorentzVector> pNus;
+  std::vector<TLorentzVector> pNuBars;
+  std::vector<TLorentzVector> pTops;
+  std::vector<TLorentzVector> pTopBars;
+  std::vector<double> pWeight;
+  std::vector<int> pSmearSols;
+  
+  
+  for(int i=0; i<stop_; ++i){
+    pWeight.push_back(weightsV[i].first);
+    pSmearSols.push_back(nSmearSols[weightsV[i].second]);
+    pNus   .push_back(nusV[weightsV[i].second]);
+    pNuBars.push_back(nuBarsV[weightsV[i].second]);
+    pTops   .push_back(topsV[weightsV[i].second]);
+    pTopBars.push_back(topBarsV[weightsV[i].second]);
+    pIdcs  .push_back(idcsV[weightsV[i].second]);
+  }
+  float nuSolWeight = -1;
+  int nSolSmeared = 0;
+  TLorentzVector nu(0.0,0.0,0.0,0.0);
+  TLorentzVector nuBar(0.0,0.0,0.0,0.0);
+  
+  TLorentzVector recoTop(0.0,0.0,0.0,0.0);
+  TLorentzVector recoTopBar(0.0,0.0,0.0,0.0);
+  
+  if(nSol > 0){
+    nu.SetPxPyPzE(pNus[0].Px(), pNus[0].Py(), pNus[0].Pz(), pNus[0].E());
+    nuBar.SetPxPyPzE(pNuBars[0].Px(), pNuBars[0].Py(), pNuBars[0].Pz(), pNuBars[0].E());
+    recoTop.SetPxPyPzE(pTops[0].Px(), pTops[0].Py(), pTops[0].Pz(), pTops[0].E());
+    recoTopBar.SetPxPyPzE(pTopBars[0].Px(), pTopBars[0].Py(), pTopBars[0].Pz(), pTopBars[0].E());
+    nuSolWeight = static_cast<float>(pWeight[0]);
+    nSolSmeared = pSmearSols[0];
+  }
+  
+  *(tLorentzVectorBranches_[treeName]["fitNu1"]) = nu;
+  *(tLorentzVectorBranches_[treeName]["fitNu2"]) = nuBar;
+  *(tLorentzVectorBranches_[treeName]["recoTop"]) = recoTop;
+  *(tLorentzVectorBranches_[treeName]["recoTopBar"]) = recoTopBar;
+  *(intBranches_[treeName]["nNuSols"]) = nSol;
+  *(intBranches_[treeName]["nNuSolsActual"]) = nSolActual;
+  *(intBranches_[treeName]["nNuSolsSmearing"]) = nSolSmeared;
+  *(floatBranches_[treeName]["nuSolWeight"]) = nuSolWeight;
+  
+  
+
   if (writeID_){
     fillLeptonIDs(treeName, a , b , vertices );
   }
@@ -1752,8 +2455,7 @@ DiLeptonTreesFromMiniAODMC::fillTree( const std::string &treeName, const aT& a, 
   *(tLorentzVectorBranches_[treeName]["genLepton1"]) = genLepton1;
   *(tLorentzVectorBranches_[treeName]["genLepton2"]) = genLepton2;
   if(debug) std::cout << ", matched = "<<matched<<", motherId = "<<pdgIds1[1];
-  if(debug) std::cout<<", M = "<< comb.M() <<", chargeProduct = "<< a.charge()*b.charge() <<std::endl;
-  
+  if(debug) std::cout<<", M = "<< comb.M() <<", chargeProduct = "<< a.charge()*b.charge() <<std::endl; 
   
   if (triggerMatches_){
 
@@ -2126,6 +2828,23 @@ void DiLeptonTreesFromMiniAODMC::fillLeptonIDs(const std::string &treeName, cons
   }
 
 
+}
+
+template<class aT> bool DiLeptonTreesFromMiniAODMC::matchGenLepton(const reco::Candidate &genLep, const std::vector<aT> &recoLeptons, TLorentzVector &result){
+    //aT bestMatch;
+  bool success = false;
+  float bestMatchDist = 10;
+  //const aT* bestMatch(nullptr);
+  for(auto const& it : recoLeptons){
+    float deltaR = ROOT::Math::VectorUtil::DeltaR(it.p4(), genLep.p4());
+    if(deltaR < 0.3 && deltaR < bestMatchDist && it.charge() == genLep.charge()){
+      bestMatchDist = deltaR;
+      //bestMatch = &it;
+      result.SetPxPyPzE(it.px(), it.py(), it.pz(), it.energy());
+      success = true;
+    }
+  }
+  return success;  
 }
 
 

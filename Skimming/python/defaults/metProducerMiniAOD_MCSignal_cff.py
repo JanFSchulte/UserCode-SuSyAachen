@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
-from CondCore.DBCommon.CondDBSetup_cfi import *
 
 def metProducerMiniAOD_MCSignal(process):
 

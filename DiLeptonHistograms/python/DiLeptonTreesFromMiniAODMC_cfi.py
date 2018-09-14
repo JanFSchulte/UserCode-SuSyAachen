@@ -10,6 +10,7 @@ from SuSyAachen.DiLeptonHistograms.vertexWeightsUp_cfi import vertexWeightsUp as
 from SuSyAachen.DiLeptonHistograms.vertexWeightsDown_cfi import vertexWeightsDown as vertexWeightParsDown
 from SuSyAachen.DiLeptonHistograms.isolationFunctor_cfi import isolationDefinitions
 from SuSyAachen.DiLeptonHistograms.triggerDefinitionMiniAOD_cff import defaultTriggerDefinition as triggerDefinitions
+from SuSyAachen.DiLeptonHistograms.resolutionSmearing_cfi import resolutionSmearing as resolutionSmearingPars
 DiLeptonTreesFromMiniAODNoTausMC = cms.EDAnalyzer("DiLeptonTreesFromMiniAODMC",
    electrons = cms.InputTag("triggerMatchedPatElectronsPF"),
    looseElectrons = cms.InputTag("LooseElectrons"),
@@ -20,9 +21,10 @@ DiLeptonTreesFromMiniAODNoTausMC = cms.EDAnalyzer("DiLeptonTreesFromMiniAODMC",
    genJets = cms.InputTag("slimmedGenJets"),          
    bJets = cms.InputTag("qualityBJets"),
    bJets35 = cms.InputTag("qualityBJets35"), 
-   #metNoCleaning = cms.InputTag("slimmedMETs","","Analysis"),    
+   metNoCleaning = cms.InputTag("slimmedMETs","","Analysis"),    
    #met = cms.InputTag("slimmedMETs","","Analysis"),   
-   met = cms.InputTag("slimmedMETs"),                  
+   met = cms.InputTag("slimmedMETsMuClean","","Analysis"),   
+   #met = cms.InputTag("slimmedMETs"),                  
    vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
    pfCands = cms.InputTag("packedPFCandidates"),
    genParticles = cms.InputTag("prunedGenParticles"),
@@ -47,9 +49,16 @@ DiLeptonTreesFromMiniAODNoTausMC = cms.EDAnalyzer("DiLeptonTreesFromMiniAODMC",
    pdgIdDefinition = defaultPdgIdDefinition,
    isolationDefinitions = isolationDefinitions,
    triggerDefinitions = triggerDefinitions,
+   resolutionSmearing = resolutionSmearingPars,
    writeID = cms.untracked.bool(False),
-   writeTrigger = cms.untracked.bool(False),
+   writeTrigger = cms.untracked.bool(True),
    doMETUncert = cms.untracked.bool(False), 
+   # ------------------------------------------------
+   # settings for the KinSolver
+   # ------------------------------------------------    
+   maxNJets = cms.int32(-1),   
+   maxNComb = cms.int32(-1),   
+                  
    triggerNames=cms.untracked.vstring(                                     #  1e34  7e33
                   "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",  
                   "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",

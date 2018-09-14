@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
-from CondCore.DBCommon.CondDBSetup_cfi import *
+from CondCore.CondDB.CondDB_cfi import *
 
 def metProducerMiniAOD(process):
 
@@ -18,6 +18,7 @@ def metProducerMiniAOD(process):
         if usePrivateSQlite:
                 import os
                 era="Summer16_23Sep2016AllV3_DATA"
+                
                 from CondCore.CondDB.CondDB_cfi import CondDB
                 CondDBJECFile = CondDB.clone(connect = cms.string('sqlite_file:'+era+'.db'))
                 process.jec = cms.ESSource("PoolDBESSource",
