@@ -101,7 +101,7 @@ DiLeptonTreesFromMiniAODNoTausMC = cms.EDAnalyzer("DiLeptonTreesFromMiniAODMC",
    metFilterNames=cms.untracked.vstring(                                      
                   "Flag_HBHENoiseFilter", 
                   "Flag_HBHENoiseIsoFilter",
-                  "Flag_globalTightHalo2016Filter",   
+                  "Flag_globalSuperTightHalo2016Filter",   
                   "Flag_goodVertices", 
                   "Flag_EcalDeadCellTriggerPrimitiveFilter",   
                   "Flag_eeBadScFilter",                     
