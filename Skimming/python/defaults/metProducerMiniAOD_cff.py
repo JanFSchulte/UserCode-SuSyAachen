@@ -17,7 +17,7 @@ def metProducerMiniAOD(process):
 
         if usePrivateSQlite:
                 import os
-                era="Summer16_23Sep2016AllV3_DATA"
+                era="Fall17_17Nov2017BCDEF_V6_DATA"
                 
                 from CondCore.CondDB.CondDB_cfi import CondDB
                 CondDBJECFile = CondDB.clone(connect = cms.string('sqlite_file:'+era+'.db'))
@@ -63,16 +63,19 @@ def metProducerMiniAOD(process):
                                isData=runOnData,
                                )
                                
-        runMetCorAndUncFromMiniAOD(process,
-                               isData=runOnData,
-                               postfix="MuEGClean",
-                               )
+        
+        # temporary fix for prefire issue, ignore jec for certain forward jets
+        from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
 
-        runMetCorAndUncFromMiniAOD(process,
-                               isData=runOnData,
-                               postfix="Uncorrected",
-                               )
+        runMetCorAndUncFromMiniAOD (
+                process,
+                isData = True, # false for MC
+                fixEE2017 = True,
+                fixEE2017Params = {'userawPt': True, 'PtThreshold':50.0, 'MinEtaThreshold':2.65, 'MaxEtaThreshold': 3.139} ,
+                postfix = "ModifiedMET"
+        )
 
+        
         #~ if not useHFCandidates:
                 #~ runMetCorAndUncFromMiniAOD(process,
                                           #~ isData=runOnData,
@@ -120,5 +123,5 @@ def metProducerMiniAOD(process):
         # end Run corrected MET maker
 
         
-        process.seqmetProducerMiniAOD = cms.Sequence()
+        process.seqmetProducerMiniAOD = cms.Sequence(process.fullPatMetSequence*process.fullPatMetSequenceModifiedMET)
         process.seqmetProducerMiniAODPath = cms.Path(process.seqmetProducerMiniAOD)

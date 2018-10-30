@@ -11,7 +11,6 @@ from SuSyAachen.DiLeptonHistograms.vertexWeightsSignal_cfi import vertexWeights 
 from SuSyAachen.DiLeptonHistograms.vertexWeightsSignalUp_cfi import vertexWeightsUp as vertexWeightParsUp
 from SuSyAachen.DiLeptonHistograms.vertexWeightsSignalDown_cfi import vertexWeightsDown as vertexWeightParsDown
 from SuSyAachen.DiLeptonHistograms.isolationFunctor_cfi import isolationDefinitions
-from SuSyAachen.DiLeptonHistograms.resolutionSmearing_cfi import resolutionSmearing as resolutionSmearingPars
 
 DiLeptonSystematicTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonSystematicTreesFromMiniAOD",
    electrons = cms.InputTag("triggerMatchedPatElectronsPF"),
@@ -23,8 +22,8 @@ DiLeptonSystematicTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonSystematicTre
    genJets = cms.InputTag("slimmedGenJets"),             
    bJets = cms.InputTag("qualityBJets"),
    bJets35 = cms.InputTag("qualityBJets35"), 
-   #met = cms.InputTag("slimmedMETs","","Analysis"),        
-   met = cms.InputTag("slimmedMETs"),          
+   met = cms.InputTag("slimmedMETs","","Analysis"),        
+   #met = cms.InputTag("slimmedMETs"),          
    #met = cms.InputTag("slimmedMETsMuClean","","Analysis"),  
    vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
    pfCands = cms.InputTag("packedPFCandidates"),
@@ -43,33 +42,18 @@ DiLeptonSystematicTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonSystematicTre
    vertexWeightsDown = vertexWeightParsDown,                   
    pdgIdDefinition = defaultPdgIdDefinition,
    isolationDefinitions = isolationDefinitions,
-   resolutionSmearing = resolutionSmearingPars,
    writeID = cms.untracked.bool(False), 
    doMETUncert = cms.untracked.bool(True),
    
-   # ------------------------------------------------
-   # settings for the KinSolver
-   # ------------------------------------------------    
-   maxNJets = cms.int32(-1),   
-   maxNComb = cms.int32(-1),   
-   
    storeMetFilters = cms.untracked.bool(True),
-   badPFMuonFilter = cms.InputTag("badPFMuonFilter"),
-   badChargedCandidateFilter = cms.InputTag("badChargedCandidateFilter"),
-   cloneGlobalMuonFilter = cms.InputTag("cloneGlobalMuonFilter"),
-   badGlobalMuonFilter = cms.InputTag("badGlobalMuonFilter"), 
    metFilterNames=cms.untracked.vstring(                                      
-                  "Flag_HBHENoiseFilter", 
+                  "Flag_goodVertices",              
+                  "Flag_HBHENoiseFilter",
                   "Flag_HBHENoiseIsoFilter",
-                  "Flag_globalSuperTightHalo2016Filter",   
-                  "Flag_goodVertices", 
-                  "Flag_EcalDeadCellTriggerPrimitiveFilter",   
-                  "Flag_eeBadScFilter",                     
+                  "Flag_EcalDeadCellTriggerPrimitiveFilter",
+                  "Flag_BadPFMuonFilter",
+                  "Flag_BadChargedCandidateFilter",
+                  "Flag_ecalBadCalibFilter"                      
 
    ), 
-
-
 )
-
-
-

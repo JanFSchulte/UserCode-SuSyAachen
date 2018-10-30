@@ -27,7 +27,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -69,7 +69,7 @@ using namespace std;
 // class decleration
 //
 
-class signalNominatorTrees : public edm::EDAnalyzer {
+class signalNominatorTrees : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
   explicit signalNominatorTrees(const edm::ParameterSet&);
   ~signalNominatorTrees();
@@ -86,12 +86,12 @@ private:
   void initIntBranch( const std::string &name);
   
 
-  edm::EDGetTokenT< std::vector< pat::Electron > > 			electronToken_;
-  edm::EDGetTokenT< std::vector< pat::Muon > > 				muonToken_;
-  edm::EDGetTokenT< std::vector< pat::Jet > >				jetToken_;  
-  edm::EDGetTokenT< std::vector< reco::GenParticle > >	 	genParticleToken_;
-  edm::EDGetTokenT<reco::VertexCollection> 					vertexToken_;
-  edm::EDGetTokenT<LHEEventProduct>	 						LHEEventToken_;
+  edm::EDGetTokenT< std::vector< pat::Electron > >      electronToken_;
+  edm::EDGetTokenT< std::vector< pat::Muon > >        muonToken_;
+  edm::EDGetTokenT< std::vector< pat::Jet > >       jetToken_;  
+  edm::EDGetTokenT< std::vector< reco::GenParticle > >    genParticleToken_;
+  edm::EDGetTokenT<reco::VertexCollection>          vertexToken_;
+  edm::EDGetTokenT<LHEEventProduct>             LHEEventToken_;
   
   //~ 
   edm::Handle< std::vector< pat::Jet > > jets;
@@ -111,15 +111,16 @@ private:
 
 // constructors and destructor
 signalNominatorTrees::signalNominatorTrees(const edm::ParameterSet& iConfig):
-  electronToken_		(consumes< std::vector< pat::Electron > > 		(iConfig.getParameter<edm::InputTag>("electrons"))),
-  muonToken_			(consumes< std::vector< pat::Muon > >			(iConfig.getParameter<edm::InputTag>("muons"))),
-  jetToken_				(consumes< std::vector< pat::Jet > >			(iConfig.getParameter<edm::InputTag>("jets"))),
-  genParticleToken_		(consumes< std::vector< reco::GenParticle > >	(iConfig.getParameter<edm::InputTag>("genParticles"))),
-  vertexToken_			(consumes<reco::VertexCollection>				(iConfig.getParameter<edm::InputTag>("vertices"))), 
-  LHEEventToken_		(consumes<LHEEventProduct>						(iConfig.getParameter<edm::InputTag>("LHEInfo"))),
+  electronToken_    (consumes< std::vector< pat::Electron > >     (iConfig.getParameter<edm::InputTag>("electrons"))),
+  muonToken_      (consumes< std::vector< pat::Muon > >     (iConfig.getParameter<edm::InputTag>("muons"))),
+  jetToken_       (consumes< std::vector< pat::Jet > >      (iConfig.getParameter<edm::InputTag>("jets"))),
+  genParticleToken_   (consumes< std::vector< reco::GenParticle > > (iConfig.getParameter<edm::InputTag>("genParticles"))),
+  vertexToken_      (consumes<reco::VertexCollection>       (iConfig.getParameter<edm::InputTag>("vertices"))), 
+  LHEEventToken_    (consumes<LHEEventProduct>            (iConfig.getParameter<edm::InputTag>("LHEInfo"))),
   
   getPdgId_( iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition") , consumesCollector() )
 {
+  usesResource("TFileService");
   debug = false;
   consumes<GenEventInfoProduct>(edm::InputTag("generator"));
   consumes<std::vector< PileupSummaryInfo > >(edm::InputTag("slimmedAddPileupInfo"));
@@ -148,50 +149,40 @@ signalNominatorTrees::signalNominatorTrees(const edm::ParameterSet& iConfig):
 
 }
 
-
-
-void 
+void
 signalNominatorTrees::initFloatBranch(const std::string &name)
 {
-  for( std::map<std::string, TTree*>::const_iterator it = trees_.begin();
-       it != trees_.end(); ++it){
-    if(debug) std::cout << (*it).first <<" - "<< name << std::endl;
-    floatBranches_[(*it).first][name] = new float;
-    (*it).second->Branch(name.c_str(), floatBranches_[(*it).first][name], (name+"/F").c_str());
+  for( const auto& it : trees_){
+    if(debug) std::cout << it.first <<" - "<< name << std::endl;
+    floatBranches_[it.first][name] = new float;
+    it.second->Branch(name.c_str(), floatBranches_[it.first][name], (name+"/F").c_str());
   }
 }
 
 void 
 signalNominatorTrees::initIntBranch(const std::string &name)
 {
-  for( std::map<std::string, TTree*>::const_iterator it = trees_.begin();
-       it != trees_.end(); ++it){
-    if(debug) std::cout << (*it).first <<" - "<< name << std::endl;
-    intBranches_[(*it).first][name] = new unsigned int;
-    (*it).second->Branch(name.c_str(), intBranches_[(*it).first][name], (name+"/I").c_str());
+  for( const auto& it : trees_){
+    if(debug) std::cout << it.first <<" - "<< name << std::endl;
+    intBranches_[it.first][name] = new unsigned int;
+    it.second->Branch(name.c_str(), intBranches_[it.first][name], (name+"/I").c_str());
   }
 }
 
 signalNominatorTrees::~signalNominatorTrees()
 { 
-  for( std::map<std::string, std::map< std::string, float*> >::const_iterator it = floatBranches_.begin();
-       it != floatBranches_.end(); ++it){
-    for( std::map< std::string, float*>::const_iterator it2 = (*it).second.begin();
-	 it2 != (*it).second.end(); ++it2){
-      if(debug)std::cout << "deleting: " << (*it).first << " - "<< (*it2).first << std::endl;
-      delete (*it2).second;
+  for( const auto& it: floatBranches_){
+    for( const auto& it2 : it.second){
+      if(debug)std::cout << "deleting: " << it.first << " - "<< it2.first << std::endl;
+      delete it2.second;
     }
   }
-  for( std::map<std::string, std::map< std::string, unsigned int*> >::const_iterator it = intBranches_.begin();
-       it != intBranches_.end(); ++it){
-    for( std::map< std::string, unsigned int*>::const_iterator it2 = (*it).second.begin();
-	 it2 != (*it).second.end(); ++it2){
-      if(debug) std::cout << "deleting: " << (*it).first << " - "<< (*it2).first << std::endl;
-      delete (*it2).second;
+  for( const auto& it: intBranches_){
+    for( const auto& it2 : it.second){
+      if(debug)std::cout << "deleting: " << it.first << " - "<< it2.first << std::endl;
+      delete it2.second;
     }
   }
-
-
 }
 
 // member functions
@@ -253,14 +244,14 @@ signalNominatorTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& i
       }
    }
    else {
-	   floatEventProperties["scaleWeight1"] = 1.;
-	   floatEventProperties["scaleWeight2"] = 1.;
-	   floatEventProperties["scaleWeight3"] = 1.;
-	   floatEventProperties["scaleWeight4"] = 1.;
-	   floatEventProperties["scaleWeight5"] = 1.;
-	   floatEventProperties["scaleWeight6"] = 1.;
-	   floatEventProperties["scaleWeight7"] = 1.;
-	   floatEventProperties["scaleWeight8"] = 1.; 
+     floatEventProperties["scaleWeight1"] = 1.;
+     floatEventProperties["scaleWeight2"] = 1.;
+     floatEventProperties["scaleWeight3"] = 1.;
+     floatEventProperties["scaleWeight4"] = 1.;
+     floatEventProperties["scaleWeight5"] = 1.;
+     floatEventProperties["scaleWeight6"] = 1.;
+     floatEventProperties["scaleWeight7"] = 1.;
+     floatEventProperties["scaleWeight8"] = 1.; 
    }
 
   
@@ -268,44 +259,44 @@ signalNominatorTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& i
   floatEventProperties["mNeutralino2"] = -1;
   
   if (genParticles.isValid()){
-	
-	for (std::vector<reco::GenParticle>::const_iterator itGenParticle = genParticles->begin(); itGenParticle != genParticles->end(); itGenParticle++) {
+  
+  for (std::vector<reco::GenParticle>::const_iterator itGenParticle = genParticles->begin(); itGenParticle != genParticles->end(); itGenParticle++) {
 
-		
-		if ((*itGenParticle).pdgId()== 1000005){
-			floatEventProperties["mSbottom"] = (*itGenParticle).mass();
-		}
-		if ((*itGenParticle).pdgId()== 1000023 ){
-			floatEventProperties["mNeutralino2"] = (*itGenParticle).mass();
-		}
+    
+    if ((*itGenParticle).pdgId()== 1000005){
+      floatEventProperties["mSbottom"] = (*itGenParticle).mass();
+    }
+    if ((*itGenParticle).pdgId()== 1000023 ){
+      floatEventProperties["mNeutralino2"] = (*itGenParticle).mass();
+    }
 
 
-	}
+  }
 
   }
   
   int nISRJets = 0;
   
   for(std::vector<pat::Jet>::const_iterator it = jets->begin(); it != jets->end() ; ++it){
-	if ((*it).pt() >=35.0 && fabs((*it).eta())<2.4){		
-		bool matchedJet = false;
-		for (std::vector<reco::GenParticle>::const_iterator itGenParticle = genParticles->begin(); itGenParticle != genParticles->end(); itGenParticle++) {	
-			if (matchedJet) break;
-			if ( abs((*itGenParticle).pdgId()) > 5 || (*itGenParticle).status() != 23) continue;
-			int momid =  abs((*itGenParticle).mother()->pdgId());
-			if(!(momid == 6 || momid == 23 || momid == 24 || momid == 25 || momid > 1e6)) continue;
-			//check against daughter in case of hard initial splitting
-			for (size_t idau(0); idau < (*itGenParticle).numberOfDaughters(); idau++) {
-				float dR = deltaR((*it), (*itGenParticle).daughter(idau)->p4() );
-				if (dR < 0.3) {
-					matchedJet = true;
-					break;
-				}
-			}
-		}
-		if (!matchedJet) nISRJets++;	
-	}
-	
+  if ((*it).pt() >=35.0 && fabs((*it).eta())<2.4){    
+    bool matchedJet = false;
+    for (std::vector<reco::GenParticle>::const_iterator itGenParticle = genParticles->begin(); itGenParticle != genParticles->end(); itGenParticle++) { 
+      if (matchedJet) break;
+      if ( abs((*itGenParticle).pdgId()) > 5 || (*itGenParticle).status() != 23) continue;
+      int momid =  abs((*itGenParticle).mother()->pdgId());
+      if(!(momid == 6 || momid == 23 || momid == 24 || momid == 25 || momid > 1e6)) continue;
+      //check against daughter in case of hard initial splitting
+      for (size_t idau(0); idau < (*itGenParticle).numberOfDaughters(); idau++) {
+        float dR = deltaR((*it), (*itGenParticle).daughter(idau)->p4() );
+        if (dR < 0.3) {
+          matchedJet = true;
+          break;
+        }
+      }
+    }
+    if (!matchedJet) nISRJets++;  
+  }
+  
   }
   intEventProperties["nISRJets"] = nISRJets;
   
@@ -313,63 +304,63 @@ signalNominatorTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& i
   floatEventProperties["ISRUncertainty"] = 0.;
   
  if (nISRJets==1) {
-	  floatEventProperties["ISRCorrection"] = 0.920;
-	  floatEventProperties["ISRUncertainty"] = 0.040;	  
+    floatEventProperties["ISRCorrection"] = 0.920;
+    floatEventProperties["ISRUncertainty"] = 0.040;   
   }
   if (nISRJets==2) {
-	  floatEventProperties["ISRCorrection"] = 0.821;
-	  floatEventProperties["ISRUncertainty"] = 0.090;	  
+    floatEventProperties["ISRCorrection"] = 0.821;
+    floatEventProperties["ISRUncertainty"] = 0.090;   
   }
   if (nISRJets==3) {
-	  floatEventProperties["ISRCorrection"] = 0.715;
-	  floatEventProperties["ISRUncertainty"] = 0.143;	  
+    floatEventProperties["ISRCorrection"] = 0.715;
+    floatEventProperties["ISRUncertainty"] = 0.143;   
   }
   if (nISRJets==4) {
-	  floatEventProperties["ISRCorrection"] = 0.662;
-	  floatEventProperties["ISRUncertainty"] = 0.169;	  
+    floatEventProperties["ISRCorrection"] = 0.662;
+    floatEventProperties["ISRUncertainty"] = 0.169;   
   }
   if (nISRJets==5) {
-	  floatEventProperties["ISRCorrection"] = 0.561;
-	  floatEventProperties["ISRUncertainty"] = 0.219;	  
+    floatEventProperties["ISRCorrection"] = 0.561;
+    floatEventProperties["ISRUncertainty"] = 0.219;   
   }
   if (nISRJets>=6) {
-	  floatEventProperties["ISRCorrection"] = 0.511;
-	  floatEventProperties["ISRUncertainty"] = 0.244;	  
+    floatEventProperties["ISRCorrection"] = 0.511;
+    floatEventProperties["ISRUncertainty"] = 0.244;   
   }
   
   intEventProperties["nVertices"] = vertices->size();
   
   int nGenVertices = -1;
   
-  if (genParticles.isValid()){	  
-	  edm::Handle<std::vector< PileupSummaryInfo > >  PupInfo;
-	  iEvent.getByLabel(edm::InputTag("slimmedAddPileupInfo"), PupInfo);
-	
-	  std::vector<PileupSummaryInfo>::const_iterator PVI;
+  if (genParticles.isValid()){    
+    edm::Handle<std::vector< PileupSummaryInfo > >  PupInfo;
+    iEvent.getByLabel(edm::InputTag("slimmedAddPileupInfo"), PupInfo);
+  
+    std::vector<PileupSummaryInfo>::const_iterator PVI;
 
   
-	  for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
-		
-		int BX = PVI->getBunchCrossing();
-		
-		if(BX == 0) { 
-		  nGenVertices = PVI->getTrueNumInteractions();
-		  continue;
-		}
-	  }
+    for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
+    
+    int BX = PVI->getBunchCrossing();
+    
+    if(BX == 0) { 
+      nGenVertices = PVI->getTrueNumInteractions();
+      continue;
+    }
+    }
   }
   
   intEventProperties["nGenVertices"] = nGenVertices;
 
+  for(const auto& it : intEventProperties){
+    assert(intBranches_["Tree"].find(it.first) != intBranches_["Tree"].end());
+    *(intBranches_["Tree"][it.first]) = it.second;
+  }
+  for(const auto& it : floatEventProperties){
+    assert(floatBranches_["Tree"].find(it.first) != floatBranches_["Tree"].end());
+    *(floatBranches_["Tree"][it.first]) = it.second;
+  }
   
-  for(std::map<std::string, int>::const_iterator it = intEventProperties.begin(); it != intEventProperties.end(); ++it){
-    assert(intBranches_["Tree"].find((*it).first) != intBranches_["Tree"].end());
-    *(intBranches_["Tree"][(*it).first]) = (*it).second;
-  }
-  for(std::map<std::string, float>::const_iterator it = floatEventProperties.begin(); it != floatEventProperties.end(); ++it){
-    assert(floatBranches_["Tree"].find((*it).first) != floatBranches_["Tree"].end());
-    *(floatBranches_["Tree"][(*it).first]) = (*it).second;
-  }
   trees_["Tree"]->Fill();
 }
 

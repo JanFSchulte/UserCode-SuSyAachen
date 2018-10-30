@@ -16,7 +16,7 @@ def metProducerMiniAOD_MC(process):
 
         if usePrivateSQlite:
                 import os
-                era="Summer16_23Sep2016V3_MC"
+                era="Fall17_17Nov2017_V8_MC"
                 from CondCore.CondDB.CondDB_cfi import CondDB
                 CondDBJECFile = CondDB.clone(connect = cms.string('sqlite_file:'+era+'.db'))
                 process.jec = cms.ESSource("PoolDBESSource",
@@ -61,25 +61,16 @@ def metProducerMiniAOD_MC(process):
                                isData=runOnData,
                                )
 
-        from PhysicsTools.PatUtils.tools.muonRecoMitigation import muonRecoMitigation
-         
-        muonRecoMitigation(
-                       process = process,
-                       pfCandCollection = "packedPFCandidates", #input PF Candidate Collection
-                       runOnMiniAOD = True, #To determine if you are running on AOD or MiniAOD
-                       selection="", #You can use a custom selection for your bad muons. Leave empty if you would like to use the bad muon recipe definition.
-                       muonCollection="", #The muon collection name where your custom selection will be applied to. Leave empty if you would like to use the bad muon recipe definition.
-                       cleanCollName="cleanMuonsPFCandidates", #output pf candidate collection ame
-                       cleaningScheme="all", #Options are: "all", "computeAllApplyBad","computeAllApplyClone". Decides which (or both) bad muon collections to be used for MET cleaning coming from the bad muon recipe.
-                       postfix="" #Use if you would like to add a post fix to your muon / pf collections
-                       )
-        
-        runMetCorAndUncFromMiniAOD(process,
-                           isData=runOnData,
-                           pfCandColl="cleanMuonsPFCandidates",
-                           recoMetFromPFCs=True,
-                           postfix="MuClean"
-                           )
+        # temporary fix for prefire issue, ignore jec for certain forward jets
+        from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+
+        runMetCorAndUncFromMiniAOD (
+                process,
+                isData = False, # false for MC
+                fixEE2017 = True,
+                fixEE2017Params = {'userawPt': True, 'PtThreshold':50.0, 'MinEtaThreshold':2.65, 'MaxEtaThreshold': 3.139} ,
+                postfix = "ModifiedMET"
+        )
         
         #~ if not useHFCandidates:
                         #~ runMetCorAndUncFromMiniAOD(process,
@@ -122,16 +113,6 @@ def metProducerMiniAOD_MC(process):
         ### ------------------------------------------------------------------
 
         # end Run corrected MET maker
-
-
         
-        #process.seqmetProducerMiniAOD_MC = cms.Sequence()
-        process.seqmetProducerMiniAOD_MC = cms.Sequence(                     
-        #~ process.fullPatMetSequence *
-        #~ process.badGlobalMuonTaggerMAOD *
-        #~ process.cloneGlobalMuonTaggerMAOD *
-        process.badMuons *
-        process.cleanMuonsPFCandidates *
-        process.fullPatMetSequenceMuClean
-        )
+        process.seqmetProducerMiniAOD_MC = cms.Sequence(process.fullPatMetSequence*process.fullPatMetSequenceModifiedMET)
         process.seqmetProducerMiniAODPath = cms.Path(process.seqmetProducerMiniAOD_MC)

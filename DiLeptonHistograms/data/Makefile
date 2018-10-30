@@ -1,24 +1,30 @@
 #doku in https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData
-ANA_JSON=~/Doktorarbeit/Dilepton/projects/SubmitScripts/Input/TaskForceJSON.txt
-#/home/home4/institut_1b/edelhoff/superSymmetry/SubmitScripts/Input/Cert_190456-195016_8TeV_PromptReco_Collisions12_JSON.txt
-#/home/home4/institut_1b/edelhoff/superSymmetry/SubmitScripts/Input/Cert_190456-193557_8TeV_PromptReco_Collisions12_JSON.txt
-#/home/home4/institut_1b/edelhoff/superSymmetry/SubmitScripts/Input/Cert_190456-191276_8TeV_PromptReco_Collisions12_JSON.txt
-PU_JSON=/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions12/8TeV/PileUp/pileup_JSON_DCSONLY_190389-208686_All_2012_pixelcorr.txt
-#/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions12/8TeV/PileUp/pileup_JSON_DCSONLY_190389-195165.txt
-#5fbi? /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions12/8TeV/PileUp/pileup_JSON_DCSONLY_190389-196531_patch2.txt
-#1p6fbi/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions12/8TeV/PileUp/pileup_JSON_DCSONLY_190389-193575.txt
-#/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions12/8TeV/PileUp/pileup_JSON_DCSONLY_190389-191276.txt
-PU_CALC=pileupCalc.py --calcMode true --minBiasXsec 69400 --maxPileupBin 60 --numPileupBins 60 
-MAKE_HIST=python makeMChisto.py
+# JSON: 36.459/fb https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2766.html
+ANA_JSON=/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/ReReco/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_v1.txt
+PU_JSON=/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/PileUp/pileup_latest.txt
+NORMTAG_JSON=/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json
 
-mc_PU_3D_dist.root:
-	ls
 
-mc_PU_dist_S10.root:
-	$(MAKE_HIST) $@
+PU_CALC=pileupCalc.py --calcMode true --maxPileupBin 100 --numPileupBins 100 -i ana_json.txt --inputLumiJSON pu_json.txt
+BRIL_CALC=brilcalc lumi --normtag $(NORMTAG_JSON) -u /pb -i $(ANA_JSON)
 
-PU_dist.root:
-	$(PU_CALC) -i $(ANA_JSON) --inputLumiJSON $(PU_JSON) $@
+all: data/puWeights.root
 
-PU_3D_dist.root:
-	ls
+data:
+	mkdir -p $@
+
+mcHist: makeMChisto.py
+	python2.7 $^ mc_PU_dist_Fall2017.root
+
+# For the cross section and its uncertainty, see https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData
+dataHist: Makefile
+#	scp mteroerd@lxplus.cern.ch:$(ANA_JSON) ana_json.txt
+#	scp mteroerd@lxplus.cern.ch:$(PU_JSON) pu_json.txt
+	$(PU_CALC) --minBiasXsec 69200 --pileupHistName pileup PU_dist_2017.root
+	$(PU_CALC) --minBiasXsec 72383 --pileupHistName pileupUp PU_dist_2017_Up.root
+	$(PU_CALC) --minBiasXsec 66017 --pileupHistName pileupDown PU_dist_2017_Down.root
+
+# need to do this where brilws is installed, for now it only works on lxplus: https://cms-service-lumi.web.cern.ch/cms-service-lumi/brilwsdoc.html
+# alias brilcalc in .bashrc, source .bashrc in .bash_login and add 'shopt -s expand_aliases' to .bashrc so that the brilcalc command is usable when it is executed in ssh
+lumi:
+	ssh mteroerd@lxplus.cern.ch $(BRIL_CALC) > lumi_summary.txt

@@ -7,7 +7,7 @@ def corrJetsProducerMC(process):
         usePrivateSQlite=False
         
         if usePrivateSQlite:
-                era="Summer16_23Sep2016V3_MC"
+                era="Fall17_17Nov2017_V8_MC"
                 from CondCore.CondDB.CondDB_cfi import CondDB
                 CondDBJECFile = CondDB.clone(connect = cms.string('sqlite_file:'+era+'.db'))
                 process.jec = cms.ESSource("PoolDBESSource",
@@ -44,6 +44,7 @@ def corrJetsProducerMC(process):
         jetSource = cms.InputTag("slimmedJets"),
         jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetCorrFactorsReapplyJEC"))
         )
+        
 
 
         

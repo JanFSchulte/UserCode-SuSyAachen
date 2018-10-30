@@ -27,7 +27,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -74,7 +74,7 @@ using namespace std;
 // class decleration
 //
 
-class MinimalDiLeptonTreesFromMiniAOD : public edm::EDAnalyzer {
+class MinimalDiLeptonTreesFromMiniAOD : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
   explicit MinimalDiLeptonTreesFromMiniAOD(const edm::ParameterSet&);
   ~MinimalDiLeptonTreesFromMiniAOD();
@@ -102,16 +102,16 @@ private:
   float transverseMass(const TLorentzVector& p, const TLorentzVector& met);
   
 
-  edm::EDGetTokenT< std::vector< pat::Electron > > 			electronToken_;
-  edm::EDGetTokenT< std::vector< pat::Muon > > 				muonToken_;
-  edm::EDGetTokenT< std::vector< pat::Jet > >				jetToken_;
-  edm::EDGetTokenT< std::vector< pat::Jet > >		 		bJetToken_;
-  edm::EDGetTokenT< std::vector< pat::MET > > 				metToken_;
-  edm::EDGetTokenT<reco::VertexCollection> 					vertexToken_;
-  edm::EDGetTokenT< std::vector<pat::PackedCandidate>  > 	pfCandToken_;
-  edm::EDGetTokenT< std::vector< reco::GenParticle > >	 	genParticleToken_;
-  edm::EDGetTokenT<GenEventInfoProduct>	 					genEventInfoToken_;
-  edm::EDGetTokenT<LHEEventProduct>	 						LHEEventToken_;
+  edm::EDGetTokenT< std::vector< pat::Electron > >      electronToken_;
+  edm::EDGetTokenT< std::vector< pat::Muon > >        muonToken_;
+  edm::EDGetTokenT< std::vector< pat::Jet > >       jetToken_;
+  edm::EDGetTokenT< std::vector< pat::Jet > >       bJetToken_;
+  edm::EDGetTokenT< std::vector< pat::MET > >         metToken_;
+  edm::EDGetTokenT<reco::VertexCollection>          vertexToken_;
+  edm::EDGetTokenT< std::vector<pat::PackedCandidate>  >  pfCandToken_;
+  edm::EDGetTokenT< std::vector< reco::GenParticle > >    genParticleToken_;
+  edm::EDGetTokenT<GenEventInfoProduct>           genEventInfoToken_;
+  edm::EDGetTokenT<LHEEventProduct>             LHEEventToken_;
   
   //data
   std::map<std::string, TTree*> trees_;  
@@ -131,22 +131,23 @@ private:
 
 // constructors and destructor
 MinimalDiLeptonTreesFromMiniAOD::MinimalDiLeptonTreesFromMiniAOD(const edm::ParameterSet& iConfig):
-  electronToken_	(consumes< std::vector< pat::Electron > > 		(iConfig.getParameter<edm::InputTag>("electrons"))),
-  muonToken_		(consumes< std::vector< pat::Muon > >			(iConfig.getParameter<edm::InputTag>("muons"))),
-  jetToken_			(consumes< std::vector< pat::Jet > >			(iConfig.getParameter<edm::InputTag>("jets"))),
-  bJetToken_		(consumes< std::vector< pat::Jet > >			(iConfig.getParameter<edm::InputTag>("bJets"))),
-  metToken_			(consumes< std::vector< pat::MET > >			(iConfig.getParameter<edm::InputTag>("met"))),
-  vertexToken_		(consumes<reco::VertexCollection>				(iConfig.getParameter<edm::InputTag>("vertices"))),
-  pfCandToken_		(consumes< std::vector<pat::PackedCandidate>  >	(iConfig.getParameter<edm::InputTag>("pfCands"))),
-  genParticleToken_	(consumes< std::vector< reco::GenParticle > >	(iConfig.getParameter<edm::InputTag>("genParticles"))),
-  genEventInfoToken_(consumes<GenEventInfoProduct>					(iConfig.getParameter<edm::InputTag>("pdfInfo"))),
-  LHEEventToken_	(consumes<LHEEventProduct>						(iConfig.getParameter<edm::InputTag>("LHEInfo"))),
+  electronToken_  (consumes< std::vector< pat::Electron > >     (iConfig.getParameter<edm::InputTag>("electrons"))),
+  muonToken_    (consumes< std::vector< pat::Muon > >     (iConfig.getParameter<edm::InputTag>("muons"))),
+  jetToken_     (consumes< std::vector< pat::Jet > >      (iConfig.getParameter<edm::InputTag>("jets"))),
+  bJetToken_    (consumes< std::vector< pat::Jet > >      (iConfig.getParameter<edm::InputTag>("bJets"))),
+  metToken_     (consumes< std::vector< pat::MET > >      (iConfig.getParameter<edm::InputTag>("met"))),
+  vertexToken_    (consumes<reco::VertexCollection>       (iConfig.getParameter<edm::InputTag>("vertices"))),
+  pfCandToken_    (consumes< std::vector<pat::PackedCandidate>  > (iConfig.getParameter<edm::InputTag>("pfCands"))),
+  genParticleToken_ (consumes< std::vector< reco::GenParticle > > (iConfig.getParameter<edm::InputTag>("genParticles"))),
+  genEventInfoToken_(consumes<GenEventInfoProduct>          (iConfig.getParameter<edm::InputTag>("pdfInfo"))),
+  LHEEventToken_  (consumes<LHEEventProduct>            (iConfig.getParameter<edm::InputTag>("LHEInfo"))),
   
-  //~ susyVars_			(consumes< std:vector<edm::InputTag> >			(iConfig.getParameter<std::vector<edm::InputTag> > ("pdfWeightTags"))),
+  //~ susyVars_     (consumes< std:vector<edm::InputTag> >      (iConfig.getParameter<std::vector<edm::InputTag> > ("pdfWeightTags"))),
   
   fctVtxWeight_    (iConfig.getParameter<edm::ParameterSet>("vertexWeights") ,consumesCollector()),
   getPdgId_( iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition"),consumesCollector() )
 {
+  usesResource("TFileService");
   consumes<std::vector< PileupSummaryInfo > >(edm::InputTag("slimmedAddPileupInfo"));
 
 
@@ -243,7 +244,7 @@ MinimalDiLeptonTreesFromMiniAOD::~MinimalDiLeptonTreesFromMiniAOD()
   for( std::map<std::string, std::map< std::string, float*> >::const_iterator it = floatBranches_.begin();
        it != floatBranches_.end(); ++it){
     for( std::map< std::string, float*>::const_iterator it2 = (*it).second.begin();
-	 it2 != (*it).second.end(); ++it2){
+   it2 != (*it).second.end(); ++it2){
       if(debug)std::cout << "deleting: " << (*it).first << " - "<< (*it2).first << std::endl;
       delete (*it2).second;
     }
@@ -251,7 +252,7 @@ MinimalDiLeptonTreesFromMiniAOD::~MinimalDiLeptonTreesFromMiniAOD()
   for( std::map<std::string, std::map< std::string, unsigned int*> >::const_iterator it = intBranches_.begin();
        it != intBranches_.end(); ++it){
     for( std::map< std::string, unsigned int*>::const_iterator it2 = (*it).second.begin();
-	 it2 != (*it).second.end(); ++it2){
+   it2 != (*it).second.end(); ++it2){
       if(debug) std::cout << "deleting: " << (*it).first << " - "<< (*it2).first << std::endl;
       delete (*it2).second;
     }
@@ -298,21 +299,21 @@ MinimalDiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::Ev
 
 
   edm::Handle<GenEventInfoProduct> genInfoProduct;
-  iEvent.getByToken(genEventInfoToken_, genInfoProduct);	
+  iEvent.getByToken(genEventInfoToken_, genInfoProduct);  
   if (genInfoProduct.isValid()){
-   	if ((*genInfoProduct).weight() < 0.0){
-   	
-   		floatEventProperties["genWeight"] = -1;
-   	}
-   	else{
-   		floatEventProperties["genWeight"] = 1;   	
-   	}
+    if ((*genInfoProduct).weight() < 0.0){
+    
+      floatEventProperties["genWeight"] = -1;
+    }
+    else{
+      floatEventProperties["genWeight"] = 1;    
+    }
   }
   else{
  
- 	floatEventProperties["genWeight"] = 1; 
+  floatEventProperties["genWeight"] = 1; 
   
-  }	  
+  }   
   
     edm::Handle<LHEEventProduct> lheInfoHandle;
     iEvent.getByToken(LHEEventToken_ , lheInfoHandle);
@@ -334,32 +335,32 @@ MinimalDiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::Ev
         }
         floatEventProperties["genHT"] = ht;
     }
-	
-	else floatEventProperties["genHT"] = -999.;
-      	
+  
+  else floatEventProperties["genHT"] = -999.;
+        
 
-	
+  
   intEventProperties["nVertices"] = vertices->size();
   
   int nGenVertices = -1;
  
   
-  if (genParticles.isValid()){	  
-	  edm::Handle<std::vector< PileupSummaryInfo > >  PupInfo;
-	  iEvent.getByLabel(edm::InputTag("slimmedAddPileupInfo"), PupInfo);
-	
-	  std::vector<PileupSummaryInfo>::const_iterator PVI;
+  if (genParticles.isValid()){    
+    edm::Handle<std::vector< PileupSummaryInfo > >  PupInfo;
+    iEvent.getByLabel(edm::InputTag("slimmedAddPileupInfo"), PupInfo);
+  
+    std::vector<PileupSummaryInfo>::const_iterator PVI;
 
   
-	  for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
-		
-		int BX = PVI->getBunchCrossing();
-		
-		if(BX == 0) { 
-		  nGenVertices = PVI->getTrueNumInteractions();
-		  continue;
-		}
-	  }
+    for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
+    
+    int BX = PVI->getBunchCrossing();
+    
+    if(BX == 0) { 
+      nGenVertices = PVI->getTrueNumInteractions();
+      continue;
+    }
+    }
   }
   
   intEventProperties["nGenVertices"] = nGenVertices;
@@ -376,19 +377,19 @@ MinimalDiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::Ev
   pat::MET met = mets->front();
   TLorentzVector metVector(mets->front().px(), mets->front().py(), mets->front().pz(), mets->front().energy());
   TLorentzVector uncorrectedMetVector;
-  uncorrectedMetVector.SetPtEtaPhiE(mets->front().uncorPt(), 0,	mets->front().uncorPhi(), mets->front().uncorPt());
+  uncorrectedMetVector.SetPtEtaPhiE(mets->front().uncorPt(), 0, mets->front().uncorPhi(), mets->front().uncorPt());
   
   floatEventProperties["met"] = metVector.Pt();
   tLorentzVectorEventProperties["vMet"] = metVector; 
   
   tLorentzVectorEventProperties["vMetUncorrected"] = uncorrectedMetVector;
   floatEventProperties["uncorrectedMet"] = uncorrectedMetVector.Pt();
-  	
+    
   
   TLorentzVector genMetVector(0.,0.,0.,0.);
   
   if (genParticles.isValid()){
-	genMetVector.SetPxPyPzE(mets->front().genMET()->px(),mets->front().genMET()->py(),mets->front().genMET()->pz(),mets->front().genMET()->energy());
+  genMetVector.SetPxPyPzE(mets->front().genMET()->px(),mets->front().genMET()->py(),mets->front().genMET()->pz(),mets->front().genMET()->energy());
   }
   
   floatEventProperties["genMet"] = genMetVector.Pt();
@@ -400,19 +401,19 @@ MinimalDiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::Ev
   floatEventProperties["ht"] = 0.0;
   floatEventProperties["mht"] = 0.0;
 
-	
+  
   int nJets=0;
 
   
   for(std::vector<pat::Jet>::const_iterator it = jets->begin(); it != jets->end() ; ++it){
-	if ((*it).pt() >=35.0 && fabs((*it).eta())<2.4){
-		nJets++;
+  if ((*it).pt() >=35.0 && fabs((*it).eta())<2.4){
+    nJets++;
 
-		tempMHT.SetPxPyPzE((*it).px(), (*it).py(), (*it).pz(), (*it).energy());	
-		MHT = MHT + tempMHT;
-		floatEventProperties["ht"] += (*it).pt();
-	}		
-	
+    tempMHT.SetPxPyPzE((*it).px(), (*it).py(), (*it).pz(), (*it).energy()); 
+    MHT = MHT + tempMHT;
+    floatEventProperties["ht"] += (*it).pt();
+  }   
+  
   }
   intEventProperties["nJets"] = nJets;
   
@@ -523,7 +524,7 @@ MinimalDiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT
   TLorentzVector met(patMet.px(), patMet.py(), patMet.pz(), patMet.energy());
   TLorentzVector uncorrectedMet; 
   uncorrectedMet.SetPtEtaPhiE(patMet.uncorPt(), 0, \
-			      patMet.uncorPhi(), patMet.uncorPt());  
+            patMet.uncorPhi(), patMet.uncorPt());  
 
   TLorentzVector comb = aVec+bVec;
   TLorentzVector MHT2 = comb + MHT;
@@ -550,7 +551,7 @@ MinimalDiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT
   *(intBranches_[treeName]["motherPdgId1"]) =-9999;
   *(intBranches_[treeName]["motherPdgId2"]) =-9999;         
   std::vector<int> pdgIds1 = getPdgId_.operator()<aT>(a); 
-  std::vector<int> pdgIds2 = getPdgId_.operator()<bT>(b); 	
+  std::vector<int> pdgIds2 = getPdgId_.operator()<bT>(b);   
   *(intBranches_[treeName]["pdgId1"]) = pdgIds1[0];
   *(intBranches_[treeName]["pdgId2"]) = pdgIds2[0];  
   *(intBranches_[treeName]["motherPdgId1"]) = pdgIds1[1];

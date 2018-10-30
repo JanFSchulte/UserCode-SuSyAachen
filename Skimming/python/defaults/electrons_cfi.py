@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 defaultSelector = cms.EDFilter("PATElectronSelector", 
-	   filter = cms.bool(True),
+     filter = cms.bool(True),
            src = cms.InputTag("cleanLayer1Electrons"),
            cut = cms.string('abs( eta ) <= 2.0 & pt >= 10')#GeV
 )
@@ -57,19 +57,22 @@ PATElectronIDSelector = cms.EDFilter("PATElectronIDSelector",
 PATElectronMVAIDSelector = cms.EDFilter("PATElectronMVAIDSelector", 
   filter = cms.bool(True),
   workingPointCentralBarrelHighPt = cms.double(0.52),
-  workingPointCentralBarrelLowPt = cms.double(0.77),
+  workingPointCentralBarrelLowPt = cms.double(0.2),
+  workingPointCentralBarrelLowPtLinear = cms.double(0.032),
   workingPointOuterBarrelHighPt = cms.double(0.11),
-  workingPointOuterBarrelLowPt = cms.double(0.56),
-  workingPointEndcapHighPt = cms.double(-0.01),
-  workingPointEndcapLowPt = cms.double(0.48),
+  workingPointOuterBarrelLowPt = cms.double(0.1),
+  workingPointOuterBarrelLowPtLinear = cms.double(0.025),
+  workingPointEndcapHighPt = cms.double(0.32),
+  workingPointEndcapLowPt = cms.double(-0.1),
+  workingPointEndcapLowPtLinear = cms.double(0.028),
   src = cms.InputTag("cleanLayer1Electrons"),
-  idMapSource  = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring16GeneralPurposeV1Values") #offlinePrimeryVertices
+  idMapSource  = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Fall17NoIsoV1Values") #offlinePrimeryVertices
 )
 
 PATElectronLooseMVAIDSelector = cms.EDFilter("PATElectronLooseMVAIDSelector", 
   filter = cms.bool(True),
   src = cms.InputTag("cleanLayer1Electrons"),
-  idMapSource  = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Phys14NonTrigValues") #offlinePrimeryVertices
+  idMapSource  = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Fall17NoIsoV1Values") #offlinePrimeryVertices
 )
 
 PATElectronConversionSelector = cms.EDFilter("PATElectronConversionSelector",

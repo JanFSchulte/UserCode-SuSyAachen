@@ -13,12 +13,13 @@
 //
 // Original Author:  matthias edelhoff
 //         Created:  Tue Oct 27 13:50:40 CET 2009
-// $Id: weightSumTrees.cc,v 1.31 2012/09/17 17:38:58 sprenger Exp $
+// $Id: weightSumTrees.cc,v 1.4 2018/10/17 11:56:00 teroerde Exp $
 //
 //
 
 
 // system include files
+#include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
@@ -27,40 +28,23 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
-
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
+#include "FWCore/Framework/interface/ESHandle.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
-#include <DataFormats/Candidate/interface/Candidate.h>
-#include <DataFormats/PatCandidates/interface/Lepton.h>
-
-#include <DataFormats/PatCandidates/interface/Electron.h>
-#include <DataFormats/PatCandidates/interface/Muon.h>
-#include <DataFormats/PatCandidates/interface/Tau.h>
-#include <DataFormats/PatCandidates/interface/Jet.h>
-#include <DataFormats/PatCandidates/interface/MET.h>
-
 #include <DataFormats/Provenance/interface/EventID.h>
 
-#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
-
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
-
-
-#include <SuSyAachen/DiLeptonHistograms/interface/WeightFunctor.h>
-#include <SuSyAachen/DiLeptonHistograms/interface/PdgIdFunctor.h>
-#include <SuSyAachen/DiLeptonHistograms/interface/VertexWeightFunctor.h>
-#include <SuSyAachen/DiLeptonHistograms/interface/IsolationFunctor.h>
 
 //ROOT
 #include "TTree.h"
 #include "TFile.h"
-#include "TLorentzVector.h"
 
 using namespace std;
 
@@ -68,34 +52,23 @@ using namespace std;
 // class decleration
 //
 
-class weightSumTrees : public edm::EDAnalyzer {
+class weightSumTrees : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
   explicit weightSumTrees(const edm::ParameterSet&);
   ~weightSumTrees();
 
-private:
-  //  typedef reco::Candidate candidate;
-  typedef pat::Lepton<reco::Candidate> candidate;
-  typedef edm::View<candidate> collection;
-
+private:  
   virtual void beginJob() ;
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
   virtual void endJob();
 
   void initFloatBranch( const std::string &name);
-  void initIntBranch( const std::string &name);
  
-  template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<reco::PFCandidate>&pfCands, const pat::MET &patMet, const TLorentzVector &MHT, const int &nGenLeptons, const TLorentzVector &genLept1, const TLorentzVector &genLept2, const TLorentzVector &genLept3, const TLorentzVector &genLept4);
-
- 
-
-  edm::InputTag genInfo_;
-
+  edm::EDGetTokenT<GenEventInfoProduct>           genEventInfoToken_;
 
   //data
   std::map<std::string, TTree*> trees_;  
   std::map<std::string, std::map< std::string, float*> > floatBranches_; 
-  std::map<std::string, std::map< std::string, unsigned int*> > intBranches_; 
 
 
 
@@ -104,14 +77,11 @@ private:
 };
 
 // constructors and destructor
-weightSumTrees::weightSumTrees(const edm::ParameterSet& iConfig){
+weightSumTrees::weightSumTrees(const edm::ParameterSet& iConfig):
+  genEventInfoToken_    (consumes<GenEventInfoProduct>          (iConfig.getParameter<edm::InputTag>("genInfo")))
+{
+  usesResource("TFileService");
   debug = false;
-
-  
-  // read config
-
-  genInfo_ = iConfig.getParameter<edm::InputTag>("genInfo");
-
 
   // init trees
   edm::Service<TFileService> file;
@@ -127,41 +97,19 @@ weightSumTrees::weightSumTrees(const edm::ParameterSet& iConfig){
 void 
 weightSumTrees::initFloatBranch(const std::string &name)
 {
-  for( std::map<std::string, TTree*>::const_iterator it = trees_.begin();
-       it != trees_.end(); ++it){
-    if(debug) std::cout << (*it).first <<" - "<< name << std::endl;
-    floatBranches_[(*it).first][name] = new float;
-    (*it).second->Branch(name.c_str(), floatBranches_[(*it).first][name], (name+"/F").c_str());
+  for( const auto& it : trees_){
+    if(debug) std::cout << it.first <<" - "<< name << std::endl;
+    floatBranches_[it.first][name] = new float;
+    it.second->Branch(name.c_str(), floatBranches_[it.first][name], (name+"/F").c_str());
   }
 }
-
-void 
-weightSumTrees::initIntBranch(const std::string &name)
-{
-  for( std::map<std::string, TTree*>::const_iterator it = trees_.begin();
-       it != trees_.end(); ++it){
-    if(debug) std::cout << (*it).first <<" - "<< name << std::endl;
-    intBranches_[(*it).first][name] = new unsigned int;
-    (*it).second->Branch(name.c_str(), intBranches_[(*it).first][name], (name+"/I").c_str());
-  }
-}
-
+ 
 weightSumTrees::~weightSumTrees()
 { 
-  for( std::map<std::string, std::map< std::string, float*> >::const_iterator it = floatBranches_.begin();
-       it != floatBranches_.end(); ++it){
-    for( std::map< std::string, float*>::const_iterator it2 = (*it).second.begin();
-	 it2 != (*it).second.end(); ++it2){
-      if(debug)std::cout << "deleting: " << (*it).first << " - "<< (*it2).first << std::endl;
-      delete (*it2).second;
-    }
-  }
-  for( std::map<std::string, std::map< std::string, unsigned int*> >::const_iterator it = intBranches_.begin();
-       it != intBranches_.end(); ++it){
-    for( std::map< std::string, unsigned int*>::const_iterator it2 = (*it).second.begin();
-	 it2 != (*it).second.end(); ++it2){
-      if(debug) std::cout << "deleting: " << (*it).first << " - "<< (*it2).first << std::endl;
-      delete (*it2).second;
+  for( const auto& it: floatBranches_){
+    for( const auto& it2 : it.second){
+      if(debug)std::cout << "deleting: " << it.first << " - "<< it2.first << std::endl;
+      delete it2.second;
     }
   }
 
@@ -176,34 +124,29 @@ weightSumTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
  
   std::map<std::string, int> intEventProperties;
   std::map<std::string, float> floatEventProperties;
-  std::map<std::string, TLorentzVector> tLorentzVectorEventProperties;
 
   edm::Handle<GenEventInfoProduct> genInfoProduct;
-  iEvent.getByLabel(genInfo_, genInfoProduct);	
+  iEvent.getByToken(genEventInfoToken_, genInfoProduct);  
   if (genInfoProduct.isValid()){
-  	floatEventProperties["genWeightAbsValue"] = (*genInfoProduct).weight();
-   	if ((*genInfoProduct).weight() < 0.0){
-   	
-   		floatEventProperties["genWeight"] = -1;
-   	}
-   	else{
-   		floatEventProperties["genWeight"] = 1;   	
-   	}
+    floatEventProperties["genWeightAbsValue"] = (*genInfoProduct).weight();
+    if ((*genInfoProduct).weight() < 0.0){
+    
+      floatEventProperties["genWeight"] = -1;
+    }
+    else{
+      floatEventProperties["genWeight"] = 1;    
+    }
   }
   else{
  
- 	floatEventProperties["genWeight"] = 1; 
- 	floatEventProperties["genWeightAbsValue"] = 1;
+  floatEventProperties["genWeight"] = 1; 
+  floatEventProperties["genWeightAbsValue"] = 1;
   
-  }	  
+  }  
   
-  for(std::map<std::string, int>::const_iterator it = intEventProperties.begin(); it != intEventProperties.end(); ++it){
-    assert(intBranches_["Tree"].find((*it).first) != intBranches_["Tree"].end());
-    *(intBranches_["Tree"][(*it).first]) = (*it).second;
-  }
-  for(std::map<std::string, float>::const_iterator it = floatEventProperties.begin(); it != floatEventProperties.end(); ++it){
-    assert(floatBranches_["Tree"].find((*it).first) != floatBranches_["Tree"].end());
-    *(floatBranches_["Tree"][(*it).first]) = (*it).second;
+  for(const auto& it : floatEventProperties){
+    assert(floatBranches_["Tree"].find(it.first) != floatBranches_["Tree"].end());
+    *(floatBranches_["Tree"][it.first]) = it.second;
   }
   trees_["Tree"]->Fill();
 }
