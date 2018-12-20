@@ -39,20 +39,20 @@ struct patConversionSelector {
     }
     
     selected_.clear();
-    double dcot = 0;
-    double dist = 0;
+    //double dcot = 0;
+    //double dist = 0;
     for(typename collection::const_iterator it = col.product()->begin(); it != col.product()->end(); ++it ){
-        if(conv_){
+        //if(conv_){
             //const math::XYZPoint tpoint = it->gsfTrack()->referencePoint();
             //const GlobalPoint gp(tpoint.x(), tpoint.y(), tpoint.z());
-            double bfield = 3.801;//mField->inTesla(gp).mag();
-            ConversionInfo info = cf.getConversionInfo(*it, tracks_, bfield);
-            dcot = info.dcot();
-            dist = info.dist();
+            //double bfield = 3.801;//mField->inTesla(gp).mag();
+            //ConversionInfo info = cf.getConversionInfo(*it, tracks_, bfield);
+            //dcot = info.dcot();
+            //dist = info.dist();
             /*std::cout << dist << std::endl;
             std::cout << dcot << std::endl;*/
-        }
-        if(it->gsfTrack()->hitPattern().numberOfAllHits(reco::HitPattern::MISSING_INNER_HITS) >= cutLow_ && it->gsfTrack()->hitPattern().numberOfAllHits(reco::HitPattern::MISSING_INNER_HITS) <= cutHigh_ && (not conv_ || not (std::abs( dcot ) <= cutCot_ && std::abs( dist ) <= cutDist_)) ) selected_.push_back( & (*it) );
+        //} //  && (not conv_ || not (std::abs( dcot ) <= cutCot_ && std::abs( dist ) <= cutDist_))
+        if(it->gsfTrack()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS) >= cutLow_ && it->gsfTrack()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS) <= cutHigh_  ) selected_.push_back( & (*it) );
     }
   }
   

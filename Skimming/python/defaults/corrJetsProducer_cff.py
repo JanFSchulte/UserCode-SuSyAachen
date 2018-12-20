@@ -4,10 +4,10 @@ import FWCore.ParameterSet.Config as cms
 def corrJetsProducer(process):
 
 
-        usePrivateSQlite=False
+        usePrivateSQlite=True
         
         if usePrivateSQlite:
-                era="Fall17_17Nov2017BCDEF_V6_DATA"
+                era="Fall17_17Nov2017_V32_94X_DATA"
                 from CondCore.CondDB.CondDB_cfi import CondDB
                 CondDBJECFile = CondDB.clone(connect = cms.string('sqlite_file:'+era+'.db'))
                 process.jec = cms.ESSource("PoolDBESSource",

@@ -8,7 +8,7 @@ def metProducerMiniAOD_MC(process):
 
         #configurable options =======================================================================
         runOnData=False #data/MC switch
-        usePrivateSQlite=False #use external JECs (sqlite file)
+        usePrivateSQlite=True #use external JECs (sqlite file)
         useHFCandidates=True #create an additionnal NoHF slimmed MET collection if the option is set to false
         applyResiduals=True #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks    and developments (not the official recommendation!).
         redoPuppi=False # rebuild puppiMET
@@ -16,7 +16,7 @@ def metProducerMiniAOD_MC(process):
 
         if usePrivateSQlite:
                 import os
-                era="Fall17_17Nov2017_V8_MC"
+                era="Fall17_17Nov2017_V32_94X_MC"
                 from CondCore.CondDB.CondDB_cfi import CondDB
                 CondDBJECFile = CondDB.clone(connect = cms.string('sqlite_file:'+era+'.db'))
                 process.jec = cms.ESSource("PoolDBESSource",

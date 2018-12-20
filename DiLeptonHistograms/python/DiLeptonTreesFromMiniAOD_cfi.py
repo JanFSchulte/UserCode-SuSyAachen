@@ -22,11 +22,11 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
    met = cms.InputTag("slimmedMETsModifiedMET", "", "Analysis"),               
    met_normal = cms.InputTag("slimmedMETs"),               
    vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
-   pfCands = cms.InputTag("packedPFCandidates"),
+   pfCands = cms.InputTag("isolatedTracks"),
    genParticles = cms.InputTag("prunedGenParticles"),
    pdfInfo = cms.InputTag("generator"),   
    LHEInfo = cms.InputTag("externalLHEProducer"),                       
-   rho = cms.InputTag("fixedGridRhoFastjetCentralNeutral"),    
+   rho = cms.InputTag("fixedGridRhoFastjetAll"),    
    idMapSource = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Fall17NoIsoV1Values"),
    storeMetFilters = cms.untracked.bool(True),
    pdfWeightTags = cms.VInputTag(),
@@ -53,18 +53,14 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
    emTriggerNames=cms.untracked.vstring(
                   "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",       
                   "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",       
-                  "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",       
-                  "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",       
-                  "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",  #test     
-                  "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",     #test 
+                  "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",            
                   "HLT_Mu27_Ele37_CaloIdL_MW_v",       
                   "HLT_Mu37_Ele27_CaloIdL_MW_v",  
    ),
    
-   mmTriggerNames=cms.untracked.vstring( 
-                  "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v",                      
-                  "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",                 
-                  "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v",
+   mmTriggerNames=cms.untracked.vstring(                
+                  "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v", # from Run2017C
+                  "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v", # only Run2017B
                   "HLT_Mu37_TkMu27_v",        
    ),
    
@@ -79,6 +75,12 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
                   "HLT_PFHT780_v",
                   "HLT_PFHT890_v",
                   "HLT_PFHT1050_v" 
+   ),        
+          
+   metTriggerNames=cms.untracked.vstring(
+                  "HLT_PFMET120_PFMHT120_IDTight_v",
+                  "HLT_PFMET120_PFMHT120_IDTight_PFHT60_v",
+                  
    ),
    metFilterNames=cms.untracked.vstring(                                      
                   "Flag_goodVertices",             

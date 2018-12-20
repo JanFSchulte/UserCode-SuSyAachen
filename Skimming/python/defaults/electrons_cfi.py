@@ -3,7 +3,7 @@ import FWCore.ParameterSet.Config as cms
 defaultSelector = cms.EDFilter("PATElectronSelector", 
      filter = cms.bool(True),
            src = cms.InputTag("cleanLayer1Electrons"),
-           cut = cms.string('abs( eta ) <= 2.0 & pt >= 10')#GeV
+           cut = cms.string('abs( eta ) <= 2.5 & pt >= 10')#GeV
 )
 
 PATElectronD0BSSelector = cms.EDFilter("PATElectronD0BSSelector", 

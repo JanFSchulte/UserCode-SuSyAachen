@@ -39,6 +39,7 @@
 
 #include <DataFormats/Candidate/interface/Candidate.h>
 #include <DataFormats/PatCandidates/interface/Lepton.h>
+#include <DataFormats/PatCandidates/interface/IsolatedTrack.h>
 
 #include <DataFormats/PatCandidates/interface/Electron.h>
 #include <DataFormats/PatCandidates/interface/Muon.h>
@@ -81,6 +82,7 @@ using namespace std;
 // class decleration
 //
 
+
 class DiLeptonTreesFromMiniAOD : public edm::one::EDAnalyzer<edm::one::WatchLuminosityBlocks,edm::one::SharedResources> {
 public:
   explicit DiLeptonTreesFromMiniAOD(const edm::ParameterSet&);
@@ -99,7 +101,7 @@ private:
   void initIntBranch( const std::string &name);
   void initLongIntBranch( const std::string &name);
   void initTLorentzVectorBranch( const std::string &name);
-  template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<pat::PackedCandidate>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsJESUp,const std::vector<pat::Jet>&shiftedJetsJESDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedJetsBJESUp,const std::vector<pat::Jet>&shiftedBJetsJESDown,  const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho, const std::map<std::string, int> &intEventProperties, const std::map<std::string, unsigned long> &longIntEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC);
+  template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<pat::IsolatedTrack>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsJESUp,const std::vector<pat::Jet>&shiftedJetsJESDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedJetsBJESUp,const std::vector<pat::Jet>&shiftedBJetsJESDown,  const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho, const std::map<std::string, int> &intEventProperties, const std::map<std::string, unsigned long> &longIntEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC);
   void sumMlb(TLorentzVector &lepton1, TLorentzVector &lepton2, const std::vector<pat::Jet> &jets, const std::vector<pat::Jet> &bjets, float &result_sum_mlb, float &result_mlb_min, float &result_mlb_max);
   const TLorentzVector getMomentum(const  pat::Electron &e);
   const TLorentzVector getMomentum(const  pat::Muon &mu);
@@ -120,11 +122,15 @@ private:
   edm::EDGetTokenT< std::vector< pat::Jet > >       bJet35Token_;
   edm::EDGetTokenT< std::vector< pat::MET > >         metToken_;
   edm::EDGetTokenT<reco::VertexCollection>          vertexToken_;
-  edm::EDGetTokenT< std::vector<pat::PackedCandidate>  >  pfCandToken_;
+  edm::EDGetTokenT< std::vector< pat::IsolatedTrack >  >  pfCandToken_;
   edm::EDGetTokenT< std::vector< reco::GenParticle > >    genParticleToken_;
   edm::EDGetTokenT<GenEventInfoProduct>           genEventInfoToken_;
   edm::EDGetTokenT<LHEEventProduct>             LHEEventToken_;
   edm::EDGetTokenT<double>                  rhoToken_;
+  
+  edm::EDGetTokenT< double > prefweight_token;
+  edm::EDGetTokenT< double > prefweightup_token;
+  edm::EDGetTokenT< double > prefweightdown_token;
   
   edm::EDGetTokenT<edm::TriggerResults>           metFilterToken_;
   
@@ -172,18 +178,22 @@ private:
   std::vector<std::string> emTriggerNames_;
   std::vector<std::string> mmTriggerNames_;
   std::vector<std::string> htTriggerNames_;
+  std::vector<std::string> metTriggerNames_;
   bool eeNewLumiBlock_;
   bool emNewLumiBlock_;
   bool mmNewLumiBlock_;
   bool htNewLumiBlock_;
+  bool metNewLumiBlock_;
   std::map<std::string, Bool_t > eeTriggerDecision_;
   std::map<std::string, Bool_t > emTriggerDecision_;
   std::map<std::string, Bool_t > mmTriggerDecision_;
   std::map<std::string, Bool_t > htTriggerDecision_;
+  std::map<std::string, Bool_t > metTriggerDecision_;
   std::map<std::string, int > eeTriggerIndex_;
   std::map<std::string, int > emTriggerIndex_;
   std::map<std::string, int > mmTriggerIndex_;
   std::map<std::string, int > htTriggerIndex_;
+  std::map<std::string, int > metTriggerIndex_;
   
 };
 
@@ -199,7 +209,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   bJet35Token_        (consumes< std::vector< pat::Jet > >      (iConfig.getParameter<edm::InputTag>("bJets35"))),
   metToken_         (consumes< std::vector< pat::MET > >      (iConfig.getParameter<edm::InputTag>("met"))),
   vertexToken_        (consumes<reco::VertexCollection>       (iConfig.getParameter<edm::InputTag>("vertices"))),
-  pfCandToken_        (consumes< std::vector<pat::PackedCandidate>  > (iConfig.getParameter<edm::InputTag>("pfCands"))),
+  pfCandToken_        (consumes< std::vector<pat::IsolatedTrack>  > (iConfig.getParameter<edm::InputTag>("pfCands"))),
   genParticleToken_     (consumes< std::vector< reco::GenParticle > > (iConfig.getParameter<edm::InputTag>("genParticles"))),
   genEventInfoToken_    (consumes<GenEventInfoProduct>          (iConfig.getParameter<edm::InputTag>("pdfInfo"))),
   LHEEventToken_      (consumes<LHEEventProduct>            (iConfig.getParameter<edm::InputTag>("LHEInfo"))),
@@ -233,10 +243,12 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   emTriggerNames_   (iConfig.getUntrackedParameter< std::vector <std::string> >("emTriggerNames")),
   mmTriggerNames_   (iConfig.getUntrackedParameter< std::vector <std::string> >("mmTriggerNames")),
   htTriggerNames_   (iConfig.getUntrackedParameter< std::vector <std::string> >("htTriggerNames")),
+  metTriggerNames_   (iConfig.getUntrackedParameter< std::vector <std::string> >("metTriggerNames")),
   eeNewLumiBlock_(true),
   emNewLumiBlock_(true),
   mmNewLumiBlock_(true),
-  htNewLumiBlock_(true)
+  htNewLumiBlock_(true),
+  metNewLumiBlock_(true)
 
 {
   usesResource("TFileService");
@@ -246,6 +258,10 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   metUncert_ = iConfig.getUntrackedParameter<bool>("doMETUncert");  
   
   consumes<std::vector< PileupSummaryInfo > >(edm::InputTag("slimmedAddPileupInfo"));
+  
+  prefweight_token = consumes< double >(edm::InputTag("prefiringweight:NonPrefiringProb"));
+  prefweightup_token = consumes< double >(edm::InputTag("prefiringweight:NonPrefiringProbUp"));
+  prefweightdown_token = consumes< double >(edm::InputTag("prefiringweight:NonPrefiringProbDown"));
   
   consumes<edm::TriggerResults>(edm::InputTag("TriggerResults","","HLT"));
   consumes<edm::TriggerResults>(edm::InputTag("TriggerResults","",edm::InputTag::kSkipCurrentProcess));
@@ -261,6 +277,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   
   initFloatBranch( "mll" );  
   initFloatBranch( "genWeight" );  
+  initFloatBranch( "prefireWeight" );   
   initFloatBranch( "genWeightAbsValue" );    
   initFloatBranch( "weight" );
   initFloatBranch( "weightUp" );
@@ -367,6 +384,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   
   initIntBranch( "triggerSummary" );
   initIntBranch( "triggerSummaryHT" );
+  initIntBranch( "triggerSummaryMET" );
   initIntBranch( "metFilterSummary" );
   
   if (storeMetFilters_){
@@ -416,6 +434,16 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
         if(debug) std::cout << it.first <<" - "<< n.c_str() << std::endl;
         boolBranches_[it.first][n.c_str()] = new bool;
         it.second->Branch(n.c_str(), &htTriggerDecision_[n] ,(n+"/O").c_str() );
+      }
+    }
+    for (const auto& n : metTriggerNames_){
+      metTriggerIndex_[n] = -10; //not set and not found
+      metTriggerDecision_[n] = false;
+
+      for( const auto& it : trees_){
+        if(debug) std::cout << it.first <<" - "<< n.c_str() << std::endl;
+        boolBranches_[it.first][n.c_str()] = new bool;
+        it.second->Branch(n.c_str(), &metTriggerDecision_[n] ,(n+"/O").c_str() );
       }
     }
   }
@@ -532,7 +560,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   iEvent.getByToken(looseMuonToken_, looseMuons);
 
 
-  edm::Handle< std::vector<pat::PackedCandidate>  > pfCands;
+  edm::Handle< std::vector<pat::IsolatedTrack>  > pfCands;
   iEvent.getByToken(pfCandToken_, pfCands); 
 
   
@@ -555,124 +583,6 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   
   
   bool isMC = genParticles.isValid();
-  
-  int eeTriggerSummary = 0;
-  int emTriggerSummary = 0;
-  int mmTriggerSummary = 0;
-  int htTriggerSummary = 0;
-  
-  
-  if (writeTrigger_){ 
-    edm::Handle<edm::TriggerResults> triggerBits;
-    edm::InputTag triggerTag("TriggerResults","","HLT");
-    iEvent.getByLabel(triggerTag, triggerBits);
-    
-    // for each lumiBlock, re-read the trigger indices (rather changes for new run)
-    if( eeTriggerIndex_.size() && eeNewLumiBlock_ ) {
-      eeNewLumiBlock_=false;
-      // set all trigger indices to -1 as "not available"-flag
-      for( auto& it : eeTriggerIndex_ )
-        it.second = -1;
-  
-      // store the indices of the trigger names that we really find
-      const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
-      for( unsigned i=0; i<triggerNames.size(); i++ ) {
-          for( auto& it : eeTriggerIndex_ ) {
-            if( triggerNames.triggerName(i).find( it.first ) == 0 ) {
-                it.second = i;
-            }
-          }
-      } // end trigger names
-    } // found indices
-     
-    // for each lumiBlock, re-read the trigger indices (rather changes for new run)
-    if( emTriggerIndex_.size() && emNewLumiBlock_ ) {
-      emNewLumiBlock_=false;
-      // set all trigger indices to -1 as "not available"-flag
-      for( auto& it : emTriggerIndex_ )
-        it.second = -1;
-  
-      // store the indices of the trigger names that we really find
-      const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
-      for( unsigned i=0; i<triggerNames.size(); i++ ) {
-          for( auto& it : emTriggerIndex_ ) {
-            if( triggerNames.triggerName(i).find( it.first ) == 0 ) {
-                it.second = i;
-            }
-          }
-      } // end trigger names
-    } // found indices
-     
-    // for each lumiBlock, re-read the trigger indices (rather changes for new run)
-    if( mmTriggerIndex_.size() && mmNewLumiBlock_ ) {
-      mmNewLumiBlock_=false;
-      // set all trigger indices to -1 as "not available"-flag
-      for( auto& it : mmTriggerIndex_ )
-        it.second = -1;
-  
-      // store the indices of the trigger names that we really find
-      const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
-      for( unsigned i=0; i<triggerNames.size(); i++ ) {
-          for( auto& it : mmTriggerIndex_ ) {
-            if( triggerNames.triggerName(i).find( it.first ) == 0 ) {
-                it.second = i;
-            }
-          }
-      } // end trigger names
-    } // found indices
-    
-    // for each lumiBlock, re-read the trigger indices (rather changes for new run)
-    if( htTriggerIndex_.size() && htNewLumiBlock_ ) {
-      htNewLumiBlock_=false;
-      // set all trigger indices to -1 as "not available"-flag
-      for( auto& it : htTriggerIndex_ )
-        it.second = -1;
-  
-      // store the indices of the trigger names that we really find
-      const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
-      for( unsigned i=0; i<triggerNames.size(); i++ ) {
-          for( auto& it : htTriggerIndex_ ) {
-            if( triggerNames.triggerName(i).find( it.first ) == 0 ) {
-                it.second = i;
-            }
-          }
-      } // end trigger names
-    } // found indices
-    
-    // set trigger decision
-    for( auto& it : eeTriggerIndex_ ) {
-      if( it.second != -1 ) {
-          eeTriggerDecision_[it.first] = triggerBits->accept( it.second );
-          if (eeTriggerDecision_[it.first]){
-            eeTriggerSummary = 1;
-          }
-      }
-    }
-    for( auto& it : emTriggerIndex_ ) {
-      if( it.second != -1 ) {
-          emTriggerDecision_[it.first] = triggerBits->accept( it.second );
-          if (emTriggerDecision_[it.first]){
-            emTriggerSummary = 1;
-          }
-      }
-    }
-    for( auto& it : mmTriggerIndex_ ) {
-      if( it.second != -1 ) {
-          mmTriggerDecision_[it.first] = triggerBits->accept( it.second );
-          if (mmTriggerDecision_[it.first]){
-            mmTriggerSummary = 1;
-          }
-      }
-    }
-    for( auto& it : htTriggerIndex_ ) {
-      if( it.second != -1 ) {
-          htTriggerDecision_[it.first] = triggerBits->accept( it.second );
-          if (htTriggerDecision_[it.first]){
-            htTriggerSummary = 1;
-          }
-      }
-    }
-  }
   
    
   edm::Handle<reco::VertexCollection> vertices;
@@ -705,6 +615,16 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   floatEventProperties["genWeightAbsValue"] = 1;
   
   } 
+  
+  edm::Handle< double > theprefweight;
+  iEvent.getByToken(prefweight_token, theprefweight ) ;
+  double _prefiringweight =(*theprefweight);
+  if (isMC){
+    floatEventProperties["prefireWeight"] = _prefiringweight;
+  }else{
+    floatEventProperties["prefireWeight"] = 1.0;
+  }
+  
   
   // stolen from https://github.com/Aachen-3A/PxlSkimmer/blob/master/Skimming/src/PxlSkimmer_miniAOD.cc#L590
     edm::Handle<LHEEventProduct> lheInfoHandle;
@@ -802,8 +722,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   longIntEventProperties["eventNr"] = iEvent.id().event();
     
 
-
-
+  
   pat::MET met = mets->front();
   TLorentzVector metVector(met.px(), met.py(), met.pz(), met.energy());
   
@@ -1257,7 +1176,172 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
     }
   } 
  
+  int eeTriggerSummary = 0;
+  int emTriggerSummary = 0;
+  int mmTriggerSummary = 0;
+  int htTriggerSummary = 0;
+  int metTriggerSummary = 0;
+  
+  
+  if (writeTrigger_){ 
+    edm::Handle<edm::TriggerResults> triggerBits;
+    edm::InputTag triggerTag("TriggerResults","","HLT");
+    iEvent.getByLabel(triggerTag, triggerBits);
+    
+    // for each lumiBlock, re-read the trigger indices (rather changes for new run)
+    if( eeTriggerIndex_.size() && eeNewLumiBlock_ ) {
+      eeNewLumiBlock_=false;
+      // set all trigger indices to -1 as "not available"-flag
+      for( auto& it : eeTriggerIndex_ )
+        it.second = -1;
+  
+      // store the indices of the trigger names that we really find
+      const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
+      for( unsigned i=0; i<triggerNames.size(); i++ ) {
+          for( auto& it : eeTriggerIndex_ ) {
+            if( triggerNames.triggerName(i).find( it.first ) == 0 ) {
+                it.second = i;
+            }
+          }
+      } // end trigger names
+    } // found indices
+     
+    // for each lumiBlock, re-read the trigger indices (rather changes for new run)
+    if( emTriggerIndex_.size() && emNewLumiBlock_ ) {
+      emNewLumiBlock_=false;
+      // set all trigger indices to -1 as "not available"-flag
+      for( auto& it : emTriggerIndex_ )
+        it.second = -1;
+  
+      // store the indices of the trigger names that we really find
+      const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
+      for( unsigned i=0; i<triggerNames.size(); i++ ) {
+          for( auto& it : emTriggerIndex_ ) {
+            if( triggerNames.triggerName(i).find( it.first ) == 0 ) {
+                it.second = i;
+            }
+          }
+      } // end trigger names
+    } // found indices
+     
+    // for each lumiBlock, re-read the trigger indices (rather changes for new run)
+    if( mmTriggerIndex_.size() && mmNewLumiBlock_ ) {
+      mmNewLumiBlock_=false;
+      // set all trigger indices to -1 as "not available"-flag
+      for( auto& it : mmTriggerIndex_ )
+        it.second = -1;
+  
+      // store the indices of the trigger names that we really find
+      const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
+      for( unsigned i=0; i<triggerNames.size(); i++ ) {
+          for( auto& it : mmTriggerIndex_ ) {
+            if( triggerNames.triggerName(i).find( it.first ) == 0 ) {
+                it.second = i;
+            }
+          }
+      } // end trigger names
+    } // found indices
+    
+    // for each lumiBlock, re-read the trigger indices (rather changes for new run)
+    if( htTriggerIndex_.size() && htNewLumiBlock_ ) {
+      htNewLumiBlock_=false;
+      // set all trigger indices to -1 as "not available"-flag
+      for( auto& it : htTriggerIndex_ )
+        it.second = -1;
+  
+      // store the indices of the trigger names that we really find
+      const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
+      for( unsigned i=0; i<triggerNames.size(); i++ ) {
+          for( auto& it : htTriggerIndex_ ) {
+            if( triggerNames.triggerName(i).find( it.first ) == 0 ) {
+                it.second = i;
+            }
+          }
+      } // end trigger names
+    } // found indices
+    
+    if( metTriggerIndex_.size() && metNewLumiBlock_ ) {
+      metNewLumiBlock_=false;
+      // set all trigger indices to -1 as "not available"-flag
+      for( auto& it : metTriggerIndex_ )
+        it.second = -1;
+  
+      // store the indices of the trigger names that we really find
+      const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
+      for( unsigned i=0; i<triggerNames.size(); i++ ) {
+          for( auto& it : metTriggerIndex_ ) {
+            if( triggerNames.triggerName(i).find( it.first ) == 0 ) {
+                it.second = i;
+            }
+          }
+      } // end trigger names
+    } // found indices
+    
+    // set trigger decision
+    for( auto& it : eeTriggerIndex_ ) {
+      if( it.second != -1 ) {
+          eeTriggerDecision_[it.first] = triggerBits->accept( it.second );
+          if (eeTriggerDecision_[it.first]){
+            eeTriggerSummary = 1;
+          }
+      }
+    }
+    for( auto& it : emTriggerIndex_ ) {
+      if( it.second != -1 ) {
+          emTriggerDecision_[it.first] = triggerBits->accept( it.second );
+          if (emTriggerDecision_[it.first]){
+            emTriggerSummary = 1;
+          }
+      }
+    }
+    for( auto& it : mmTriggerIndex_ ) {
+      if( it.second != -1 ) {
+          mmTriggerDecision_[it.first] = triggerBits->accept( it.second );
+          if (mmTriggerDecision_[it.first]){
+            if (it.first.compare("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v") == 0){
+              if (iEvent.id().run() <= 299329){
+                mmTriggerSummary = 1;
+              }
+            }else{
+              mmTriggerSummary = 1;
+            }
+          }
+      }
+    }
+    for( auto& it : htTriggerIndex_ ) {
+      if( it.second != -1 ) {
+          htTriggerDecision_[it.first] = triggerBits->accept( it.second );
+          if (htTriggerDecision_[it.first]){
+            htTriggerSummary = 1;
+          }
+      }
+    }
+    for( auto& it : metTriggerIndex_ ) {
+      if( it.second != -1 ) {
+          metTriggerDecision_[it.first] = triggerBits->accept( it.second );
+          if (metTriggerDecision_[it.first]){
+            metTriggerSummary = 1;
+          }
+      }
+    }
+  }
+ 
+ 
+  
+ 
   intEventProperties["triggerSummaryHT"] = htTriggerSummary;
+  intEventProperties["triggerSummaryMET"] = metTriggerSummary;
+  
+  
+  //if (iEvent.id().event() == 65832395 or iEvent.id().event() == 65833141){
+      //std::cout << "Event reached" << std::endl;
+      //std::cout << leptonFlavor1 << " " << leptonFlavor2 << std::endl;
+      //std::cout << "ele pt " << getMomentum((*electrons).at(leptonNr2)).Pt() << std::endl;
+      //std::exit(0);
+  //}
+
+  
+  
   if (leptonFlavor1 == "Ele" && leptonFlavor2 == "Ele") {
     intEventProperties["triggerSummary"] = eeTriggerSummary;
     fillTree<pat::Electron, pat::Electron>( "EE", (*electrons).at(leptonNr1), (*electrons).at(leptonNr2),*pfCands,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, longIntEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
@@ -1289,7 +1373,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
 
 
 template <class aT, class bT> void 
-DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, const bT& b,const std::vector<pat::PackedCandidate>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsUp,const std::vector<pat::Jet>&shiftedJetsDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedBJetsUp,const std::vector<pat::Jet>&shiftedBJetsDown, const pat::MET &patMet,const TLorentzVector &MHT,const edm::Handle<reco::VertexCollection> &vertices,const float &rho, const std::map<std::string, int> &intEventProperties, const std::map<std::string, unsigned long> &longIntEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC)
+DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, const bT& b,const std::vector<pat::IsolatedTrack>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsUp,const std::vector<pat::Jet>&shiftedJetsDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedBJetsUp,const std::vector<pat::Jet>&shiftedBJetsDown, const pat::MET &patMet,const TLorentzVector &MHT,const edm::Handle<reco::VertexCollection> &vertices,const float &rho, const std::map<std::string, int> &intEventProperties, const std::map<std::string, unsigned long> &longIntEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC)
 {
 
   for(const auto& it : intEventProperties){
@@ -1381,7 +1465,7 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   
   std::vector < float > trackPts;
   
-  for(std::vector<pat::PackedCandidate>::const_iterator it = pfCands.begin(); it != pfCands.end() ; ++it){
+  for(std::vector<pat::IsolatedTrack>::const_iterator it = pfCands.begin(); it != pfCands.end() ; ++it){
   
     if ((*it).charge()==0) continue;
     
@@ -1389,7 +1473,7 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
     if ( abs((*it).dz()) > 0.1 ) continue;
     if ( (*it).fromPV() <= 1 ) continue;
     
-    absIso = getIso(*it,"trackIso");
+    absIso = (*it).pfIsolationDR03().chargedHadronIso();
     if (absIso >= min(0.2 * (*it).pt(),8.0) ) continue;
     
     if ( deltaR(a,(*it)) < 0.01 || deltaR(b,(*it)) < 0.01 ) continue;
@@ -1584,7 +1668,9 @@ const TLorentzVector DiLeptonTreesFromMiniAOD::getMomentum(const  pat::Electron 
     }
     lowEdge = (*it).second;
   }
-
+  // needs to be produced first before using it
+  //corr = e.userFloat("ecalTrkEnergyPostCorr") / e.energy();
+  
   const TLorentzVector result = TLorentzVector(corr*e.px(), corr*e.py(), corr*e.pz(), corr*e.energy());
   if(debug)std::cout << "correction: "<< corr << ", pt = "<< result.Pt()<<std::endl;
   return result;
@@ -1598,12 +1684,12 @@ const TLorentzVector DiLeptonTreesFromMiniAOD::getMomentum(const  pat::Muon &mu)
 
 float DiLeptonTreesFromMiniAOD::getIso(const  pat::Electron &e, const std::string &method)
 {
-  return fctIsolation_(e,method)* 1./e.pt();
+  return fctIsolation_(e,method)* 1./getMomentum(e).Pt();
 }
 
 float DiLeptonTreesFromMiniAOD::getIso(const  pat::Muon &mu, const std::string &method)
 {
-  return fctIsolation_(mu,method)* 1./mu.pt();
+  return fctIsolation_(mu,method)* 1./getMomentum(mu).Pt();
 }
 
 float DiLeptonTreesFromMiniAOD::getIso(const  pat::PackedCandidate &track, const std::string &method)

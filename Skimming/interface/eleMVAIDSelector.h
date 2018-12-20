@@ -37,7 +37,7 @@ struct eleMVAIDSelector {
     edm::Handle<edm::ValueMap<float> > id_values;
     ev.getByToken(idMapToken_, id_values);
     
-    float slope;
+    //float slope;
     //~ int eventNr;
 
 

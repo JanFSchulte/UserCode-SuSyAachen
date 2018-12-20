@@ -23,7 +23,7 @@ struct isolationSelector {
     fctIsolation_ (cfg.getParameter<edm::ParameterSet>("isolationDefinitions"), (edm::ConsumesCollector&&)iC),
     isoMin_( cfg.getParameter<double>( "isoMin") ),
     isoMax_( cfg.getParameter<double>( "isoMax" ) ),
-	method_( cfg.getParameter<string>( "method" ) ),    
+  method_( cfg.getParameter<string>( "method" ) ),    
     isoMaxEE_(0.1) { }
 
   
@@ -37,15 +37,18 @@ struct isolationSelector {
     selected_.clear();
     double iso = 0;
     for(typename collection::const_iterator it = col.product()->begin(); 
-	it != col.product()->end(); ++it ){
+  it != col.product()->end(); ++it ){
       iso = 0;
       iso = fctIsolation_(*(it),method_) / (*it).pt();
-		
+      //if (ev.id().event() == 65626195){
+        //std::cout << iso << " " << isoMax_ <<std::endl;
+      //}
+    
       //std::cout << iso << std::endl;
       if (iso > isoMin_ && iso < isoMax_){
-	
+  
 
-	  	selected_.push_back( & (*it) );
+      selected_.push_back( & (*it) );
       }
    }
   }
