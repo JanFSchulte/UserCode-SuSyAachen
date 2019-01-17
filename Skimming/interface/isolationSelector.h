@@ -39,12 +39,8 @@ struct isolationSelector {
     for(typename collection::const_iterator it = col.product()->begin(); 
   it != col.product()->end(); ++it ){
       iso = 0;
-      iso = fctIsolation_(*(it),method_) / (*it).pt();
-      //if (ev.id().event() == 65626195){
-        //std::cout << iso << " " << isoMax_ <<std::endl;
-      //}
-    
-      //std::cout << iso << std::endl;
+      iso = fctIsolation_(*(it),method_) / (*it).pt();      
+      
       if (iso > isoMin_ && iso < isoMax_){
   
 

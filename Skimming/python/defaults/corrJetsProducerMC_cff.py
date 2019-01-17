@@ -31,22 +31,17 @@ def corrJetsProducerMC(process):
 
 
 
-        from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import updatedPatJetCorrFactors
-        process.patJetCorrFactorsReapplyJEC = updatedPatJetCorrFactors.clone(
-        src = cms.InputTag("slimmedJets"),
-        levels = ['L1FastJet', 
-            'L2Relative', 
-            'L3Absolute'],
-         payload = 'AK4PFchs' ) # Make sure to choose the appropriate levels and payload here!
-        
-        from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import updatedPatJets 
-        process.patJetsReapplyJEC = updatedPatJets.clone(
-        jetSource = cms.InputTag("slimmedJets"),
-        jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetCorrFactorsReapplyJEC"))
+        from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
+
+        updateJetCollection(
+           process,
+           jetSource = cms.InputTag('slimmedJets'),
+           labelName = 'UpdatedJEC',
+           jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']), 'None')  # Update: Safe to always add 'L2L3Residual' as MC contains dummy L2L3Residual corrections (always set to 1)
         )
         
 
 
         
-        process.seqcorrJetsProducerMC = cms.Sequence(process.patJetCorrFactorsReapplyJEC + process.patJetsReapplyJEC )
+        process.seqcorrJetsProducerMC = cms.Sequence(process.patJetCorrFactorsUpdatedJEC * process.updatedPatJetsUpdatedJEC)
         process.seqcorrJetsPathMC = cms.Path(process.seqcorrJetsProducerMC)

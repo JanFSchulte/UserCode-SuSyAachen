@@ -49,7 +49,7 @@ struct eleMVAIDSelector {
         //std::cout << "pt: " << (*it).pt() << " eta: " << (*it).eta() << " MVA value: " << mvaValue << endl;
         float workingPoint = -9999.;
         float pt = (*it).pt();
-        float eta = fabs((*it).eta());
+        float eta = fabs((*it).superCluster()->eta());
         if (eta < 0.8) {
             if (pt < 25){
                 workingPoint = workingPointCentralBarrelLowPt_ + workingPointCentralBarrelLowPtLinear_ * (pt-10);
@@ -73,12 +73,6 @@ struct eleMVAIDSelector {
         }
         if (mvaValue > workingPoint){
             selected_.push_back( & (*it) );
-            //~ eventNr = ev.id().event();
-            //~ eventNr = (eventNr>0?eventNr:eventNr+4294967296);
-            //~ if (eventNr == 11933833 || eventNr == 15994148 || eventNr == 16656578 || eventNr == 15817262 || eventNr == 13134895 || eventNr == 12128012 ||  eventNr == 13210877 ||  eventNr == 11933854){
-                //~ std::cout << "eventNr: " << eventNr << endl;
-                //~ std::cout << "pt: " << (*it).pt() << " eta: " << (*it).eta() << " MVA value: " << mvaValue << " working Point: " << workingPoint << endl;
-            //~ }
         }
         
     }

@@ -121,6 +121,7 @@ private:
   edm::EDGetTokenT< std::vector< pat::Jet > >       bJetToken_;
   edm::EDGetTokenT< std::vector< pat::Jet > >       bJet35Token_;
   edm::EDGetTokenT< std::vector< pat::MET > >         metToken_;
+  edm::EDGetTokenT< std::vector< pat::MET > >         metRawToken_;
   edm::EDGetTokenT<reco::VertexCollection>          vertexToken_;
   edm::EDGetTokenT< std::vector< pat::IsolatedTrack >  >  pfCandToken_;
   edm::EDGetTokenT< std::vector< reco::GenParticle > >    genParticleToken_;
@@ -208,6 +209,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   bJetToken_        (consumes< std::vector< pat::Jet > >      (iConfig.getParameter<edm::InputTag>("bJets"))),
   bJet35Token_        (consumes< std::vector< pat::Jet > >      (iConfig.getParameter<edm::InputTag>("bJets35"))),
   metToken_         (consumes< std::vector< pat::MET > >      (iConfig.getParameter<edm::InputTag>("met"))),
+  metRawToken_         (consumes< std::vector< pat::MET > >      (iConfig.getParameter<edm::InputTag>("met_normal"))),
   vertexToken_        (consumes<reco::VertexCollection>       (iConfig.getParameter<edm::InputTag>("vertices"))),
   pfCandToken_        (consumes< std::vector<pat::IsolatedTrack>  > (iConfig.getParameter<edm::InputTag>("pfCands"))),
   genParticleToken_     (consumes< std::vector< reco::GenParticle > > (iConfig.getParameter<edm::InputTag>("genParticles"))),
@@ -334,6 +336,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initFloatBranch( "htJESDown" ); 
   initFloatBranch( "mht" );
   initFloatBranch( "met" );
+  initFloatBranch( "met_raw" );
   initFloatBranch( "caloMet" );
   initFloatBranch( "genMet" );
   initFloatBranch( "uncorrectedMet" ); 
@@ -577,6 +580,9 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   
   edm::Handle< std::vector< pat::MET > > mets;
   iEvent.getByToken(metToken_, mets);
+  
+  edm::Handle< std::vector< pat::MET > > mets_raw;
+  iEvent.getByToken(metRawToken_, mets_raw);
 
   edm::Handle< std::vector< reco::GenParticle > > genParticles;
   iEvent.getByToken(genParticleToken_, genParticles);
@@ -726,11 +732,15 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   pat::MET met = mets->front();
   TLorentzVector metVector(met.px(), met.py(), met.pz(), met.energy());
   
+  pat::MET met_raw = mets_raw->front();
+  TLorentzVector metRawVector(met_raw.px(), met_raw.py(), met_raw.pz(), met_raw.energy());
+  
   TLorentzVector uncorrectedMetVector;
   uncorrectedMetVector.SetPtEtaPhiE(met.uncorPt(), 0, met.uncorPhi(), met.uncorPt());
   
   
   floatEventProperties["met"] = metVector.Pt();
+  floatEventProperties["met_raw"] = metRawVector.Pt();
   tLorentzVectorEventProperties["vMet"] = metVector; 
   
   //~ tLorentzVectorEventProperties["vMetUncorrected"] = uncorrectedMetVector;

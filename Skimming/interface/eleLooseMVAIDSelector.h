@@ -13,6 +13,8 @@
 //STL
 #include <vector>
 
+// OBSOLETE, currently only eleMVAIDSelector is used, even for loose electrons!
+
 template<typename T, typename collectionType, typename containerType>
 struct eleLooseMVAIDSelector {
   typedef collectionType collection;
@@ -31,16 +33,17 @@ struct eleLooseMVAIDSelector {
 
     selected_.clear();
     for(typename collection::const_iterator it = col.product()->begin(); it != col.product()->end(); ++it ){
-		const edm::Ptr<pat::Electron> elPtr(col, it - col->begin() );
-		float mvaValue  = (*id_values)[ elPtr ];
+    const edm::Ptr<pat::Electron> elPtr(col, it - col->begin() );
+    float mvaValue  = (*id_values)[ elPtr ];
 
-		float workingPoint = -9999.;
-		if (fabs((*it).eta()) < 0.8) workingPoint =  -0.70;
-		else if (fabs((*it).eta()) < 1.479) workingPoint = -0.83;
-		else workingPoint = -0.92;
-		if (mvaValue > workingPoint){
-			selected_.push_back( & (*it) );
-    	}
+    float workingPoint = -9999.;
+    float eta = fabs((*it).superCluster()->eta();
+    if (eta < 0.8) workingPoint =  -0.70;
+    else if (eta < 1.479) workingPoint = -0.83;
+    else workingPoint = -0.92;
+    if (mvaValue > workingPoint){
+      selected_.push_back( & (*it) );
+      }
     }
   }
 

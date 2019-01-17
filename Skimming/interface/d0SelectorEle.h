@@ -42,14 +42,14 @@ struct d0SelectorEle {
     std::pair<double, double> dS (0.,0.);
     double SIP3D = 0.;
     for(typename collection::const_iterator it = col.product()->begin(); 
-	 it != col.product()->end(); ++it ){
+   it != col.product()->end(); ++it ){
       
       dS = calcDs( *it, point_);
       SIP3D = calcSIP3D( *it);
       if ( dS.first >= d0Min_ && dS.first < d0MaxEB_ && dS.second >= dZMin_ && dS.second < dZMaxEB_ && SIP3D < SIP3DMax_ && SIP3D >= SIP3DMin_ && (*it).isEB() )
-	selected_.push_back( & (*it) );
+  selected_.push_back( & (*it) );
       if ( dS.first >= d0Min_ && dS.first < d0MaxEE_ && dS.second >= dZMin_ && dS.second < dZMaxEE_  && SIP3D < SIP3DMax_ && SIP3D >= SIP3DMin_&& (*it).isEE() )
-	selected_.push_back( & (*it) );
+  selected_.push_back( & (*it) );
     }
   }
   
@@ -57,6 +57,7 @@ struct d0SelectorEle {
   std::pair<double, double> calcDs( pat::Electron p, math::XYZPoint vx)
   {    
     return std::make_pair(std::abs( p.gsfTrack()->dxy( vx )), std::abs( p.gsfTrack()->dz( vx )));  
+    //return std::make_pair(std::abs( p.gsfTrack()->dxy( vx )), std::abs( p.dB(pat::Electron::PVDZ)));  
   }
   
   double calcSIP3D( pat::Electron p)

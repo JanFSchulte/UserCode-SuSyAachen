@@ -164,79 +164,13 @@ double GetMiniIsolation(const T& lepton, const std::vector<pat::PackedCandidate>
   double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/lepton.pt()));
   
   float iso = 0.;
-  
-  //double deadcone_nh(0.), deadcone_ch(0.), deadcone_ph(0.), deadcone_pu(0.);
-  //if (abs(lepton.pdgId()) == 13) {
-      //deadcone_ch = 0.0001; deadcone_pu = 0.01; deadcone_ph = 0.01;deadcone_nh = 0.01;  
-  //} 
-  //else{
-    //if (fabs(lepton.eta())>1.479) {deadcone_ch = 0.015; deadcone_pu = 0.015; deadcone_ph = 0.08;}
-  //}
-  
-  //double deadcone_nh(0.), deadcone_ch(0.), deadcone_ph(0.), deadcone_pu(0.);
-  //if(lepton.isElectron()) {
-  //  if (fabs(lepton.eta())>1.479) {deadcone_ch = 0.015; deadcone_pu = 0.015; deadcone_ph = 0.08;}
-  //} else if(lepton.isMuon()) {
-  //  deadcone_ch = 0.0001; deadcone_pu = 0.01; deadcone_ph = 0.01;deadcone_nh = 0.01;  
-  //}
-  //
-  //
-  //double iso_nh(0.); double iso_ch(0.); 
-  //double iso_ph(0.); double iso_pu(0.);
-  //double ptThresh = 0.5;
-  //if (lepton.isElectron()){
-  //  ptThresh = 0.0;
-  //}
-  
-  //
-  //for (std::vector<pat::PackedCandidate>::const_iterator itPFC = pfCands.begin(); itPFC != pfCands.end(); itPFC++) {
-  //  if (abs((*itPFC).pdgId())<7) continue;
-  //  double dr = deltaR((*itPFC), lepton);
-  //  if (dr > r_iso) continue;
-  //    
-  //    //////////////////  NEUTRALS  /////////////////////////
-  //  if ((*itPFC).charge()==0){
-  //    if ((*itPFC).pt()>ptThresh) {
-  //      double wpf(1.);
-  //        /////////// PHOTONS ////////////
-  //      if (abs((*itPFC).pdgId())==22) {
-  //        if(dr < deadcone_ph) continue;
-  //        iso_ph += wpf*(*itPFC).pt();
-  //    /////////// NEUTRAL HADRONS ////////////
-  //      } else if (abs((*itPFC).pdgId())==130) {
-  //        if(dr < deadcone_nh) continue;
-  //        iso_nh += wpf*(*itPFC).pt();
-  //      }
-  //    }
-  //      //////////////////  CHARGED from PV  /////////////////////////
-  //  } else if ((*itPFC).fromPV()>1){
-  //    if (abs((*itPFC).pdgId())==211) {
-  //      if(dr < deadcone_ch) continue;
-  //      iso_ch += (*itPFC).pt();
-  //    }
-  //      //////////////////  CHARGED from PU  /////////////////////////
-  //  } else {
-  //    if ((*itPFC).pt()>ptThresh){
-  //      if(dr < deadcone_pu) continue;
-  //      iso_pu += (*itPFC).pt();
-  //    }
-  //  }
-  //}
-  //
-  //iso = iso_ph + iso_nh;
-  //
-  ////std::cout << iso << " " << rho << " " << GetAEff(lepton) << " " << r_iso << " " << pow(r_iso/0.3,2) << std::endl;
-  //if (method == "deltaBeta"){
-  //  iso -= 0.5*iso_pu;
-  //  }
-  //if (method == "effectiveArea"){
-  //iso -= GetAEff(lepton) * rho * pow(r_iso/0.3,2);
-  //}
-  //if (iso>0) iso += iso_ch;
-  //else iso = iso_ch;
+
   
   iso = lepton.miniPFIsolation().neutralHadronIso() + lepton.miniPFIsolation().photonIso();
-  iso -= GetAEff(lepton) * rho * pow(r_iso/0.3,2);
+  
+  if (method == "effectiveArea"){
+    iso -= GetAEff(lepton) * rho * pow(r_iso/0.3,2);
+  }
 
   if (iso>0) iso += lepton.miniPFIsolation().chargedHadronIso();
   else iso = lepton.miniPFIsolation().chargedHadronIso();

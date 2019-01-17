@@ -39,12 +39,12 @@ struct d0Selector {
     std::pair<double, double> dS (0.,0.);
     double SIP3D = 0.;
     for(typename collection::const_iterator it = col.product()->begin(); 
-	 it != col.product()->end(); ++it ){
+   it != col.product()->end(); ++it ){
       
       dS = calcDs( *it, point_);
       SIP3D = calcSIP3D( *it);
       if ( dS.first >= d0Min_ && dS.first < d0Max_ && dS.second >= dZMin_ && dS.second < dZMax_ && SIP3D < SIP3DMax_ && SIP3D >= SIP3DMin_)
-	selected_.push_back( & (*it) );
+  selected_.push_back( & (*it) );
     }
   }
   //~ std::pair<double, double> calcDs( reco::PFCandidate p, math::XYZPoint vx)
@@ -61,7 +61,7 @@ struct d0Selector {
   // fast hack: this should be the normal one
   std::pair<double, double> calcDs( pat::Muon p, math::XYZPoint vx )
   {
-    return std::make_pair(std::abs( p.track()->dxy( vx )), std::abs( p.track()->dz( vx )));  
+    return std::make_pair(std::abs( p.muonBestTrack()->dxy( vx )), std::abs( p.muonBestTrack()->dz( vx )));  
   }
   
   //~ double calcSIP3D( reco::PFCandidate p, math::XYZPoint vx)
