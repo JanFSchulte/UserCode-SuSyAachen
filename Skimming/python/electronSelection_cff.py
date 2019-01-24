@@ -19,40 +19,9 @@ d0Electrons = cms.EDFilter("PATElectronD0Selector", filter = filterElectrons,
 )
 
 
-idElectrons = cms.EDFilter("PATElectronIDSelector", filter = filterElectrons,
-  src = cms.InputTag("d0Electrons"),
-  idMapSource  = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V1-miniAOD-standalone-loose") #offlinePrimeryVertices
-)
-
-
 mvaIdElectrons = cms.EDFilter("PATElectronMVAIDSelector", filter = filterElectrons,
   src = cms.InputTag("d0Electrons"),
   idMapSource  = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Phys14NonTrigValues") #offlinePrimeryVertices
-)
-
-mvaIdElectronsLoose = cms.EDFilter("PATElectronLooseMVAIDSelector", filter = filterElectrons,
-  src = cms.InputTag("d0Electrons"),
-  idMapSource  = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Phys14NonTrigValues") #offlinePrimeryVertices
-)
-
-cleanElectrons = cms.EDFilter("PATElectronSelector", filter = filterElectrons,
-  src = cms.InputTag("d0Electrons"),
-  cut = cms.string('')
-)
-
-bJetElectronProducer = cms.EDProducer('bJetElectronProducer',
-    src = cms.InputTag("basicElectrons"),
-    jetSrc = cms.InputTag("basicJets"),
-    dRJetLepton = cms.double(0.2),
-    dPhiOppositeJetLepton = cms.double(2.7),
-    user_bJetAlgo = cms.string("trackCountingHighPurBJetTags"),
-    user_bTagDiscriminator = cms.double(3.),
-)
-
-electronMuonCleaner = cms.EDProducer('electronMuonCleaner',
-    src = cms.InputTag("basicElectrons"),
-    leptSrc = cms.InputTag("basicMuons"),
-    dRJetLepton = cms.double(0.05)
 )
 
 isoElectrons = cms.EDFilter("PATElectronSelector", filter = filterElectrons,
@@ -88,5 +57,4 @@ pfElectronProducer = cms.EDProducer('PfElectronProducer',
   src = cms.InputTag("basicElectrons"),
 )
 
-seqElectrons = cms.Sequence(basicElectrons * qualityElectrons * d0Electrons * cleanElectrons *
-                        isoElectrons)
+seqElectrons = cms.Sequence(basicElectrons * qualityElectrons * d0Electrons * isoElectrons)

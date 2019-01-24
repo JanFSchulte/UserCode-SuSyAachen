@@ -17,9 +17,3 @@ patDefaultSelector = cms.EDFilter("PATPrimaryVertexCleaner",
                                maxDeltaR = cms.double(999999.0),
                                maxDeltaZ = cms.double(999999.0),
                                )
-
-from SuSyAachen.Skimming.countFilter_cfi import vertexCountFilter
-countVertexFilter = vertexCountFilter.clone(
-    src = cms.InputTag("selectedPatJetsPF"),
-    minNumber = cms.uint32(1)
-)

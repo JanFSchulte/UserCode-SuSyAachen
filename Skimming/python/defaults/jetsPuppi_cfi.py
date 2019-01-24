@@ -6,12 +6,6 @@ defaultSelector = cms.EDFilter("PATJetSelector",
            cut = cms.string('abs( eta ) <= 2.0 & pt >= 10')#GeV
 )
 
-from SuSyAachen.Skimming.jetSelectors_cfi import patJetCountFilter as patJetCountFilterOrig
-patJetCountFilter = patJetCountFilterOrig.clone(
-           filter = cms.bool(True),
-           src = cms.InputTag("cleanLayer1JetsAK4"),
-           minNumber = 1
-)
 
 genJetSelector = cms.EDFilter("GenJetSelector", 
            filter = cms.bool(True),
