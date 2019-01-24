@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
 from SuSyAachen.DiLeptonHistograms.pdgIdDefinition_cff import defaultPdgIdDefinition
-from SuSyAachen.DiLeptonHistograms.LeptonFullSimScaleFactorMap_cfi import LeptonFullSimScaleFactorMap as LeptonFullSimScaleFactorMapPars
-from SuSyAachen.DiLeptonHistograms.btagEffMap_cfi import bTagEffMap as bTagEffMapPars
-from SuSyAachen.DiLeptonHistograms.BTagCalibration_cfi import BTagCalibration as BTagCalibrationPars
-from SuSyAachen.DiLeptonHistograms.BTagCalibrationReader_cfi import BTagCalibrationReader as BTagCalibrationReaderPars
-from SuSyAachen.DiLeptonHistograms.vertexWeights_cfi import vertexWeights as vertexWeightPars
-from SuSyAachen.DiLeptonHistograms.vertexWeightsUp_cfi import vertexWeightsUp as vertexWeightParsUp
-from SuSyAachen.DiLeptonHistograms.vertexWeightsDown_cfi import vertexWeightsDown as vertexWeightParsDown
+from SuSyAachen.DiLeptonHistograms.LeptonFullSimScaleFactorMap_cfi import *
+from SuSyAachen.DiLeptonHistograms.btagEffMap_cfi import *
+from SuSyAachen.DiLeptonHistograms.BTagCalibration_cfi import *
+from SuSyAachen.DiLeptonHistograms.BTagCalibrationReader_cfi import *
+from SuSyAachen.DiLeptonHistograms.vertexWeights_cfi import *
+from SuSyAachen.DiLeptonHistograms.vertexWeightsUp_cfi import *
+from SuSyAachen.DiLeptonHistograms.vertexWeightsDown_cfi import *
 from SuSyAachen.DiLeptonHistograms.isolationFunctor_cfi import isolationDefinitions
 from SuSyAachen.DiLeptonHistograms.triggerDefinitionMiniAOD_cff import defaultTriggerDefinition as triggerDefinitions
+from SuSyAachen.DiLeptonHistograms.metFilterLists_cfi import *
+from SuSyAachen.DiLeptonHistograms.triggerLists_cfi import *
+
 DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
    electrons = cms.InputTag("triggerMatchedPatElectronsPF"),
    looseElectrons = cms.InputTag("LooseElectrons"),
@@ -30,13 +33,13 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
    idMapSource = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Fall17NoIsoV1Values"),
    storeMetFilters = cms.untracked.bool(True),
    pdfWeightTags = cms.VInputTag(),
-   bTagEfficiencies = bTagEffMapPars,
-   BTagCalibration = BTagCalibrationPars,
-   BTagCalibrationReader = BTagCalibrationReaderPars,
-   LeptonFullSimScaleFactors = LeptonFullSimScaleFactorMapPars,
-   vertexWeights = vertexWeightPars,
-   vertexWeightsUp = vertexWeightParsUp,
-   vertexWeightsDown = vertexWeightParsDown,                   
+   bTagEfficiencies = bTagEffMapPars2017,
+   BTagCalibration = BTagCalibrationPars2017,
+   BTagCalibrationReader = BTagCalibrationReaderPars2017,
+   LeptonFullSimScaleFactors = LeptonFullSimScaleFactorMapPars2017,
+   vertexWeights = vertexWeightsPars2017,
+   vertexWeightsUp = vertexWeightsParsUp2017,
+   vertexWeightsDown = vertexWeightsParsDown2017,                   
    pdgIdDefinition = defaultPdgIdDefinition,
    isolationDefinitions = isolationDefinitions,
    triggerDefinitions = triggerDefinitions,
@@ -44,54 +47,11 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
    writeTrigger = cms.untracked.bool(True),
    doMETUncert = cms.untracked.bool(False),
    
-   eeTriggerNames=cms.untracked.vstring( 
-                  "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-                  "HLT_DoubleEle33_CaloIdL_MW_v",
-                  "HLT_DoubleEle25_CaloIdL_MW_v",
-   ),
+   eeTriggerNames=eeTriggerNames2017,
+   emTriggerNames=emTriggerNames2017,
+   mmTriggerNames=mmTriggerNames2017,  
+   htTriggerNames=htTriggerNames2017,
+   metTriggerNames=metTriggerNames2017,
    
-   emTriggerNames=cms.untracked.vstring(
-                  "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",       
-                  "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",       
-                  "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",            
-                  "HLT_Mu27_Ele37_CaloIdL_MW_v",       
-                  "HLT_Mu37_Ele27_CaloIdL_MW_v",  
-   ),
-   
-   mmTriggerNames=cms.untracked.vstring(                
-                  "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v", # from Run2017C
-                  "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v", # only Run2017B
-                  "HLT_Mu37_TkMu27_v",        
-   ),
-   
-   htTriggerNames=cms.untracked.vstring(
-                  "HLT_PFHT180_v",
-                  "HLT_PFHT250_v",
-                  "HLT_PFHT370_v",
-                  "HLT_PFHT430_v",
-                  "HLT_PFHT510_v", 
-                  "HLT_PFHT590_v",
-                  "HLT_PFHT680_v",
-                  "HLT_PFHT780_v",
-                  "HLT_PFHT890_v",
-                  "HLT_PFHT1050_v" 
-   ),        
-          
-   metTriggerNames=cms.untracked.vstring(
-                  "HLT_PFMET120_PFMHT120_IDTight_v",
-                  "HLT_PFMET120_PFMHT120_IDTight_PFHT60_v",
-                  
-   ),
-   metFilterNames=cms.untracked.vstring(                                      
-                  "Flag_goodVertices",             
-                  "Flag_globalSuperTightHalo2016Filter",  
-                  "Flag_HBHENoiseFilter",
-                  "Flag_HBHENoiseIsoFilter",
-                  "Flag_EcalDeadCellTriggerPrimitiveFilter",
-                  "Flag_BadPFMuonFilter",
-                  "Flag_BadChargedCandidateFilter",
-                  "Flag_eeBadScFilter",
-                  "Flag_ecalBadCalibFilter"         
-
-   ), 
+   metFilterNames=metFilterNamesData2017,
 )

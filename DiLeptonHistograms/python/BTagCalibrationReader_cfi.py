@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-BTagCalibrationReader = cms.PSet(
+BTagCalibrationReaderPars2017 = cms.PSet(
     measurementType_bJets = cms.string('comb'),
     measurementType_cJets = cms.string('comb'),
     measurementType_lightJets = cms.string('incl'),

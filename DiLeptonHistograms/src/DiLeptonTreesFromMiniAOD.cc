@@ -101,7 +101,7 @@ private:
   void initIntBranch( const std::string &name);
   void initLongIntBranch( const std::string &name);
   void initTLorentzVectorBranch( const std::string &name);
-  template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<pat::IsolatedTrack>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsJESUp,const std::vector<pat::Jet>&shiftedJetsJESDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedJetsBJESUp,const std::vector<pat::Jet>&shiftedBJetsJESDown,  const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho, const std::map<std::string, int> &intEventProperties, const std::map<std::string, unsigned long> &longIntEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC);
+  template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<pat::IsolatedTrack>&isoTracks,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsJESUp,const std::vector<pat::Jet>&shiftedJetsJESDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedJetsBJESUp,const std::vector<pat::Jet>&shiftedBJetsJESDown,  const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho, const std::map<std::string, int> &intEventProperties, const std::map<std::string, unsigned long> &longIntEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC);
   void sumMlb(TLorentzVector &lepton1, TLorentzVector &lepton2, const std::vector<pat::Jet> &jets, const std::vector<pat::Jet> &bjets, float &result_sum_mlb, float &result_mlb_min, float &result_mlb_max);
   const TLorentzVector getMomentum(const  pat::Electron &e);
   const TLorentzVector getMomentum(const  pat::Muon &mu);
@@ -123,7 +123,7 @@ private:
   edm::EDGetTokenT< std::vector< pat::MET > >         metToken_;
   edm::EDGetTokenT< std::vector< pat::MET > >         metRawToken_;
   edm::EDGetTokenT<reco::VertexCollection>          vertexToken_;
-  edm::EDGetTokenT< std::vector< pat::IsolatedTrack >  >  pfCandToken_;
+  edm::EDGetTokenT< std::vector< pat::IsolatedTrack >  >  isoTrackToken_;
   edm::EDGetTokenT< std::vector< reco::GenParticle > >    genParticleToken_;
   edm::EDGetTokenT<GenEventInfoProduct>           genEventInfoToken_;
   edm::EDGetTokenT<LHEEventProduct>             LHEEventToken_;
@@ -211,7 +211,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   metToken_         (consumes< std::vector< pat::MET > >      (iConfig.getParameter<edm::InputTag>("met"))),
   metRawToken_         (consumes< std::vector< pat::MET > >      (iConfig.getParameter<edm::InputTag>("met_normal"))),
   vertexToken_        (consumes<reco::VertexCollection>       (iConfig.getParameter<edm::InputTag>("vertices"))),
-  pfCandToken_        (consumes< std::vector<pat::IsolatedTrack>  > (iConfig.getParameter<edm::InputTag>("pfCands"))),
+  isoTrackToken_        (consumes< std::vector<pat::IsolatedTrack>  > (iConfig.getParameter<edm::InputTag>("isoTracks"))),
   genParticleToken_     (consumes< std::vector< reco::GenParticle > > (iConfig.getParameter<edm::InputTag>("genParticles"))),
   genEventInfoToken_    (consumes<GenEventInfoProduct>          (iConfig.getParameter<edm::InputTag>("pdfInfo"))),
   LHEEventToken_      (consumes<LHEEventProduct>            (iConfig.getParameter<edm::InputTag>("LHEInfo"))),
@@ -563,8 +563,8 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   iEvent.getByToken(looseMuonToken_, looseMuons);
 
 
-  edm::Handle< std::vector<pat::IsolatedTrack>  > pfCands;
-  iEvent.getByToken(pfCandToken_, pfCands); 
+  edm::Handle< std::vector<pat::IsolatedTrack>  > isoTracks;
+  iEvent.getByToken(isoTrackToken_, isoTracks); 
 
   
   iEvent.getByToken(jetToken_, jets);
@@ -1343,32 +1343,22 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   intEventProperties["triggerSummaryMET"] = metTriggerSummary;
   
   
-  //if (iEvent.id().event() == 65832395 or iEvent.id().event() == 65833141){
-      //std::cout << "Event reached" << std::endl;
-      //std::cout << leptonFlavor1 << " " << leptonFlavor2 << std::endl;
-      //std::cout << "ele pt " << getMomentum((*electrons).at(leptonNr2)).Pt() << std::endl;
-      //std::exit(0);
-  //}
-
-  
-  
   if (leptonFlavor1 == "Ele" && leptonFlavor2 == "Ele") {
     intEventProperties["triggerSummary"] = eeTriggerSummary;
-    fillTree<pat::Electron, pat::Electron>( "EE", (*electrons).at(leptonNr1), (*electrons).at(leptonNr2),*pfCands,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, longIntEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
-    
+    fillTree<pat::Electron, pat::Electron>( "EE", (*electrons).at(leptonNr1), (*electrons).at(leptonNr2),*isoTracks,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, longIntEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
   }
   else if (leptonFlavor1 == "Mu" && leptonFlavor2 == "Mu") {
     intEventProperties["triggerSummary"] = mmTriggerSummary;
-    fillTree<pat::Muon, pat::Muon>( "MuMu", (*muons).at(leptonNr1), (*muons).at(leptonNr2),*pfCands,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, longIntEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
+    fillTree<pat::Muon, pat::Muon>( "MuMu", (*muons).at(leptonNr1), (*muons).at(leptonNr2),*isoTracks,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, longIntEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
   }
   else if (leptonFlavor1 == "Ele" && leptonFlavor2 == "Mu") {
     intEventProperties["triggerSummary"] = emTriggerSummary;
-    fillTree<pat::Electron, pat::Muon>( "EMu", (*electrons).at(leptonNr1), (*muons).at(leptonNr2),*pfCands,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, longIntEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
+    fillTree<pat::Electron, pat::Muon>( "EMu", (*electrons).at(leptonNr1), (*muons).at(leptonNr2),*isoTracks,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, longIntEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
   }
   // Change ordering for Mu E events, in such a way that the electron is always the first lepton (required by some tools that select the lepton flavor)
   else if (leptonFlavor1 == "Mu" && leptonFlavor2 == "Ele") {
     intEventProperties["triggerSummary"] = emTriggerSummary;
-    fillTree<pat::Electron, pat::Muon>( "EMu", (*electrons).at(leptonNr2), (*muons).at(leptonNr1),*pfCands,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, longIntEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
+    fillTree<pat::Electron, pat::Muon>( "EMu", (*electrons).at(leptonNr2), (*muons).at(leptonNr1),*isoTracks,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, longIntEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
   }
     
 
@@ -1383,7 +1373,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
 
 
 template <class aT, class bT> void 
-DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, const bT& b,const std::vector<pat::IsolatedTrack>&pfCands,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsUp,const std::vector<pat::Jet>&shiftedJetsDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedBJetsUp,const std::vector<pat::Jet>&shiftedBJetsDown, const pat::MET &patMet,const TLorentzVector &MHT,const edm::Handle<reco::VertexCollection> &vertices,const float &rho, const std::map<std::string, int> &intEventProperties, const std::map<std::string, unsigned long> &longIntEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC)
+DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, const bT& b,const std::vector<pat::IsolatedTrack>&isoTracks,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsUp,const std::vector<pat::Jet>&shiftedJetsDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedBJetsUp,const std::vector<pat::Jet>&shiftedBJetsDown, const pat::MET &patMet,const TLorentzVector &MHT,const edm::Handle<reco::VertexCollection> &vertices,const float &rho, const std::map<std::string, int> &intEventProperties, const std::map<std::string, unsigned long> &longIntEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC)
 {
 
   for(const auto& it : intEventProperties){
@@ -1471,27 +1461,28 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   }
   
   int nIsoTracks = 0;
-  double absIso = 0.;
+  //double absIso = 0.;
   
   std::vector < float > trackPts;
   
-  for(std::vector<pat::IsolatedTrack>::const_iterator it = pfCands.begin(); it != pfCands.end() ; ++it){
-  
-    if ((*it).charge()==0) continue;
-    
-    if ( (*it).pt() < 5. ) continue;
-    if ( abs((*it).dz()) > 0.1 ) continue;
-    if ( (*it).fromPV() <= 1 ) continue;
-    
-    absIso = (*it).pfIsolationDR03().chargedHadronIso();
-    if (absIso >= min(0.2 * (*it).pt(),8.0) ) continue;
-    
-    if ( deltaR(a,(*it)) < 0.01 || deltaR(b,(*it)) < 0.01 ) continue;
-    
-    if ( abs((*it).pdgId()) == 11 || abs((*it).pdgId()) == 13 || ( (*it).pt() > 10. && abs((*it).pdgId()) == 211  && absIso < 0.1 * (*it).pt() ) ){
-      nIsoTracks++;
-      trackPts.push_back((*it).pt());
+  for(auto track : isoTracks){
+    if (not track.fromPV()) continue;
+    if (not track.packedCandRef().isNonnull()) continue;
+    if (abs(track.pdgId()) == 11 || abs(track.pdgId()) == 13){
+      if (track.pt() < 5 or abs(track.eta()) > 2.4) continue;
+      if (abs(track.dz())  > 0.1) continue;
+      if (abs(track.dxy()) > 0.2) continue;
+      if (track.pfIsolationDR03().chargedHadronIso() > 5) continue;
+      if (track.pfIsolationDR03().chargedHadronIso()/track.pt() < 0.2) continue;
+    }else{
+      if (track.pt() < 10 or abs(track.eta()) > 2.4) continue;
+      if (abs(track.dz())  > 0.1) continue;
+      if (abs(track.dxy()) > 0.2) continue;
+      if (track.pfIsolationDR03().chargedHadronIso() > 5) continue;
+      if (track.pfIsolationDR03().chargedHadronIso()/track.pt() < 0.2) continue;
     }
+    nIsoTracks++;
+    trackPts.push_back(track.pt());
     
   }
   *(intBranches_[treeName]["nIsoTracks"]) = nIsoTracks;

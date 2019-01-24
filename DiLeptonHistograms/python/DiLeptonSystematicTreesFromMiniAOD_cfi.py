@@ -3,14 +3,16 @@ import FWCore.ParameterSet.Config as cms
 from SuSyAachen.DiLeptonHistograms.pdgIdDefinition_cff import defaultPdgIdDefinition
 #~ from SuSyAachen.DiLeptonHistograms.LeptonFastSimScaleFactorMap_cfi import LeptonFastSimScaleFactorMap as LeptonFastSimScaleFactorMapPars
 #~ from SuSyAachen.DiLeptonHistograms.LeptonFullSimScaleFactorMap_cfi import LeptonFullSimScaleFactorMap as LeptonFullSimScaleFactorMapPars
-from SuSyAachen.DiLeptonHistograms.btagEffMap_cfi import bTagEffMap as bTagEffMapPars
+from SuSyAachen.DiLeptonHistograms.btagEffMap_cfi import *
 #from SuSyAachen.DiLeptonHistograms.btagEffMapFastSim_cfi import bTagEffMap as bTagEffMapPars
-from SuSyAachen.DiLeptonHistograms.BTagCalibration_cfi import BTagCalibration as BTagCalibrationPars
-from SuSyAachen.DiLeptonHistograms.BTagCalibrationReader_cfi import BTagCalibrationReader as BTagCalibrationReaderPars
-from SuSyAachen.DiLeptonHistograms.vertexWeightsSignal_cfi import vertexWeights as vertexWeightPars
-from SuSyAachen.DiLeptonHistograms.vertexWeightsSignalUp_cfi import vertexWeightsUp as vertexWeightParsUp
-from SuSyAachen.DiLeptonHistograms.vertexWeightsSignalDown_cfi import vertexWeightsDown as vertexWeightParsDown
+from SuSyAachen.DiLeptonHistograms.BTagCalibration_cfi import *
+from SuSyAachen.DiLeptonHistograms.BTagCalibrationReader_cfi import *
+from SuSyAachen.DiLeptonHistograms.vertexWeightsSignal_cfi import *
+from SuSyAachen.DiLeptonHistograms.vertexWeightsSignalUp_cfi import *
+from SuSyAachen.DiLeptonHistograms.vertexWeightsSignalDown_cfi import *
 from SuSyAachen.DiLeptonHistograms.isolationFunctor_cfi import isolationDefinitions
+from SuSyAachen.DiLeptonHistograms.metFilterLists_cfi import *
+from SuSyAachen.DiLeptonHistograms.triggerLists_cfi import *
 
 DiLeptonSystematicTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonSystematicTreesFromMiniAOD",
    electrons = cms.InputTag("triggerMatchedPatElectronsPF"),
@@ -32,28 +34,19 @@ DiLeptonSystematicTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonSystematicTre
    LHEInfo = cms.InputTag("source"),                        
    rho = cms.InputTag("fixedGridRhoFastjetCentralNeutral"),    
    pdfWeightTags = cms.VInputTag(),
-   bTagEfficiencies = bTagEffMapPars,
-   BTagCalibration = BTagCalibrationPars,
-   BTagCalibrationReader = BTagCalibrationReaderPars,
+   bTagEfficiencies = bTagEffMapParsFastSim2017,
+   BTagCalibration = BTagCalibrationPars2017,
+   BTagCalibrationReader = BTagCalibrationReaderPars2017,
    #~ LeptonFastSimScaleFactors = LeptonFastSimScaleFactorMapPars,
    #~ LeptonFullSimScaleFactors = LeptonFullSimScaleFactorMapPars,
-   vertexWeights = vertexWeightPars,
-   vertexWeightsUp = vertexWeightParsUp,
-   vertexWeightsDown = vertexWeightParsDown,                   
+   vertexWeights = vertexWeightsPars2017,
+   vertexWeightsUp = vertexWeightsParsUp2017,
+   vertexWeightsDown = vertexWeightsParsDown2017,                         
    pdgIdDefinition = defaultPdgIdDefinition,
    isolationDefinitions = isolationDefinitions,
    writeID = cms.untracked.bool(False), 
    doMETUncert = cms.untracked.bool(True),
    
    storeMetFilters = cms.untracked.bool(True),
-   metFilterNames=cms.untracked.vstring(                                      
-                  "Flag_goodVertices",              
-                  "Flag_HBHENoiseFilter",
-                  "Flag_HBHENoiseIsoFilter",
-                  "Flag_EcalDeadCellTriggerPrimitiveFilter",
-                  "Flag_BadPFMuonFilter",
-                  "Flag_BadChargedCandidateFilter",
-                  "Flag_ecalBadCalibFilter"                      
-
-   ), 
+   metFilterNames=metFilterNamesFastSim2017,
 )

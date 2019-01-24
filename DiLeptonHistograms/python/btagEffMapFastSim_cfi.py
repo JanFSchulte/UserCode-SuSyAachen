@@ -1,11 +1,11 @@
 import FWCore.ParameterSet.Config as cms
 
 bTagEffMap = cms.PSet(
-    fullSimFile = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/btageff__ttbar_powheg_pythia8_25ns_Moriond17.root'),
+    fullSimFile = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/btageff__ttbar_powheg_pythia8_25ns_Moriond17.root'),
     bEffFullSimName = cms.string('h2_BTaggingEff_csv_med_Eff_b'),
     cEffFullSimName = cms.string('h2_BTaggingEff_csv_med_Eff_c'),
     lightEffFullSimName = cms.string('h2_BTaggingEff_csv_med_Eff_udsg'),
-    fastSimFile = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/btageff__SMS-T1bbbb-T1qqqq_25ns_Moriond17.root'),
+    fastSimFile = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/btageff__SMS-T1bbbb-T1qqqq_25ns_Moriond17.root'),
     bEffFastSimName = cms.string('h2_BTaggingEff_csv_med_Eff_b'),
     cEffFastSimName = cms.string('h2_BTaggingEff_csv_med_Eff_c'),
     lightEffFastSimName = cms.string('h2_BTaggingEff_csv_med_Eff_udsg'),

@@ -1,13 +1,13 @@
 import FWCore.ParameterSet.Config as cms
 
-LeptonFullSimScaleFactorMap = cms.PSet(
-    dataMCScaleFactorFile_mu_ID = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/ScaleFactorMuonID.root'),
-    dataMCScaleFactorFile_mu_Iso = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/ScaleFactorMuonMiniIso.root'),
+LeptonFullSimScaleFactorMapPars2017 = cms.PSet(
+    dataMCScaleFactorFile_mu_ID = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/ScaleFactorMuonID.root'),
+    dataMCScaleFactorFile_mu_Iso = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/ScaleFactorMuonMiniIso.root'),
     #dataMCScaleFactorFile_mu_Impact = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/ScaleFactorMuonIP2D.root'),
     #dataMCScaleFactorFile_mu_Track = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/muonTrackScaleFactors.root'),
     #dataMCScaleFactorFile_mu_SIP3D = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/ScaleFactorMuonSIP3D.root'),
     
-    dataMCScaleFactorFile_ele = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/ElectronScaleFactors_Run2017.root'),
+    dataMCScaleFactorFile_ele = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/ElectronScaleFactors_Run2017.root'),
     #dataMCScaleFactorFile_ele_Track = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/TrackScaleFactorsElectrons.root'),
     
     dataMCScaleFactorHisto_mu_ID = cms.string('NUM_MediumID_DEN_genTracks_pt_abseta'),
