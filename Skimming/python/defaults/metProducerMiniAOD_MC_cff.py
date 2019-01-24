@@ -149,5 +149,5 @@ def metProducerMiniAOD_MC(process):
 
         # end Run corrected MET maker
         
-        process.seqmetProducerMiniAOD_MC = cms.Sequence(process.fullPatMetSequence*process.fullPatMetSequenceModifiedMET)
+        process.seqmetProducerMiniAOD_MC = cms.Sequence(process.fullPatMetSequenceModifiedMET*process.fullPatMetSequence)
         process.seqmetProducerMiniAODPath = cms.Path(process.seqmetProducerMiniAOD_MC)
