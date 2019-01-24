@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
 
-def corrJetsProducer(process):
+def corrJetsProducer_MC(process):
 
 
         usePrivateSQlite=True
         
         if usePrivateSQlite:
-                era="Fall17_17Nov2017_V32_94X_DATA"
+                era="Fall17_17Nov2017_V32_94X_MC"
                 from CondCore.CondDB.CondDB_cfi import CondDB
                 CondDBJECFile = CondDB.clone(connect = cms.string('sqlite_file:'+era+'.db'))
                 process.jec = cms.ESSource("PoolDBESSource",
@@ -35,17 +35,17 @@ def corrJetsProducer(process):
            jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']), 'None')  # Update: Safe to always add 'L2L3Residual' as MC contains dummy L2L3Residual corrections (always set to 1)
         )
         
-        process.seqcorrJetsProducer = cms.Sequence(process.patJetCorrFactorsUpdatedJEC * process.updatedPatJetsUpdatedJEC)
-        process.seqcorrJetsPath = cms.Path(process.seqcorrJetsProducer)
+        process.seqcorrJetsProducerMC = cms.Sequence(process.patJetCorrFactorsUpdatedJEC * process.updatedPatJetsUpdatedJEC)
+        process.seqcorrJetsPathMC = cms.Path(process.seqcorrJetsProducerMC)
 
 
-def corrJetsProducer17(process):
+def corrJetsProducer_MC17(process):
 
 
         usePrivateSQlite=True
         
         if usePrivateSQlite:
-                era="Fall17_17Nov2017_V32_94X_DATA"
+                era="Fall17_17Nov2017_V32_94X_MC"
                 from CondCore.CondDB.CondDB_cfi import CondDB
                 CondDBJECFile = CondDB.clone(connect = cms.string('sqlite_file:'+era+'.db'))
                 process.jec = cms.ESSource("PoolDBESSource",
@@ -73,5 +73,5 @@ def corrJetsProducer17(process):
            jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']), 'None')  # Update: Safe to always add 'L2L3Residual' as MC contains dummy L2L3Residual corrections (always set to 1)
         )
         
-        process.seqcorrJetsProducer17 = cms.Sequence(process.patJetCorrFactorsUpdatedJEC * process.updatedPatJetsUpdatedJEC)
-        process.seqcorrJetsPath17 = cms.Path(process.seqcorrJetsProducer17)
+        process.seqcorrJetsProducer_MC17 = cms.Sequence(process.patJetCorrFactorsUpdatedJEC * process.updatedPatJetsUpdatedJEC)
+        process.seqcorrJetsPath_MC = cms.Path(process.seqcorrJetsProducer_MC17)

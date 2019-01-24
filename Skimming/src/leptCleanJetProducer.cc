@@ -109,17 +109,20 @@ jetLeptonCleaner<T1,T2>::produce(edm::Event& iEvent, const edm::EventSetup& iSet
    std::unique_ptr<std::vector< T1 > > theJets = std::make_unique<std::vector< T1 >>(  );
    double dR_ = 999999999.;
    double dRLJ = 999999999.;
-   
+   //bool passed = false;
    for (typename std::vector< T1 >::const_iterator jet_i = jets->begin(); jet_i != jets->end(); ++jet_i){ 
      dR_ = 999999999.;
+     //passed = false;
      for (typename std::vector< T2 >::const_iterator l_i = leptons->begin(); l_i != leptons->end(); ++l_i){
         dRLJ = reco::deltaR(jet_i->eta(),jet_i->phi(),l_i->eta(),l_i->phi());
         if ( dRLJ < dR_ ) dR_ = dRLJ;
      }
      if (dR_ >= dRCut){
+        //passed = true;
         T1 goodJet = *jet_i;
         theJets->push_back(goodJet);
      }
+     //std::cout << (*jet_i).pt() << " passed " << passed << std::endl;
    }
    std::sort(theJets->begin(), theJets->end(), pTComparator_);
    iEvent.put( std::move(theJets) );

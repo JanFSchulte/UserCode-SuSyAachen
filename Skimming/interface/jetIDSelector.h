@@ -33,16 +33,16 @@ struct jetIDSelector {
 
 
     bool isPass = true;
-    double energy = (*it).chargedHadronEnergy() + (*it).neutralHadronEnergy() + (*it).photonEnergy() + (*it).electronEnergy() + (*it).muonEnergy() +  (*it).HFEMEnergy();
+    //double energy = (*it).chargedHadronEnergy() + (*it).neutralHadronEnergy() + (*it).photonEnergy() + (*it).electronEnergy() + (*it).muonEnergy() +  (*it).HFEMEnergy();
 
     // TIGHT Jet ID now recommended https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2017
-    if (((*it).chargedHadronEnergy()/energy) == 0 && fabs((*it).eta()) < 2.4 ) isPass = false;    
-    if (((*it).chargedMultiplicity()) == 0 && fabs((*it).eta() < 2.4 )) isPass = false; 
-    if (((*it).neutralHadronEnergy()/energy) >= 0.90) isPass = false;       
-    if (((*it).neutralEmEnergy()/energy) >= 0.90) isPass = false;            
-    if (((*it).numberOfDaughters()) < 2) isPass = false;  
-    
+    if (((*it).chargedHadronEnergyFraction()) == 0 && fabs((*it).eta()) < 2.4 ) {isPass = false; }   
+    if (((*it).chargedMultiplicity()) == 0 && fabs((*it).eta() < 2.4 )){ isPass = false;} 
+    if (((*it).neutralHadronEnergyFraction()) >= 0.90) {isPass = false; }     
+    if (((*it).neutralEmEnergyFraction()) >= 0.90) {isPass = false;}            
+    if (((*it).numberOfDaughters()) < 2) {isPass = false;  }
     if (isPass){
+      
       selected_.push_back( & (*it) );
       }
     }
