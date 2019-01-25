@@ -55,7 +55,7 @@ def metProducerMiniAOD_MC17(process):
                 process,
                 isData = False, # false for MC
                 fixEE2017 = True,
-                fixEE2017Params = {'userawPt': True, 'PtThreshold':50.0, 'MinEtaThreshold':2.65, 'MaxEtaThreshold': 3.139} ,
+                fixEE2017Params = {'userawPt': True, 'ptThreshold':50.0, 'minEtaThreshold':2.65, 'maxEtaThreshold': 3.139} ,
                 postfix = "ModifiedMET"
         )
 
@@ -120,8 +120,8 @@ def metProducerMiniAOD_MC(process):
         #default configuration for miniAOD reprocessing, change the isData flag to run on data
         #for a full met computation, remove the pfCandColl input
         runMetCorAndUncFromMiniAOD(process,
-                               isData=runOnData,
-                               )
+                isData=runOnData,
+        )
 
         # temporary fix for prefire issue, ignore jec for certain forward jets
         from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
@@ -130,7 +130,7 @@ def metProducerMiniAOD_MC(process):
                 process,
                 isData = False, # false for MC
                 fixEE2017 = True,
-                fixEE2017Params = {'userawPt': True, 'PtThreshold':50.0, 'MinEtaThreshold':2.65, 'MaxEtaThreshold': 3.139} ,
+                fixEE2017Params = {'userawPt': True, 'ptThreshold':50.0, 'minEtaThreshold':2.65, 'maxEtaThreshold': 3.139} ,
                 postfix = "ModifiedMET"
         )
         

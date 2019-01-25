@@ -58,7 +58,7 @@ def metProducerMiniAOD17(process):
                 process,
                 isData = True, # false for MC
                 fixEE2017 = True,
-                fixEE2017Params = {'userawPt': True, 'PtThreshold':50.0, 'MinEtaThreshold':2.65, 'MaxEtaThreshold': 3.139} ,
+                fixEE2017Params = {'userawPt': True, 'ptThreshold':50.0, 'minEtaThreshold':2.65, 'maxEtaThreshold': 3.139} ,
                 postfix = "ModifiedMET"
         )
                                   
@@ -136,7 +136,7 @@ def metProducerMiniAOD(process):
                 process,
                 isData = True, # false for MC
                 fixEE2017 = True,
-                fixEE2017Params = {'userawPt': True, 'PtThreshold':50.0, 'MinEtaThreshold':2.65, 'MaxEtaThreshold': 3.139} ,
+                fixEE2017Params = {'userawPt': True, 'ptThreshold':50.0, 'minEtaThreshold':2.65, 'maxEtaThreshold': 3.139} ,
                 postfix = "ModifiedMET"
         )
                                   
