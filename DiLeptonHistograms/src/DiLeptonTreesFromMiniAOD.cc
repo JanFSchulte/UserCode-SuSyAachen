@@ -32,6 +32,7 @@
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/Framework/interface/ESHandle.h"
+#include "FWCore/Common/interface/TriggerNames.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
@@ -61,11 +62,9 @@
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 
 #include <SuSyAachen/DiLeptonHistograms/interface/MT2Functor.h>
-#include <SuSyAachen/DiLeptonHistograms/interface/WeightFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/PdgIdFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/VertexWeightFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/IsolationFunctor.h>
-#include <SuSyAachen/DiLeptonHistograms/interface/TriggerMatchFunctorMiniAOD.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/LeptonFullSimScaleFactorMapFunctor.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/BTagCalibrationStandalone.h>
 #include <SuSyAachen/DiLeptonHistograms/interface/BTagEffMapFunctor.h>
@@ -166,7 +165,6 @@ private:
   VertexWeightFunctor fctVtxWeightUp_;
   VertexWeightFunctor fctVtxWeightDown_;
   IsolationFunctor fctIsolation_; 
-  TriggerMatchFunctorMiniAOD fctTrigger_;  
   PdgIdFunctor getPdgId_;
   MT2Functor fctMT2_;
  
@@ -237,8 +235,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   fctVtxWeight_     (iConfig.getParameter<edm::ParameterSet>("vertexWeights") ,consumesCollector()),
   fctVtxWeightUp_   (iConfig.getParameter<edm::ParameterSet>("vertexWeightsUp") ,consumesCollector()),
   fctVtxWeightDown_ (iConfig.getParameter<edm::ParameterSet>("vertexWeightsDown"),consumesCollector() ),
-  fctIsolation_   (iConfig.getParameter<edm::ParameterSet>("isolationDefinitions"),consumesCollector()),
-  fctTrigger_     (iConfig.getParameter<edm::ParameterSet>("triggerDefinitions"),consumesCollector()),  
+  fctIsolation_   (iConfig.getParameter<edm::ParameterSet>("isolationDefinitions"),consumesCollector()), 
   getPdgId_     (iConfig.getParameter< edm::ParameterSet>("pdgIdDefinition"),consumesCollector() ),
   metFilterNames_ (iConfig.getUntrackedParameter< std::vector <std::string> >("metFilterNames")),
   eeTriggerNames_   (iConfig.getUntrackedParameter< std::vector <std::string> >("eeTriggerNames")),
@@ -596,7 +593,6 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   getPdgId_.loadGenParticles(iEvent);
   fctIsolation_.init(iEvent);
-  fctTrigger_.loadTrigger(iEvent);
   std::map<std::string, int> intEventProperties;
   std::map<std::string, unsigned long> longIntEventProperties;
   std::map<std::string, float> floatEventProperties;

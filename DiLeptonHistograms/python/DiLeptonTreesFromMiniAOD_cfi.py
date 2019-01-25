@@ -9,7 +9,6 @@ from SuSyAachen.DiLeptonHistograms.vertexWeights_cfi import *
 from SuSyAachen.DiLeptonHistograms.vertexWeightsUp_cfi import *
 from SuSyAachen.DiLeptonHistograms.vertexWeightsDown_cfi import *
 from SuSyAachen.DiLeptonHistograms.isolationFunctor_cfi import isolationDefinitions
-from SuSyAachen.DiLeptonHistograms.triggerDefinitionMiniAOD_cff import defaultTriggerDefinition as triggerDefinitions
 from SuSyAachen.DiLeptonHistograms.metFilterLists_cfi import *
 from SuSyAachen.DiLeptonHistograms.triggerLists_cfi import *
 
@@ -42,7 +41,6 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
    vertexWeightsDown = vertexWeightsParsDown2017,                   
    pdgIdDefinition = defaultPdgIdDefinition,
    isolationDefinitions = isolationDefinitions,
-   triggerDefinitions = triggerDefinitions,
    writeID = cms.untracked.bool(False),
    writeTrigger = cms.untracked.bool(True),
    doMETUncert = cms.untracked.bool(False),

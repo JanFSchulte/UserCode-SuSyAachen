@@ -4,7 +4,6 @@ from SuSyAachen.DiLeptonHistograms.pdgIdDefinition_cff import defaultPdgIdDefini
 #~ from SuSyAachen.DiLeptonHistograms.LeptonFastSimScaleFactorMap_cfi import LeptonFastSimScaleFactorMap as LeptonFastSimScaleFactorMapPars
 #~ from SuSyAachen.DiLeptonHistograms.LeptonFullSimScaleFactorMap_cfi import LeptonFullSimScaleFactorMap as LeptonFullSimScaleFactorMapPars
 from SuSyAachen.DiLeptonHistograms.btagEffMap_cfi import *
-#from SuSyAachen.DiLeptonHistograms.btagEffMapFastSim_cfi import bTagEffMap as bTagEffMapPars
 from SuSyAachen.DiLeptonHistograms.BTagCalibration_cfi import *
 from SuSyAachen.DiLeptonHistograms.BTagCalibrationReader_cfi import *
 from SuSyAachen.DiLeptonHistograms.vertexWeightsSignal_cfi import *
