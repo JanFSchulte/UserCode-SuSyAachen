@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
 from SuSyAachen.DiLeptonHistograms.pdgIdDefinition_cff import defaultPdgIdDefinition
-#~ from SuSyAachen.DiLeptonHistograms.LeptonFastSimScaleFactorMap_cfi import LeptonFastSimScaleFactorMap as LeptonFastSimScaleFactorMapPars
-#~ from SuSyAachen.DiLeptonHistograms.LeptonFullSimScaleFactorMap_cfi import LeptonFullSimScaleFactorMap as LeptonFullSimScaleFactorMapPars
+from SuSyAachen.DiLeptonHistograms.LeptonFastSimScaleFactorMap_cfi import *
+from SuSyAachen.DiLeptonHistograms.LeptonFullSimScaleFactorMap_cfi import *
 from SuSyAachen.DiLeptonHistograms.btagEffMap_cfi import *
 from SuSyAachen.DiLeptonHistograms.BTagCalibration_cfi import *
 from SuSyAachen.DiLeptonHistograms.BTagCalibrationReader_cfi import *
@@ -18,7 +18,6 @@ DiLeptonSystematicTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonSystematicTre
    looseElectrons = cms.InputTag("LooseElectrons"),
    muons = cms.InputTag("triggerMatchedPatMuonsPF"),
    looseMuons = cms.InputTag("LooseMuons"),
-#   taus = cms.InputTag("triggerMatchedPatTausPF"),
    jets = cms.InputTag("qualityJets"),          
    genJets = cms.InputTag("slimmedGenJets"),             
    bJets = cms.InputTag("qualityBJets"),
@@ -27,17 +26,17 @@ DiLeptonSystematicTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonSystematicTre
    #met = cms.InputTag("slimmedMETs"),          
    #met = cms.InputTag("slimmedMETsMuClean","","Analysis"),  
    vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
-   pfCands = cms.InputTag("packedPFCandidates"),
+   isoTracks = cms.InputTag("isolatedTracks"),
    genParticles = cms.InputTag("prunedGenParticles"),
    pdfInfo = cms.InputTag("generator"),   
    LHEInfo = cms.InputTag("source"),                        
-   rho = cms.InputTag("fixedGridRhoFastjetCentralNeutral"),    
+   rho = cms.InputTag("fixedGridRhoFastjetAll"),    
    pdfWeightTags = cms.VInputTag(),
    bTagEfficiencies = bTagEffMapParsFastSim2017,
    BTagCalibration = BTagCalibrationPars2017,
    BTagCalibrationReader = BTagCalibrationReaderPars2017,
-   #~ LeptonFastSimScaleFactors = LeptonFastSimScaleFactorMapPars,
-   #~ LeptonFullSimScaleFactors = LeptonFullSimScaleFactorMapPars,
+   LeptonFastSimScaleFactors = LeptonFastSimScaleFactorMapPars2017,
+   LeptonFullSimScaleFactors = LeptonFullSimScaleFactorMapPars2017,
    vertexWeights = vertexWeightsPars2017,
    vertexWeightsUp = vertexWeightsParsUp2017,
    vertexWeightsDown = vertexWeightsParsDown2017,                         

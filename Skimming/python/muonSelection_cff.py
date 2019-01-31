@@ -23,7 +23,7 @@ cleanMuons = cms.EDFilter("PATMuonSelector", filter = filterMuons,
                             cut = cms.string('')
                             )
 
-from SuSyAachen.DiLeptonHistograms.isolationFunctor_cfi import isolationDefinitions
+from SuSyAachen.DiLeptonHistograms.isolationFunctor_cfi import *
 isoMuons = cms.EDFilter("PATMuonIsolationSelector", filter = cms.bool(True),
                                            src = cms.InputTag("cleanMuons"),
                                            isolationDefinitions = isolationDefinitions,

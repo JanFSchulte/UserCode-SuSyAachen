@@ -8,7 +8,7 @@ from SuSyAachen.DiLeptonHistograms.BTagCalibrationReader_cfi import *
 from SuSyAachen.DiLeptonHistograms.vertexWeights_cfi import *
 from SuSyAachen.DiLeptonHistograms.vertexWeightsUp_cfi import *
 from SuSyAachen.DiLeptonHistograms.vertexWeightsDown_cfi import *
-from SuSyAachen.DiLeptonHistograms.isolationFunctor_cfi import isolationDefinitions
+from SuSyAachen.DiLeptonHistograms.isolationFunctor_cfi import *
 from SuSyAachen.DiLeptonHistograms.metFilterLists_cfi import *
 from SuSyAachen.DiLeptonHistograms.triggerLists_cfi import *
 
@@ -29,7 +29,6 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
    pdfInfo = cms.InputTag("generator"),   
    LHEInfo = cms.InputTag("externalLHEProducer"),                       
    rho = cms.InputTag("fixedGridRhoFastjetAll"),    
-   idMapSource = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Fall17NoIsoV1Values"),
    storeMetFilters = cms.untracked.bool(True),
    pdfWeightTags = cms.VInputTag(),
    bTagEfficiencies = bTagEffMapPars2017,
@@ -40,7 +39,7 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
    vertexWeightsUp = vertexWeightsParsUp2017,
    vertexWeightsDown = vertexWeightsParsDown2017,                   
    pdgIdDefinition = defaultPdgIdDefinition,
-   isolationDefinitions = isolationDefinitions,
+   isolationDefinitions = isolationDefinitions2017,
    writeID = cms.untracked.bool(False),
    writeTrigger = cms.untracked.bool(True),
    doMETUncert = cms.untracked.bool(False),

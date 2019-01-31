@@ -1421,15 +1421,15 @@ DiLeptonSystematicTreesFromMiniAOD::fillTree( const std::string &treeName, const
   
   double pmiss[3] = {0.,met.Px(),met.Py()};
   fctMT2_.set_mn(0.);
-  fctMT2_.set_momenta(pa,pb,pmiss,*(intBranches_[treeName]["eventNr"]));
+  fctMT2_.set_momenta(pa,pb,pmiss);
   *(floatBranches_[treeName]["MT2"]) = static_cast<float>(fctMT2_.get_mt2()); 
   
   double pmissJESUp[3] = {0.,metJESUp.Px(),metJESUp.Py()};
-  fctMT2_.set_momenta(pa,pb,pmissJESUp,*(intBranches_[treeName]["eventNr"]));
+  fctMT2_.set_momenta(pa,pb,pmissJESUp);
   *(floatBranches_[treeName]["MT2JESUp"]) = static_cast<float>(fctMT2_.get_mt2()); 
   
   double pmissJESDown[3] = {0.,metJESDown.Px(),metJESDown.Py()};
-  fctMT2_.set_momenta(pa,pb,pmissJESDown,*(intBranches_[treeName]["eventNr"]));
+  fctMT2_.set_momenta(pa,pb,pmissJESDown);
   *(floatBranches_[treeName]["MT2JESDown"]) = static_cast<float>(fctMT2_.get_mt2()); 
   
   *(floatBranches_[treeName]["pt3"]) = 0.;

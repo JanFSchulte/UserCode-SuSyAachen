@@ -100,7 +100,9 @@ private:
   void initIntBranch( const std::string &name);
   void initLongIntBranch( const std::string &name);
   void initTLorentzVectorBranch( const std::string &name);
-  template<class aT, class bT> void fillTree( const std::string &treeName, const aT &a, const bT &b, const std::vector<pat::IsolatedTrack>&isoTracks,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsJESUp,const std::vector<pat::Jet>&shiftedJetsJESDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedJetsBJESUp,const std::vector<pat::Jet>&shiftedBJetsJESDown,  const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho, const std::map<std::string, int> &intEventProperties, const std::map<std::string, unsigned long> &longIntEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC);
+  void initTriggerBranches(std::vector<std::string> &triggerNames, std::map<std::string, int > &triggerIndex, std::map<std::string, Bool_t > &triggerDecision);
+  int writeTriggerDecision(const edm::Event &iEvent, edm::Handle<edm::TriggerResults> &triggerBits, std::map<std::string, Bool_t > &triggerDecision, std::map<std::string, int > &triggerIndex, bool &newLumiBlock);
+  template<class aT, class bT> void fillTree(const edm::Event &iEvent, const std::string &treeName, const aT &a, const bT &b, const std::vector<pat::IsolatedTrack>&isoTracks,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsJESUp,const std::vector<pat::Jet>&shiftedJetsJESDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedJetsBJESUp,const std::vector<pat::Jet>&shiftedBJetsJESDown,  const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho, const std::map<std::string, int> &intEventProperties, const std::map<std::string, unsigned long> &longIntEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC);
   void sumMlb(TLorentzVector &lepton1, TLorentzVector &lepton2, const std::vector<pat::Jet> &jets, const std::vector<pat::Jet> &bjets, float &result_sum_mlb, float &result_mlb_min, float &result_mlb_max);
   const TLorentzVector getMomentum(const  pat::Electron &e);
   const TLorentzVector getMomentum(const  pat::Muon &mu);
@@ -108,13 +110,17 @@ private:
   float getIso(const  pat::Muon &mu, const std::string &method);
   float getIso(const  pat::PackedCandidate &track, const std::string &method);
   float transverseMass(const TLorentzVector& p, const TLorentzVector& met);
+  void matchTrackToLepton(const std::vector<pat::Electron> &lepColl, const pat::IsolatedTrack &track, pat::Electron &matched);
+  void matchTrackToLepton(const std::vector<pat::Muon> &lepColl, const pat::IsolatedTrack &track, pat::Muon &matched);
   virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
   virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;  
-
+  
   edm::EDGetTokenT< std::vector< pat::Electron > >      electronToken_;
   edm::EDGetTokenT< std::vector< pat::Electron > >      looseElectronToken_;
   edm::EDGetTokenT< std::vector< pat::Muon > >        muonToken_;
   edm::EDGetTokenT< std::vector< pat::Muon > >        looseMuonToken_;
+  edm::EDGetTokenT< std::vector< pat::Electron > > allElectronToken_;
+  edm::EDGetTokenT< std::vector< pat::Muon > >  allMuonToken_;
   edm::EDGetTokenT< std::vector< pat::Jet > >       jetToken_;
   edm::EDGetTokenT< std::vector< reco::GenJet > >     genJetToken_;
   edm::EDGetTokenT< std::vector< pat::Jet > >       bJetToken_;
@@ -202,6 +208,8 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   looseElectronToken_   (consumes< std::vector< pat::Electron > >     (iConfig.getParameter<edm::InputTag>("looseElectrons"))),
   muonToken_        (consumes< std::vector< pat::Muon > >     (iConfig.getParameter<edm::InputTag>("muons"))),
   looseMuonToken_     (consumes< std::vector< pat::Muon > >     (iConfig.getParameter<edm::InputTag>("looseMuons"))),
+  allElectronToken_(consumes< std::vector< pat::Electron > >     (edm::InputTag("slimmedElectrons"))),
+  allMuonToken_   (consumes< std::vector< pat::Muon > >     (edm::InputTag("slimmedMuons"))),
   jetToken_         (consumes< std::vector< pat::Jet > >      (iConfig.getParameter<edm::InputTag>("jets"))),
   genJetToken_        (consumes< std::vector< reco::GenJet  > >   (iConfig.getParameter<edm::InputTag>("genJets"))),
   bJetToken_        (consumes< std::vector< pat::Jet > >      (iConfig.getParameter<edm::InputTag>("bJets"))),
@@ -306,6 +314,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initTLorentzVectorBranch( "vMet" );   
   initTLorentzVectorBranch( "vGenMet" );  
   initFloatBranch( "rho" );
+  initFloatBranch( "pt" );
   initFloatBranch( "pt1" );
   initFloatBranch( "pt2" );
   initFloatBranch( "ptErr1" );
@@ -337,6 +346,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initFloatBranch( "caloMet" );
   initFloatBranch( "genMet" );
   initFloatBranch( "uncorrectedMet" ); 
+  initFloatBranch( "uncorrectedMetRaw" ); 
   initFloatBranch( "metJESUp" );
   initFloatBranch( "metJESDown" );
   initIntBranch( "nJets" );
@@ -350,7 +360,8 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initIntBranch( "nGenVertices" );
   initIntBranch( "nLightLeptons" );
   initIntBranch( "nLooseLeptons" );
-  initIntBranch( "nIsoTracks" );
+  initIntBranch( "nIsoTracksLept" );
+  initIntBranch( "nIsoTracksHad" );
   initFloatBranch( "jet1pt" );
   initFloatBranch( "jet2pt" );
   initFloatBranch( "jet3pt" );
@@ -395,57 +406,14 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
     
   }
   
+  
   if (writeTrigger_){
-    for (const auto& n : eeTriggerNames_){
-      eeTriggerIndex_[n] = -10; //not set and not found
-      eeTriggerDecision_[n] = false;
+    initTriggerBranches(eeTriggerNames_, eeTriggerIndex_, eeTriggerDecision_);
+    initTriggerBranches(emTriggerNames_, emTriggerIndex_, emTriggerDecision_);
+    initTriggerBranches(mmTriggerNames_, mmTriggerIndex_, mmTriggerDecision_);
+    initTriggerBranches(htTriggerNames_, htTriggerIndex_, htTriggerDecision_);
+    initTriggerBranches(metTriggerNames_, metTriggerIndex_, metTriggerDecision_);
 
-      for( std::map<std::string, TTree*>::const_iterator it = trees_.begin();it != trees_.end(); ++it){
-        if(debug) std::cout << (*it).first <<" - "<< n.c_str() << std::endl;
-        boolBranches_[(*it).first][n.c_str()] = new bool;
-        (*it).second->Branch(n.c_str(), &eeTriggerDecision_[n] ,(n+"/O").c_str() );
-      }
-    }
-    for (const auto& n : emTriggerNames_){
-      emTriggerIndex_[n] = -10; //not set and not found
-      emTriggerDecision_[n] = false;
-
-      for( std::map<std::string, TTree*>::const_iterator it = trees_.begin();it != trees_.end(); ++it){
-        if(debug) std::cout << (*it).first <<" - "<< n.c_str() << std::endl;
-        boolBranches_[(*it).first][n.c_str()] = new bool;
-        (*it).second->Branch(n.c_str(), &emTriggerDecision_[n] ,(n+"/O").c_str() );
-      }
-    }
-    for (const auto& n : mmTriggerNames_){
-      mmTriggerIndex_[n] = -10; //not set and not found
-      mmTriggerDecision_[n] = false;
-
-      for( std::map<std::string, TTree*>::const_iterator it = trees_.begin();it != trees_.end(); ++it){
-        if(debug) std::cout << (*it).first <<" - "<< n.c_str() << std::endl;
-        boolBranches_[(*it).first][n.c_str()] = new bool;
-        (*it).second->Branch(n.c_str(), &mmTriggerDecision_[n] ,(n+"/O").c_str() );
-      }
-    }
-    for (const auto& n : htTriggerNames_){
-      htTriggerIndex_[n] = -10; //not set and not found
-      htTriggerDecision_[n] = false;
-
-      for( const auto& it : trees_){
-        if(debug) std::cout << it.first <<" - "<< n.c_str() << std::endl;
-        boolBranches_[it.first][n.c_str()] = new bool;
-        it.second->Branch(n.c_str(), &htTriggerDecision_[n] ,(n+"/O").c_str() );
-      }
-    }
-    for (const auto& n : metTriggerNames_){
-      metTriggerIndex_[n] = -10; //not set and not found
-      metTriggerDecision_[n] = false;
-
-      for( const auto& it : trees_){
-        if(debug) std::cout << it.first <<" - "<< n.c_str() << std::endl;
-        boolBranches_[it.first][n.c_str()] = new bool;
-        it.second->Branch(n.c_str(), &metTriggerDecision_[n] ,(n+"/O").c_str() );
-      }
-    }
   }
   
   
@@ -468,6 +436,60 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   }  
   
 }
+
+// std::map<std::string, Bool_t > eeTriggerDecision_;
+// edm::Handle<edm::TriggerResults> triggerBits;
+// std::map<std::string, int > &triggerIndex
+// bool emNewLumiBlock_;
+int DiLeptonTreesFromMiniAOD::writeTriggerDecision(const edm::Event &iEvent, edm::Handle<edm::TriggerResults> &triggerBits, std::map<std::string, Bool_t > &triggerDecision, std::map<std::string, int > &triggerIndex, bool &newLumiBlock)
+{
+  int specificTriggerSummary = 0;
+  if( triggerIndex.size() && newLumiBlock ) {
+    newLumiBlock=false;
+    // set all trigger indices to -1 as "not available"-flag
+    for( auto& it : triggerIndex )
+      it.second = -1;
+
+    // store the indices of the trigger names that we really find
+    const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
+    for( unsigned i=0; i<triggerNames.size(); i++ ) {
+        for( auto& it : triggerIndex ) {
+          if( triggerNames.triggerName(i).find( it.first ) == 0 ) {
+              it.second = i;
+          }
+        }
+    } // end trigger names
+  } // found indices
+  
+  for( auto& it : triggerIndex ) {
+      if( it.second != -1 ) {
+          triggerDecision[it.first] = triggerBits->accept( it.second );
+          if (triggerDecision[it.first]){
+            specificTriggerSummary = 1;
+          }
+      }
+    }
+  
+  
+  return specificTriggerSummary;
+}
+
+
+void 
+DiLeptonTreesFromMiniAOD::initTriggerBranches(std::vector<std::string> &triggerNames, std::map<std::string, int > &triggerIndex, std::map<std::string, Bool_t > &triggerDecision)
+{
+    for (const auto& n : triggerNames){
+      triggerIndex[n] = -10; //not set and not found
+      triggerDecision[n] = false;
+
+      for( const auto& it : trees_){
+        if(debug) std::cout << it.first <<" - "<< n.c_str() << std::endl;
+        boolBranches_[it.first][n.c_str()] = new bool;
+        it.second->Branch(n.c_str(), &triggerDecision[n] ,(n+"/O").c_str() );
+      }
+    }
+}
+
 
 void 
 DiLeptonTreesFromMiniAOD::initTLorentzVectorBranch(const std::string &name)
@@ -734,6 +756,9 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   TLorentzVector uncorrectedMetVector;
   uncorrectedMetVector.SetPtEtaPhiE(met.uncorPt(), 0, met.uncorPhi(), met.uncorPt());
   
+  TLorentzVector uncorrectedMetVector2;
+  uncorrectedMetVector2.SetPtEtaPhiE(met_raw.uncorPt(), 0, met_raw.uncorPhi(), met_raw.uncorPt());
+  
   
   floatEventProperties["met"] = metVector.Pt();
   floatEventProperties["met_raw"] = metRawVector.Pt();
@@ -741,6 +766,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   
   //~ tLorentzVectorEventProperties["vMetUncorrected"] = uncorrectedMetVector;
   floatEventProperties["uncorrectedMet"] = uncorrectedMetVector.Pt();
+  floatEventProperties["uncorrectedMetRaw"] = uncorrectedMetVector2.Pt();
 
   floatEventProperties["caloMet"] = met.caloMETPt();
 
@@ -1194,167 +1220,35 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
     edm::InputTag triggerTag("TriggerResults","","HLT");
     iEvent.getByLabel(triggerTag, triggerBits);
     
-    // for each lumiBlock, re-read the trigger indices (rather changes for new run)
-    if( eeTriggerIndex_.size() && eeNewLumiBlock_ ) {
-      eeNewLumiBlock_=false;
-      // set all trigger indices to -1 as "not available"-flag
-      for( auto& it : eeTriggerIndex_ )
-        it.second = -1;
-  
-      // store the indices of the trigger names that we really find
-      const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
-      for( unsigned i=0; i<triggerNames.size(); i++ ) {
-          for( auto& it : eeTriggerIndex_ ) {
-            if( triggerNames.triggerName(i).find( it.first ) == 0 ) {
-                it.second = i;
-            }
-          }
-      } // end trigger names
-    } // found indices
-     
-    // for each lumiBlock, re-read the trigger indices (rather changes for new run)
-    if( emTriggerIndex_.size() && emNewLumiBlock_ ) {
-      emNewLumiBlock_=false;
-      // set all trigger indices to -1 as "not available"-flag
-      for( auto& it : emTriggerIndex_ )
-        it.second = -1;
-  
-      // store the indices of the trigger names that we really find
-      const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
-      for( unsigned i=0; i<triggerNames.size(); i++ ) {
-          for( auto& it : emTriggerIndex_ ) {
-            if( triggerNames.triggerName(i).find( it.first ) == 0 ) {
-                it.second = i;
-            }
-          }
-      } // end trigger names
-    } // found indices
-     
-    // for each lumiBlock, re-read the trigger indices (rather changes for new run)
-    if( mmTriggerIndex_.size() && mmNewLumiBlock_ ) {
-      mmNewLumiBlock_=false;
-      // set all trigger indices to -1 as "not available"-flag
-      for( auto& it : mmTriggerIndex_ )
-        it.second = -1;
-  
-      // store the indices of the trigger names that we really find
-      const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
-      for( unsigned i=0; i<triggerNames.size(); i++ ) {
-          for( auto& it : mmTriggerIndex_ ) {
-            if( triggerNames.triggerName(i).find( it.first ) == 0 ) {
-                it.second = i;
-            }
-          }
-      } // end trigger names
-    } // found indices
+    eeTriggerSummary = writeTriggerDecision(iEvent, triggerBits, eeTriggerDecision_, eeTriggerIndex_, eeNewLumiBlock_);
+    emTriggerSummary = writeTriggerDecision(iEvent, triggerBits, emTriggerDecision_, emTriggerIndex_, emNewLumiBlock_);
+    mmTriggerSummary = writeTriggerDecision(iEvent, triggerBits, mmTriggerDecision_, mmTriggerIndex_, mmNewLumiBlock_);
+    htTriggerSummary = writeTriggerDecision(iEvent, triggerBits, htTriggerDecision_, htTriggerIndex_, htNewLumiBlock_);
+    metTriggerSummary = writeTriggerDecision(iEvent, triggerBits, metTriggerDecision_, metTriggerIndex_, metNewLumiBlock_);
     
-    // for each lumiBlock, re-read the trigger indices (rather changes for new run)
-    if( htTriggerIndex_.size() && htNewLumiBlock_ ) {
-      htNewLumiBlock_=false;
-      // set all trigger indices to -1 as "not available"-flag
-      for( auto& it : htTriggerIndex_ )
-        it.second = -1;
-  
-      // store the indices of the trigger names that we really find
-      const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
-      for( unsigned i=0; i<triggerNames.size(); i++ ) {
-          for( auto& it : htTriggerIndex_ ) {
-            if( triggerNames.triggerName(i).find( it.first ) == 0 ) {
-                it.second = i;
-            }
-          }
-      } // end trigger names
-    } // found indices
-    
-    if( metTriggerIndex_.size() && metNewLumiBlock_ ) {
-      metNewLumiBlock_=false;
-      // set all trigger indices to -1 as "not available"-flag
-      for( auto& it : metTriggerIndex_ )
-        it.second = -1;
-  
-      // store the indices of the trigger names that we really find
-      const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
-      for( unsigned i=0; i<triggerNames.size(); i++ ) {
-          for( auto& it : metTriggerIndex_ ) {
-            if( triggerNames.triggerName(i).find( it.first ) == 0 ) {
-                it.second = i;
-            }
-          }
-      } // end trigger names
-    } // found indices
-    
-    // set trigger decision
-    for( auto& it : eeTriggerIndex_ ) {
-      if( it.second != -1 ) {
-          eeTriggerDecision_[it.first] = triggerBits->accept( it.second );
-          if (eeTriggerDecision_[it.first]){
-            eeTriggerSummary = 1;
-          }
-      }
-    }
-    for( auto& it : emTriggerIndex_ ) {
-      if( it.second != -1 ) {
-          emTriggerDecision_[it.first] = triggerBits->accept( it.second );
-          if (emTriggerDecision_[it.first]){
-            emTriggerSummary = 1;
-          }
-      }
-    }
-    for( auto& it : mmTriggerIndex_ ) {
-      if( it.second != -1 ) {
-          mmTriggerDecision_[it.first] = triggerBits->accept( it.second );
-          if (mmTriggerDecision_[it.first]){
-            if (it.first.compare("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v") == 0){
-              if (iEvent.id().run() <= 299329){
-                mmTriggerSummary = 1;
-              }
-            }else{
-              mmTriggerSummary = 1;
-            }
-          }
-      }
-    }
-    for( auto& it : htTriggerIndex_ ) {
-      if( it.second != -1 ) {
-          htTriggerDecision_[it.first] = triggerBits->accept( it.second );
-          if (htTriggerDecision_[it.first]){
-            htTriggerSummary = 1;
-          }
-      }
-    }
-    for( auto& it : metTriggerIndex_ ) {
-      if( it.second != -1 ) {
-          metTriggerDecision_[it.first] = triggerBits->accept( it.second );
-          if (metTriggerDecision_[it.first]){
-            metTriggerSummary = 1;
-          }
-      }
-    }
   }
  
- 
-  
- 
+
   intEventProperties["triggerSummaryHT"] = htTriggerSummary;
   intEventProperties["triggerSummaryMET"] = metTriggerSummary;
   
   
   if (leptonFlavor1 == "Ele" && leptonFlavor2 == "Ele") {
     intEventProperties["triggerSummary"] = eeTriggerSummary;
-    fillTree<pat::Electron, pat::Electron>( "EE", (*electrons).at(leptonNr1), (*electrons).at(leptonNr2),*isoTracks,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, longIntEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
+    fillTree<pat::Electron, pat::Electron>(iEvent, "EE", (*electrons).at(leptonNr1), (*electrons).at(leptonNr2),*isoTracks,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, longIntEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
   }
   else if (leptonFlavor1 == "Mu" && leptonFlavor2 == "Mu") {
     intEventProperties["triggerSummary"] = mmTriggerSummary;
-    fillTree<pat::Muon, pat::Muon>( "MuMu", (*muons).at(leptonNr1), (*muons).at(leptonNr2),*isoTracks,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, longIntEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
+    fillTree<pat::Muon, pat::Muon>(iEvent, "MuMu", (*muons).at(leptonNr1), (*muons).at(leptonNr2),*isoTracks,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, longIntEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
   }
   else if (leptonFlavor1 == "Ele" && leptonFlavor2 == "Mu") {
     intEventProperties["triggerSummary"] = emTriggerSummary;
-    fillTree<pat::Electron, pat::Muon>( "EMu", (*electrons).at(leptonNr1), (*muons).at(leptonNr2),*isoTracks,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, longIntEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
+    fillTree<pat::Electron, pat::Muon>(iEvent, "EMu", (*electrons).at(leptonNr1), (*muons).at(leptonNr2),*isoTracks,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, longIntEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
   }
   // Change ordering for Mu E events, in such a way that the electron is always the first lepton (required by some tools that select the lepton flavor)
   else if (leptonFlavor1 == "Mu" && leptonFlavor2 == "Ele") {
     intEventProperties["triggerSummary"] = emTriggerSummary;
-    fillTree<pat::Electron, pat::Muon>( "EMu", (*electrons).at(leptonNr2), (*muons).at(leptonNr1),*isoTracks,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, longIntEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
+    fillTree<pat::Electron, pat::Muon>(iEvent, "EMu", (*electrons).at(leptonNr2), (*muons).at(leptonNr1),*isoTracks,*looseElectrons,*looseMuons,*jets,*shiftedJetsJESUp,*shiftedJetsJESDown,*bJets35,*shiftedBJetsJESUp,*shiftedBJetsJESDown, met,MHT,vertices,Rho, intEventProperties, longIntEventProperties, floatEventProperties,tLorentzVectorEventProperties,isMC); 
   }
     
 
@@ -1369,7 +1263,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
 
 
 template <class aT, class bT> void 
-DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, const bT& b,const std::vector<pat::IsolatedTrack>&isoTracks,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsUp,const std::vector<pat::Jet>&shiftedJetsDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedBJetsUp,const std::vector<pat::Jet>&shiftedBJetsDown, const pat::MET &patMet,const TLorentzVector &MHT,const edm::Handle<reco::VertexCollection> &vertices,const float &rho, const std::map<std::string, int> &intEventProperties, const std::map<std::string, unsigned long> &longIntEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC)
+DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &treeName, const aT& a, const bT& b,const std::vector<pat::IsolatedTrack>&isoTracks,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsUp,const std::vector<pat::Jet>&shiftedJetsDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedBJetsUp,const std::vector<pat::Jet>&shiftedBJetsDown, const pat::MET &patMet,const TLorentzVector &MHT,const edm::Handle<reco::VertexCollection> &vertices,const float &rho, const std::map<std::string, int> &intEventProperties, const std::map<std::string, unsigned long> &longIntEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC)
 {
 
   for(const auto& it : intEventProperties){
@@ -1429,7 +1323,7 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   
   double pmiss[3] = {0.,met.Px(),met.Py()};
   fctMT2_.set_mn(0.);
-  fctMT2_.set_momenta(pa,pb,pmiss,*(longIntBranches_[treeName]["eventNr"]));
+  fctMT2_.set_momenta(pa,pb,pmiss);
   *(floatBranches_[treeName]["MT2"]) = static_cast<float>(fctMT2_.get_mt2()); 
   
   *(floatBranches_[treeName]["pt3"]) = 0.;
@@ -1456,33 +1350,59 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
     *(floatBranches_[treeName]["pt3"]) = leptonPts[0];   
   }
   
-  int nIsoTracks = 0;
+  int nIsoTracksLept = 0;
+  int nIsoTracksHad = 0;
   //double absIso = 0.;
   
   std::vector < float > trackPts;
   
-  for(auto track : isoTracks){
+  edm::Handle< std::vector< pat::Electron > > allElectrons;
+  iEvent.getByToken(allElectronToken_, allElectrons);
+  
+  edm::Handle< std::vector< pat::Muon > > allMuons;
+  iEvent.getByToken(allMuonToken_, allMuons);
+  
+  for(auto const &track : isoTracks){
     if (not track.fromPV()) continue;
     if (not track.packedCandRef().isNonnull()) continue;
     if (abs(track.pdgId()) == 11 || abs(track.pdgId()) == 13){
-      if (track.pt() < 5 or abs(track.eta()) > 2.4) continue;
+      float absIso,absEta;
+      if (abs(track.pdgId()) == 11){
+        pat::Electron lep;
+        matchTrackToLepton(*allElectrons, track, lep);
+        absIso = lep.chargedHadronIso();
+        absEta = lep.eta();
+      }else{
+        std::vector<pat::Muon> leptonCollection;
+        leptonCollection = looseMuons;
+        pat::Muon lep;
+        matchTrackToLepton(*allMuons, track, lep);
+        absIso = lep.pfIsolationR03().sumChargedHadronPt;
+        absEta = lep.eta();
+      }
+      
+      
+      if (track.pt() < 5 or absEta > 2.4) continue;
       if (abs(track.dz())  > 0.1) continue;
       if (abs(track.dxy()) > 0.2) continue;
-      if (track.pfIsolationDR03().chargedHadronIso() > 5) continue;
-      if (track.pfIsolationDR03().chargedHadronIso()/track.pt() < 0.2) continue;
+      if (absIso > 5.0) continue;
+      if (absIso/track.pt() > 0.2) continue;
+      nIsoTracksLept++;
     }else{
       if (track.pt() < 10 or abs(track.eta()) > 2.4) continue;
       if (abs(track.dz())  > 0.1) continue;
       if (abs(track.dxy()) > 0.2) continue;
-      if (track.pfIsolationDR03().chargedHadronIso() > 5) continue;
-      if (track.pfIsolationDR03().chargedHadronIso()/track.pt() < 0.2) continue;
+      if (track.pfIsolationDR03().chargedHadronIso() > 5.0) continue;
+      if (track.pfIsolationDR03().chargedHadronIso()/track.pt() > 0.2) continue;
+      nIsoTracksHad++;
     }
-    nIsoTracks++;
+    
     trackPts.push_back(track.pt());
     
   }
-  *(intBranches_[treeName]["nIsoTracks"]) = nIsoTracks;
-  if (nIsoTracks > 0) *(floatBranches_[treeName]["ptTrack3"]) = *std::max_element(std::begin(trackPts),std::end(trackPts));
+  *(intBranches_[treeName]["nIsoTracksHad"]) = nIsoTracksHad;
+  *(intBranches_[treeName]["nIsoTracksLept"]) = nIsoTracksLept;
+  if (nIsoTracksLept+nIsoTracksHad > 0) *(floatBranches_[treeName]["ptTrack3"]) = *std::max_element(std::begin(trackPts),std::end(trackPts));
   else *(floatBranches_[treeName]["ptTrack3"]) = 0.;
   
           
@@ -1490,6 +1410,7 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   //~ std::pair<double, double> pZeta = calcPZeta(aVec, bVec, met);
   *(floatBranches_[treeName]["chargeProduct"]) = a.charge()*b.charge();
   *(floatBranches_[treeName]["mll"]) = comb.M();
+  *(floatBranches_[treeName]["pt"]) = comb.Pt();
   *(tLorentzVectorBranches_[treeName]["p4"]) = comb;
   *(tLorentzVectorBranches_[treeName]["lepton1"]) = aVec;
   *(tLorentzVectorBranches_[treeName]["lepton2"]) = bVec;
@@ -1514,11 +1435,8 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   *(floatBranches_[treeName]["miniIsoEffArea2"]) = getIso(b,"miniIsoEA");
   *(floatBranches_[treeName]["mt1"]) = transverseMass(aVec, met);
   *(floatBranches_[treeName]["mt2"]) = transverseMass(bVec, met);
-  //~ *(floatBranches_[treeName]["fakeWeight1"]) = fakeRates_(a);
-  //~ *(floatBranches_[treeName]["fakeWeight2"]) = fakeRates_(b);
   *(floatBranches_[treeName]["deltaPhi"]) = aVec.DeltaPhi( bVec );
   *(floatBranches_[treeName]["deltaR"]) = aVec.DeltaR( bVec );
-  //~ *(floatBranches_[treeName]["angle3D"]) = aVec.Angle( bVec.Vect() );   
 
   int matched = 0;
   //ETH style genMatching
@@ -1571,8 +1489,6 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
   if( matched == 3 && pdgIds1[1] == pdgIds2[1] ) {
     matched |= 4;
   }
-  //~ *(floatBranches_[treeName]["genLeptHT"]) += genLepton1.Pt();  
-  //~ *(floatBranches_[treeName]["genLeptHT"]) += genLepton2.Pt();  
   
   *(intBranches_[treeName]["matched"]) = matched; 
   *(tLorentzVectorBranches_[treeName]["p4Gen"]) = genVec;
@@ -1585,6 +1501,35 @@ DiLeptonTreesFromMiniAOD::fillTree( const std::string &treeName, const aT& a, co
 
   trees_[treeName]->Fill();
 }
+
+void
+DiLeptonTreesFromMiniAOD::matchTrackToLepton(const std::vector<pat::Electron> &lepColl,const pat::IsolatedTrack &track, pat::Electron &matched){
+  float closestDR=10;
+  for (auto const &lep: lepColl){
+    float dEta = lep.p4().eta()-track.eta();
+    float dPhi = lep.p4().phi()-track.phi();
+    float dR = TMath::Sqrt(dEta*dEta + dPhi*dPhi);
+    if (dR < 0.3 && dR < closestDR && lep.pt() > 5){
+      matched = lep;
+      closestDR = dR;
+    }
+  }
+}
+
+void
+DiLeptonTreesFromMiniAOD::matchTrackToLepton(const std::vector<pat::Muon> &lepColl, const pat::IsolatedTrack &track, pat::Muon &matched){
+  float closestDR=10;
+  for (auto const &lep: lepColl){
+    float dEta = lep.p4().eta()-track.eta();
+    float dPhi = lep.p4().phi()-track.phi();
+    float dR = TMath::Sqrt(dEta*dEta + dPhi*dPhi);
+    if (dR < 0.3 && dR < closestDR && lep.passed(reco::Muon::CutBasedIdLoose)){
+      matched = lep;
+      closestDR = dR;
+    }
+  }
+}
+
 
 void 
 DiLeptonTreesFromMiniAOD::sumMlb(TLorentzVector &lepton1, TLorentzVector &lepton2, const std::vector<pat::Jet> &jets, const std::vector<pat::Jet> &bjets, float &result_sum_mlb, float &result_mlb_min, float &result_mlb_max){
@@ -1657,16 +1602,14 @@ DiLeptonTreesFromMiniAOD::sumMlb(TLorentzVector &lepton1, TLorentzVector &lepton
 const TLorentzVector DiLeptonTreesFromMiniAOD::getMomentum(const  pat::Electron &e)
 {
   double corr = 1.;
-  double lowEdge = 0.;
-  for(std::map<double, double>::iterator it = electronCorrections_.begin(); 
-      it != electronCorrections_.end(); ++it){
-    if(lowEdge <= fabs(e.superCluster()->eta()) && fabs(e.superCluster()->eta()) < (*it).first ){
-      corr = (*it).second;
-    }
-    lowEdge = (*it).second;
-  }
-  // needs to be produced first before using it
-  //corr = e.userFloat("ecalTrkEnergyPostCorr") / e.energy();
+  //double lowEdge = 0.;
+  //for(std::map<double, double>::iterator it = electronCorrections_.begin(); 
+      //it != electronCorrections_.end(); ++it){
+    //if(lowEdge <= fabs(e.superCluster()->eta()) && fabs(e.superCluster()->eta()) < (*it).first ){
+      //corr = (*it).second;
+    //}
+    //lowEdge = (*it).second;
+  //}
   
   const TLorentzVector result = TLorentzVector(corr*e.px(), corr*e.py(), corr*e.pz(), corr*e.energy());
   if(debug)std::cout << "correction: "<< corr << ", pt = "<< result.Pt()<<std::endl;
@@ -1713,6 +1656,7 @@ DiLeptonTreesFromMiniAOD::beginLuminosityBlock(edm::LuminosityBlock const&, edm:
   emNewLumiBlock_=true;
   mmNewLumiBlock_=true;
   htNewLumiBlock_=true;
+  metNewLumiBlock_=true;
 }
 
 void 

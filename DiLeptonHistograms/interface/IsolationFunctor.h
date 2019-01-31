@@ -28,11 +28,26 @@ using namespace std;
 //====================
 class IsolationFunctor
 {
+  edm::EDGetTokenT<double> rhoToken_;
+  edm::EDGetTokenT< std::vector<pat::PackedCandidate>  > candidateToken_;
+  
+  double rhoIso_;
+  edm::Handle< std::vector<pat::PackedCandidate>  > pfCands;  
+  std::vector<double> electronEta, muonEta;
+  std::vector<double> electronValue, muonValue;
+  
 public:
   IsolationFunctor(const edm::ParameterSet & cfg, edm::ConsumesCollector && iC  ):
     rhoToken_(iC.consumes<double>(cfg.getParameter<edm::InputTag>("rhoSource"))), 
     candidateToken_(iC.consumes< std::vector<pat::PackedCandidate>  >(cfg.getParameter<edm::InputTag>("candSource"))), 
-    rhoIso_(0.) {}
+    rhoIso_(0.) 
+    {
+    electronEta = cfg.getParameter< std::vector<double>  >("effAreaElectronEta");
+    electronValue = cfg.getParameter< std::vector<double>  >("effAreaElectronValue");
+    muonEta = cfg.getParameter< std::vector<double>  >("effAreaMuonEta");
+    muonValue = cfg.getParameter< std::vector<double>  >("effAreaMuonValue");
+  
+    }
 
   const void init(const edm::Event &ev)
   {
@@ -40,6 +55,7 @@ public:
     ev.getByToken(rhoToken_, rhoIso_h);
     ev.getByToken(candidateToken_, pfCands);        
     rhoIso_ = *(rhoIso_h.product());
+    
   }
 
   template<class T> const double operator()(const T& lepton, const std::string& method)
@@ -171,6 +187,9 @@ double GetMiniIsolation(const T& lepton, const std::vector<pat::PackedCandidate>
   if (method == "effectiveArea"){
     iso -= GetAEff(lepton) * rho * pow(r_iso/0.3,2);
   }
+  if (method == "deltaBeta"){
+    iso -= 0.5*lepton.miniPFIsolation().puChargedHadronIso();
+  }
 
   if (iso>0) iso += lepton.miniPFIsolation().chargedHadronIso();
   else iso = lepton.miniPFIsolation().chargedHadronIso();
@@ -210,53 +229,33 @@ const double GetTrackIsolation(const pat::PackedCandidate &track, const std::vec
   const virtual double GetIsolation(const reco::Candidate& lepton, const std::string& method){return -1.;}
 
 
-// AEffs updated to recommendations on https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSLeptonSF on 12/10/2015
-
-
-//# Fall17 version of muon effective areas for dR=0.3,
-//# neutral+photon PF isolation component, for usage with mini-isolation
-//# |eta| min   |eta| max   effective area
-//0.0000         0.8000        0.0566
-//0.8000         1.3000        0.0562
-//1.3000         2.0000        0.0363
-//2.0000         2.2000        0.0119
-//2.2000 2.4000 0.0064
-
 const double GetAEff(const pat::Muon& lepton){
 
   double etaAbs = fabs(lepton.eta());
-  
-    double AEff = 0.0566;
-    if (etaAbs > 0.8 && etaAbs <= 1.3) AEff =  0.0562;
-    if (etaAbs > 1.3 && etaAbs <= 2.0) AEff =  0.0363;
-    if (etaAbs > 2.0 && etaAbs <= 2.2) AEff = 0.0119;
-    if (etaAbs > 2.2) AEff = 0.0064;
-    return AEff;
+  double effArea = 0;
+  for (unsigned int i = 0; i < muonEta.size(); i++){
+    if (etaAbs > muonEta[i]){
+      effArea = muonValue[i];
+    }else{
+      break;
+    }
+  }
+  return effArea;
 }
 
-//#  The effective areas are based on 90% efficient contours
-//#
-//# |eta| min   |eta| max   effective area
-//0.000        1.000       0.1440
-//1.000        1.479       0.1562
-//1.479        2.000       0.1032
-//2.000        2.200       0.0859
-//2.200        2.300       0.1116
-//2.300        2.400       0.1321
-//2.400 2.500 0.1654
 
 const double GetAEff(const pat::Electron& lepton){
 
   double etaAbs = fabs(lepton.eta());
-
-    double AEff = 0.1440;
-    if (etaAbs > 1.0 && etaAbs <= 1.479) AEff = 0.1562;
-    if (etaAbs > 1.479 && etaAbs <= 2.0) AEff = 0.1032;
-    if (etaAbs > 2.0 && etaAbs <= 2.2) AEff = 0.0859;
-    if (etaAbs > 2.2 && etaAbs <= 2.3) AEff = 0.1116;
-    if (etaAbs > 2.3 && etaAbs <= 2.4) AEff = 0.1321;        
-    if (etaAbs > 2.4) AEff = 0.1654;
-    return AEff;
+  double effArea = 0;
+  for (unsigned int i = 0; i < electronEta.size(); i++){
+    if (etaAbs > electronEta[i]){
+      effArea = electronValue[i];
+    }else{
+      break;
+    }
+  }
+  return effArea;
 
 
 
@@ -297,14 +296,6 @@ bool isPH( long pdgid ){
 }
 
   
-
-
-  //~ edm::InputTag rhoSrc_;
-  //~ edm::InputTag candidateSrc_;  
-  edm::EDGetTokenT<double> rhoToken_;
-  edm::EDGetTokenT< std::vector<pat::PackedCandidate>  > candidateToken_;
-  double rhoIso_;
-  edm::Handle< std::vector<pat::PackedCandidate>  > pfCands;  
 };
 
 
