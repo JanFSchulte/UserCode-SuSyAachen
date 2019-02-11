@@ -27,14 +27,20 @@ public:
             std::string dataFile_ = params.getParameter<std::string>("dataFile");
             std::string dataName_ = params.getParameter<std::string>("dataName");
             std::string outputName_ = "WeightOutputs";
+            int verbosity_  = params.getParameter<int>("verbosity");
             doWeight_ = params.getParameter<bool>("doWeight");
             iC.consumes<std::vector< PileupSummaryInfo > >(edm::InputTag("slimmedAddPileupInfo"));
             /*std::cout << mcFile_ << std::endl;
             std::cout << mcName_ << std::endl;
             std::cout << dataFile_ << std::endl;
             std::cout << dataName_ << std::endl;*/
+            if (!verbosity_){
+              std::cout.setstate(std::ios_base::failbit);
+            }
             LumiWeights_ = edm::LumiReWeighting(mcFile_, dataFile_, mcName_, dataName_);
-    
+            if (!verbosity_){
+              std::cout.clear();
+            }
   }
   
   const double operator()(const edm::Event &iEvent){
@@ -61,13 +67,13 @@ public:
     float Tnpv = -1;
     if(doWeight_){
       for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
-	
-	int BX = PVI->getBunchCrossing();
-	
-	if(BX == 0) { 
-	  Tnpv = PVI->getTrueNumInteractions();
-	  continue;
-	}
+  
+  int BX = PVI->getBunchCrossing();
+  
+  if(BX == 0) { 
+    Tnpv = PVI->getTrueNumInteractions();
+    continue;
+  }
       }
     }
     return Tnpv;

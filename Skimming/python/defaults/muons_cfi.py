@@ -6,15 +6,6 @@ defaultSelector = cms.EDFilter("PATMuonSelector",
            cut = cms.string('abs( eta ) <= 2.0 & pt >= 10')#GeV
 )
 
-PATMuonD0BSSelector = cms.EDFilter("PATMuonD0BSSelector", 
-           filter = cms.bool(True),
-           src = cms.InputTag("cleanLayer1Muons"),
-           d0Min = cms.double(-999999.),
-           d0Max = cms.double(0.2),
-           dZMin = cms.double(-999999.),
-           dZMax = cms.double(1.),
-           beamSpotSource  = cms.InputTag("offlineBeamSpot") #offlinePrimeryVertices
-)
 
 PATMuonD0PVSelector = cms.EDFilter("PATMuonD0PVSelector", 
            filter = cms.bool(True),

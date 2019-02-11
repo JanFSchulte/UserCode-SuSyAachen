@@ -25,13 +25,17 @@
          <use name="DataFormats/PatCandidates"/>
          <use name="DataFormats/ParticleFlowCandidate"/>
          <use name="RecoEgamma/EgammaTools"/>
-         <!--use name="Egamma/EGammaAnalysisTools"/-->
 </library>
+
+<library name="SuSyAachenIsoTrackSelectors" file="isoTrackSelectors.cc">
+         <use name="CommonTools/UtilAlgos"/>
+         <use name="DataFormats/PatCandidates"/>
+         <use name="DataFormats/ParticleFlowCandidate"/>
+         <use name="RecoEgamma/EgammaTools"/>
+</library>
+
 <library   name="SuSyAachenJetSelectors" file="jetSelectors.cc">
   <use   name="CommonTools/UtilAlgos"/>
   <use   name="DataFormats/PatCandidates"/>
 </library>
-<library   name="SuSyAachenTrackSelectors" file="trackSelectors.cc">
-  <use   name="CommonTools/UtilAlgos"/>
-  <use   name="DataFormats/TrackReco"/>
-</library>
+

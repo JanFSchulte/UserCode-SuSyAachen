@@ -6,6 +6,7 @@ vertexWeightsParsDown2017 = cms.PSet(
     dataFile = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/PU_dist_2017_Down.root'),
     dataName = cms.string('pileupDown'),
     doWeight = cms.bool(True),
+    verbosity = cms.int32(0),
 )
 
 vertexWeightsParsDown2016 = cms.PSet(
@@ -14,4 +15,5 @@ vertexWeightsParsDown2016 = cms.PSet(
     dataFile = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2016/PU_dist_2016_Down.root'),
     dataName = cms.string('pileup'),
     doWeight = cms.bool(True),
+    verbosity = cms.int32(0),
 )

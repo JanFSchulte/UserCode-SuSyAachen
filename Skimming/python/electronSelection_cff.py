@@ -53,8 +53,5 @@ noMatchedConversionsElectrons = cms.EDFilter("PATElectronMatchedConversionSelect
                                              beamspotSource = cms.InputTag("offlineBeamSpot"),
                                              )
 
-pfElectronProducer = cms.EDProducer('PfElectronProducer',
-  src = cms.InputTag("basicElectrons"),
-)
 
 seqElectrons = cms.Sequence(basicElectrons * qualityElectrons * d0Electrons * isoElectrons)
