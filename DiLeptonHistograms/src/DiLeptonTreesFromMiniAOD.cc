@@ -102,7 +102,7 @@ private:
   void initTLorentzVectorBranch( const std::string &name);
   void initTriggerBranches(std::vector<std::string> &triggerNames, std::map<std::string, int > &triggerIndex, std::map<std::string, Bool_t > &triggerDecision);
   int writeTriggerDecision(const edm::Event &iEvent, edm::Handle<edm::TriggerResults> &triggerBits, std::map<std::string, Bool_t > &triggerDecision, std::map<std::string, int > &triggerIndex, bool &newLumiBlock);
-  template<class aT, class bT> void fillTree(const edm::Event &iEvent, const std::string &treeName, const aT &a, const bT &b, const std::vector<pat::IsolatedTrack>&isoTracks,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsJESUp,const std::vector<pat::Jet>&shiftedJetsJESDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedJetsBJESUp,const std::vector<pat::Jet>&shiftedBJetsJESDown,  const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho, const std::map<std::string, int> &intEventProperties, const std::map<std::string, unsigned long> &longIntEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC);
+  template<class aT, class bT> void fillTree(const edm::Event &iEvent, const std::string &treeName, const aT &a, const bT &b, const std::vector<int> &isoTracks,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsJESUp,const std::vector<pat::Jet>&shiftedJetsJESDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedJetsBJESUp,const std::vector<pat::Jet>&shiftedBJetsJESDown,  const pat::MET &patMet, const TLorentzVector &MHT, const edm::Handle<reco::VertexCollection> &vertices, const float &rho, const std::map<std::string, int> &intEventProperties, const std::map<std::string, unsigned long> &longIntEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC);
   void sumMlb(TLorentzVector &lepton1, TLorentzVector &lepton2, const std::vector<pat::Jet> &jets, const std::vector<pat::Jet> &bjets, float &result_sum_mlb, float &result_mlb_min, float &result_mlb_max);
   const TLorentzVector getMomentum(const  pat::Electron &e);
   const TLorentzVector getMomentum(const  pat::Muon &mu);
@@ -124,7 +124,8 @@ private:
   edm::EDGetTokenT< std::vector< pat::MET > >         metToken_;
   edm::EDGetTokenT< std::vector< pat::MET > >         metRawToken_;
   edm::EDGetTokenT< reco::VertexCollection >          vertexToken_;
-  edm::EDGetTokenT< std::vector< pat::IsolatedTrack >  >  isoTrackToken_;
+  //edm::EDGetTokenT< std::vector< pat::IsolatedTrack >  >  isoTrackToken_;
+  edm::EDGetTokenT< std::vector<int>  >  isoTrackToken_;
   edm::EDGetTokenT< std::vector< reco::GenParticle > >    genParticleToken_;
   edm::EDGetTokenT<GenEventInfoProduct>           genEventInfoToken_;
   edm::EDGetTokenT<LHEEventProduct>             LHEEventToken_;
@@ -211,7 +212,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   metToken_         (consumes< std::vector< pat::MET > >      (iConfig.getParameter<edm::InputTag>("met"))),
   metRawToken_         (consumes< std::vector< pat::MET > >      (iConfig.getParameter<edm::InputTag>("met_normal"))),
   vertexToken_        (consumes<reco::VertexCollection>       (iConfig.getParameter<edm::InputTag>("vertices"))),
-  isoTrackToken_        (consumes< std::vector<pat::IsolatedTrack>  > (iConfig.getParameter<edm::InputTag>("isoTracks"))),
+  isoTrackToken_        (consumes< std::vector<int>  > (iConfig.getParameter<edm::InputTag>("isoTracks"))),
   genParticleToken_     (consumes< std::vector< reco::GenParticle > > (iConfig.getParameter<edm::InputTag>("genParticles"))),
   genEventInfoToken_    (consumes<GenEventInfoProduct>          (iConfig.getParameter<edm::InputTag>("pdfInfo"))),
   LHEEventToken_      (consumes<LHEEventProduct>            (iConfig.getParameter<edm::InputTag>("LHEInfo"))),
@@ -572,7 +573,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   iEvent.getByToken(looseMuonToken_, looseMuons);
 
 
-  edm::Handle< std::vector<pat::IsolatedTrack>  > isoTracks;
+  edm::Handle< std::vector<int>  > isoTracks;
   iEvent.getByToken(isoTrackToken_, isoTracks); 
 
   
@@ -1228,7 +1229,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
 
 
 template <class aT, class bT> void 
-DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &treeName, const aT& a, const bT& b,const std::vector<pat::IsolatedTrack>&isoTracks,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsUp,const std::vector<pat::Jet>&shiftedJetsDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedBJetsUp,const std::vector<pat::Jet>&shiftedBJetsDown, const pat::MET &patMet,const TLorentzVector &MHT,const edm::Handle<reco::VertexCollection> &vertices,const float &rho, const std::map<std::string, int> &intEventProperties, const std::map<std::string, unsigned long> &longIntEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC)
+DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &treeName, const aT& a, const bT& b,const std::vector<int> &isoTracks,const std::vector<pat::Electron>&looseElectrons,const std::vector<pat::Muon>&looseMuons,const std::vector<pat::Jet>&jets,const std::vector<pat::Jet>&shiftedJetsUp,const std::vector<pat::Jet>&shiftedJetsDown,const std::vector<pat::Jet>&bJets35,const std::vector<pat::Jet>&shiftedBJetsUp,const std::vector<pat::Jet>&shiftedBJetsDown, const pat::MET &patMet,const TLorentzVector &MHT,const edm::Handle<reco::VertexCollection> &vertices,const float &rho, const std::map<std::string, int> &intEventProperties, const std::map<std::string, unsigned long> &longIntEventProperties, const  std::map<std::string, float> &floatEventProperties, const  std::map<std::string, TLorentzVector> &tLorentzVectorEventProperties, const bool &isMC)
 {
 
   for(const auto& it : intEventProperties){
@@ -1321,19 +1322,21 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
   
   std::vector < float > trackPts;
   
-  for(auto const &track : isoTracks){
-    if (abs(track.pdgId()) == 11 || abs(track.pdgId()) == 13){
+  for(auto const &pdgId : isoTracks){
+    //std::cout << pdgId << std::endl;
+    if (abs(pdgId) == 11 || abs(pdgId) == 13){
       nIsoTracksLept++;
     }else{
       nIsoTracksHad++;
     }
 
-    trackPts.push_back(track.pt());
+    //trackPts.push_back((*track).pt());
 
   }
   *(intBranches_[treeName]["nIsoTracksHad"]) = nIsoTracksHad;
   *(intBranches_[treeName]["nIsoTracksLept"]) = nIsoTracksLept;
-  if (nIsoTracksLept+nIsoTracksHad > 0) *(floatBranches_[treeName]["ptTrack3"]) = *std::max_element(std::begin(trackPts),std::end(trackPts));
+  //if (nIsoTracksLept+nIsoTracksHad > 0) *(floatBranches_[treeName]["ptTrack3"]) = *std::max_element(std::begin(trackPts),std::end(trackPts));
+  if (nIsoTracksLept+nIsoTracksHad > 0) *(floatBranches_[treeName]["ptTrack3"]) = 0;
   else *(floatBranches_[treeName]["ptTrack3"]) = 0.;
   
           

@@ -10,6 +10,7 @@
 #include <DataFormats/PatCandidates/interface/Muon.h>
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/Common/interface/RefToPtr.h"
+#include "DataFormats/Common/interface/RefToBase.h"
 
 //Framework
 #include "FWCore/Framework/interface/Event.h"
@@ -17,40 +18,6 @@
 
 //STL
 #include <vector>
-
-bool matchTrackToLepton(const std::vector<pat::Electron> &lepColl,const pat::IsolatedTrack &track, pat::Electron &matched){
-  float closestDR=10;
-  bool isMatched = false;
-  for (auto const &lep: lepColl){
-    float dEta = lep.p4().eta()-track.eta();
-    float dPhi = lep.p4().phi()-track.phi();
-    float dR = TMath::Sqrt(dEta*dEta + dPhi*dPhi);
-    float ptAbsDiff = abs(track.pt()-lep.pt())/track.pt();
-    if (dR < 0.1 && dR < closestDR && ptAbsDiff < 0.1){
-      matched = lep;
-      closestDR = dR;
-      isMatched = true;
-    }
-  }
-  return isMatched;
-}
-
-bool matchTrackToLepton(const std::vector<pat::Muon> &lepColl, const pat::IsolatedTrack &track, pat::Muon &matched){
-  float closestDR=10;
-  bool isMatched = false;
-  for (auto const &lep: lepColl){
-    float dEta = lep.p4().eta()-track.eta();
-    float dPhi = lep.p4().phi()-track.phi();
-    float dR = TMath::Sqrt(dEta*dEta + dPhi*dPhi);
-    float ptAbsDiff = abs(track.pt()-lep.pt())/track.pt();
-    if (dR < 0.1 && dR < closestDR && ptAbsDiff < 0.1){
-      matched = lep;
-      closestDR = dR;
-      isMatched = true;
-    }
-  }
-  return isMatched;
-}
 
 template<typename T, typename collectionType, typename containerType>
 struct isoTrackSelector {
@@ -75,87 +42,87 @@ struct isoTrackSelector {
     edm::Handle<pat::PackedCandidateCollection> pfCands;
     ev.getByToken(pfCandToken_, pfCands); 
     
+    selected_.clear();
     std::vector<reco::CandidatePtr> leptonPfCands;
     
+    // fill pointers for pfCand matching
     for (const auto & lep : *allMuons) {
-      for (unsigned int i = 0, n = lep.numberOfSourceCandidatePtrs(); i < n; ++i) {
+      for (unsigned int i = 0, n = lep.numberOfSourceCandidatePtrs(); i < n; ++i) { // 0, 1, or 2
           auto ptr = lep.sourceCandidatePtr(i);
           if (ptr.isNonnull()) leptonPfCands.push_back(ptr);
       }
     }
     
     for (const auto & lep : *allElectrons) {
-      for (unsigned int i = 0, n = lep.numberOfSourceCandidatePtrs(); i < n; ++i) {
+      for (unsigned int i = 0, n = lep.numberOfSourceCandidatePtrs(); i < n; ++i) { // 0, 1, or 2
           auto ptr = lep.sourceCandidatePtr(i);
           if (ptr.isNonnull()) leptonPfCands.push_back(ptr);
       }
     }
+    
+    // has to be sorted for binary search later
     std::sort(leptonPfCands.begin(), leptonPfCands.end());
+    
+    
+    // add muons to isoTrack collection
+    for (const auto & lep : *allMuons) {
+      reco::CandidatePtr pfCand(edm::refToPtr(lep.pfCandidateRef()));
+      float absIso,absEta,pt,dxy,dz;
+      absIso = lep.pfIsolationR03().sumChargedHadronPt;
+      absEta = abs(lep.eta());
+      pt = lep.pt();
+      dxy = lep.dB(pat::Muon::PV2D);
+      dz = lep.dB(pat::Muon::PVDZ);
+      if (!lep.passed(reco::Muon::CutBasedIdLoose)) continue; // nanoAOD muons have to pass loose cuts
+      if (pt < 5 or absEta > 2.4) continue;
+      if (abs(dz)  > 0.1) continue;
+      if (abs(dxy) > 0.2) continue;
+      if (absIso > 5.0) continue;
+      if (absIso/pt > 0.2) continue;
+      
+      int* thePdgId = new int(lep.pdgId()); // currently, only pdgId is stored. have not checked if this memory leaks
+      selected_.push_back(thePdgId);
+    }
+    
+    // add electrons to isoTrack collection
+    for (const auto & lep : *allElectrons) {
+      reco::CandidatePtr pfCand(edm::refToPtr(lep.pfCandidateRef())); 
+      if (!std::binary_search(leptonPfCands.begin(), leptonPfCands.end(), pfCand)) continue; // need to match electron to a pfCandidate to match nanoAOD
+      float absIso,absEta,pt,dxy,dz;
+      absIso = lep.pfIsolationVariables().sumChargedHadronPt;
+      absEta = abs(lep.eta());
+      pt = lep.pt();
+      dxy = lep.dB(pat::Electron::PV2D);
+      dz = lep.dB(pat::Electron::PVDZ);
+      if (pt < 5 or absEta > 2.4) continue;
+      if (abs(dz)  > 0.1) continue;
+      if (abs(dxy) > 0.2) continue;
+      if (absIso > 5.0) continue;
+      if (absIso/pt > 0.2) continue;
+      
+      int* thePdgId = new int(lep.pdgId()); // currently, only pdgId is stored. have not checked if this memory leaks
+      selected_.push_back(thePdgId);
+      
+    }
 
-    selected_.clear();
+    // add others to isoTrack collection
     for(typename collection::const_iterator it = col.product()->begin(); it != col.product()->end(); ++it ){
-        if (not (*it).fromPV()) continue;
-        if (not (*it).packedCandRef().isNonnull()) continue;
-        if (not ((*it).packedCandRef().id() == pfCands.id())) continue;
-        reco::CandidatePtr pfCand(edm::refToPtr((*it).packedCandRef()));
+      if (not (*it).fromPV()) continue;
+      if (not (*it).packedCandRef().isNonnull()) continue;
+      if (not ((*it).packedCandRef().id() == pfCands.id())) continue;
+      reco::CandidatePtr pfCand(edm::refToPtr((*it).packedCandRef()));
+      if (std::binary_search(leptonPfCands.begin(), leptonPfCands.end(), pfCand)) continue; // pfCandidates are cleaned from nanoAOD, so they have to be removed
+      
+      if (abs((*it).pdgId()) == 11 || abs((*it).pdgId()) == 13) continue; // take leptons from the lepton collections
 
+      if ((*it).pt() < 10 or abs((*it).eta()) > 2.4) continue;
+      if (abs((*it).dz())  > 0.1) continue;
+      if (abs((*it).dxy()) > 0.2) continue;
+      if ((*it).pfIsolationDR03().chargedHadronIso() > 5.0) continue;
+      if ((*it).pfIsolationDR03().chargedHadronIso()/(*it).pt() > 0.2) continue;
         
-        if (abs((*it).pdgId()) == 11 || abs((*it).pdgId()) == 13){
-          float absIso,absEta,pt,dxy,dz;
-          if (abs((*it).pdgId()) == 11){
-            pat::Electron lep;
-            matchTrackToLepton(*allElectrons, (*it), lep);
-            if (lep.pt() > 1 && std::binary_search(leptonPfCands.begin(), leptonPfCands.end(), pfCand)){
-              absIso = lep.pfIsolationVariables().sumChargedHadronPt;
-              absEta = abs(lep.eta());
-              pt = lep.pt();
-              dxy = lep.dB(pat::Electron::PV2D);
-              dz = lep.dB(pat::Electron::PVDZ);
-            }else{
-              absIso = (*it).pfIsolationDR03().chargedHadronIso();
-              absEta = abs((*it).eta());
-              pt = (*it).pt();
-              dxy = (*it).dxy();
-              dz = (*it).dz();
-            }
-          }else{
-            pat::Muon lep;
-            matchTrackToLepton(*allMuons, (*it), lep);
-            if (lep.pt() > 1 && std::binary_search(leptonPfCands.begin(), leptonPfCands.end(), pfCand)){
-              absIso = lep.pfIsolationR03().sumChargedHadronPt;
-              absEta = abs(lep.eta());
-              pt = lep.pt();
-              dxy = lep.dB(pat::Muon::PV2D);
-              dz = lep.dB(pat::Muon::PVDZ);
-            }else{
-              absIso = (*it).pfIsolationDR03().chargedHadronIso();
-              absEta = abs((*it).eta());
-              pt = (*it).pt();
-              dxy = (*it).dxy();
-              dz = (*it).dz();
-            }
-          }
-          if (pt < 5 or absEta > 2.4) continue;
-          if (abs(dz)  > 0.1) continue;
-          if (abs(dxy) > 0.2) continue;
-          if (absIso > 5.0) continue;
-          if (absIso/pt > 0.2) continue;
-          //std::cout << ev.id().event() << " pdgId " << (*it).pdgId() << " pt " << pt << " eta " << absEta << " ch_iso " << absIso << " relIso " << absIso/pt << std::endl;
-        }else{
-          if ((*it).pt() < 10 or abs((*it).eta()) > 2.4) continue;
-          if (abs((*it).dz())  > 0.1) continue;
-          if (abs((*it).dxy()) > 0.2) continue;
-          if ((*it).pfIsolationDR03().chargedHadronIso() > 5.0) continue;
-          if ((*it).pfIsolationDR03().chargedHadronIso()/(*it).pt() > 0.2) continue;
-          // to reproduce cleaning in nanoAOD
-          if (std::binary_search(leptonPfCands.begin(), leptonPfCands.end(), pfCand)) continue;
-  
-          //std::cout << ev.id().event() << " pdgId " << (*it).pdgId() << " pt " << (*it).pt() << " eta " << (*it).eta() << " phi " << (*it).phi() << std::endl;
-          //std::cout << "absIso " << (*it).pfIsolationDR03().chargedHadronIso() << " relIso " << (*it).pfIsolationDR03().chargedHadronIso()/(*it).pt() << std::endl;
-        }
-        
-            selected_.push_back( & (*it) );
-
+      int* thePdgId = new int((*it).pdgId()); // currently, only pdgId is stored. have not checked if this memory leaks
+      selected_.push_back(thePdgId);
     }
   }
 
