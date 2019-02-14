@@ -42,7 +42,11 @@ struct isoTrackSelector {
     edm::Handle<pat::PackedCandidateCollection> pfCands;
     ev.getByToken(pfCandToken_, pfCands); 
     
+    //for (auto & ptr: selected_){ // delete pointers from last event to avoid memory leaks
+        //delete ptr; 
+    //}
     selected_.clear();
+    
     std::vector<reco::CandidatePtr> leptonPfCands;
     
     // fill pointers for pfCand matching
@@ -79,9 +83,9 @@ struct isoTrackSelector {
       if (abs(dxy) > 0.2) continue;
       if (absIso > 5.0) continue;
       if (absIso/pt > 0.2) continue;
-      
-      int* thePdgId = new int(lep.pdgId()); // currently, only pdgId is stored. have not checked if this memory leaks
-      selected_.push_back(thePdgId);
+      //int* thePdgId = new int(lep.pdgId()); // currently, only pdgId is stored. have not checked if this memory leaks
+      //selected_.push_back(thePdgId);
+      selected_.push_back( &(lep) );
     }
     
     // add electrons to isoTrack collection
@@ -100,8 +104,9 @@ struct isoTrackSelector {
       if (absIso > 5.0) continue;
       if (absIso/pt > 0.2) continue;
       
-      int* thePdgId = new int(lep.pdgId()); // currently, only pdgId is stored. have not checked if this memory leaks
-      selected_.push_back(thePdgId);
+      selected_.push_back( &(lep) );
+      //int* thePdgId = new int(lep.pdgId()); // currently, only pdgId is stored. have not checked if this memory leaks
+      //selected_.push_back(thePdgId);
       
     }
 
@@ -111,6 +116,7 @@ struct isoTrackSelector {
       if (not (*it).packedCandRef().isNonnull()) continue;
       if (not ((*it).packedCandRef().id() == pfCands.id())) continue;
       reco::CandidatePtr pfCand(edm::refToPtr((*it).packedCandRef()));
+
       if (std::binary_search(leptonPfCands.begin(), leptonPfCands.end(), pfCand)) continue; // pfCandidates are cleaned from nanoAOD, so they have to be removed
       
       if (abs((*it).pdgId()) == 11 || abs((*it).pdgId()) == 13) continue; // take leptons from the lepton collections
@@ -120,9 +126,10 @@ struct isoTrackSelector {
       if (abs((*it).dxy()) > 0.2) continue;
       if ((*it).pfIsolationDR03().chargedHadronIso() > 5.0) continue;
       if ((*it).pfIsolationDR03().chargedHadronIso()/(*it).pt() > 0.2) continue;
-        
-      int* thePdgId = new int((*it).pdgId()); // currently, only pdgId is stored. have not checked if this memory leaks
-      selected_.push_back(thePdgId);
+
+      selected_.push_back( &(*it) );
+      //int* thePdgId = new int((*it).pdgId()); // currently, only pdgId is stored. have not checked if this memory leaks
+      //selected_.push_back(thePdgId);
     }
   }
 

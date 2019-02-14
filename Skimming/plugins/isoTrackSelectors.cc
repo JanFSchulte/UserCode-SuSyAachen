@@ -10,7 +10,7 @@
 
 // define your producer name
 
-typedef ObjectSelector< isoTrackSelector<double, pat::IsolatedTrackCollection, std::vector<const int*> >, std::vector<int> > PATIsoTrackSelector;
+typedef ObjectSelector< isoTrackSelector<double, pat::IsolatedTrackCollection, std::vector<const reco::LeafCandidate*> >, std::vector<reco::LeafCandidate> > PATIsoTrackSelector;
 
 
 // declare the module as plugin
