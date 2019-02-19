@@ -1136,8 +1136,8 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   floatEventProperties["weightUp"] = fctVtxWeightUp_( iEvent );
   floatEventProperties["weightDown"] = fctVtxWeightDown_( iEvent );
   
-  float pt1 = 0.;
-  float pt2 = 0.;
+  double pt1 = 0.;
+  double pt2 = 0.;
   
   std::string leptonFlavor1 = "None";
   std::string leptonFlavor2 = "None";
@@ -1159,7 +1159,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
     }
   }
   for(std::size_t it = 0; it < (*electrons).size() ; ++it){
-    if ((*electrons).at(it).pt() < pt1 && (*electrons).at(it).pt() > pt2){
+    if ((*electrons).at(it).pt() < pt1 && (*electrons).at(it).pt() > pt2 ){
       pt2 = (*electrons).at(it).pt();
       leptonFlavor2 = "Ele";
       leptonNr2 = it;
@@ -1167,7 +1167,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   }
   
   for(std::size_t it = 0; it < (*muons).size() ; ++it){
-    if ((*muons).at(it).pt() < pt1 && (*muons).at(it).pt() > pt2){
+    if ((*muons).at(it).pt() < pt1 && (*muons).at(it).pt() > pt2 ){
       pt2 = (*muons).at(it).pt();
       leptonFlavor2 = "Mu";
       leptonNr2 = it;

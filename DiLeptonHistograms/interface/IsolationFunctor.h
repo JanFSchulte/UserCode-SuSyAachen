@@ -48,7 +48,6 @@ public:
     muonValue = cfg.getParameter< std::vector<double>  >("effAreaMuonValue");
   
     }
-
   const void init(const edm::Event &ev)
   {
     edm::Handle<double> rhoIso_h;     
