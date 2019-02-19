@@ -61,7 +61,7 @@ public:
     { return GetIsolation(lepton,method);}
 
 private:
-  const virtual double GetIsolation(const pat::Electron& lepton, const std::string& method)
+  const double GetIsolation(const pat::Electron& lepton, const std::string& method)
   {
     double caloIso = 0.;
     caloIso +=  lepton.pfIsolationVariables().sumNeutralHadronEt;
@@ -108,7 +108,7 @@ private:
     return iso;
   }
 
-  const virtual double GetIsolation(const pat::Muon& lepton, const std::string& method)
+  const double GetIsolation(const pat::Muon& lepton, const std::string& method)
   {
     double caloIso = 0.;
     caloIso += lepton.pfIsolationR03().sumNeutralHadronEt;
@@ -154,7 +154,7 @@ private:
     return iso;
   }
 
-  const virtual double GetIsolation(const pat::PackedCandidate& track, const std::string& method)
+  const double GetIsolation(const pat::PackedCandidate& track, const std::string& method)
   {
   double iso = 0.;
   if (method == "trackIso"){
@@ -225,7 +225,7 @@ const double GetTrackIsolation(const pat::PackedCandidate &track, const std::vec
 
 
 
-  const virtual double GetIsolation(const reco::Candidate& lepton, const std::string& method){return -1.;}
+  const double GetIsolation(const reco::Candidate& lepton, const std::string& method){return -1.;}
 
 
 const double GetAEff(const pat::Muon& lepton){
