@@ -26,7 +26,7 @@ cleanMuons = cms.EDFilter("PATMuonSelector", filter = filterMuons,
 from SuSyAachen.DiLeptonHistograms.isolationFunctor_cfi import *
 isoMuons = cms.EDFilter("PATMuonIsolationSelector", filter = cms.bool(True),
                                            src = cms.InputTag("cleanMuons"),
-                                           isolationDefinitions = isolationDefinitions,
+                                           isolationDefinitions = isolationDefinitions2017,
                                            method = cms.string("miniIsoEA"),
                                            isoMin = cms.double(-1.),
                                            isoMax = cms.double(0.1),                                         

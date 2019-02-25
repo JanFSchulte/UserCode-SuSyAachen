@@ -28,26 +28,16 @@ struct eleMVAIDSelector {
     workingPointEndcapHighPt_( cfg.getParameter<double>( "workingPointEndcapHighPt") ),
     workingPointEndcapLowPt_( cfg.getParameter<double>( "workingPointEndcapLowPt") ),
     workingPointEndcapLowPtLinear_( cfg.getParameter<double>( "workingPointEndcapLowPtLinear") ), 
-    //idMapToken_(iC.consumes<edm::ValueMap<float> >(cfg.getParameter<edm::InputTag>( "idMapSource" )))  { }
-    idMapToken_(cfg.getParameter<std::string>( "idMapSource" ) )  { }
+    lowPtHighPtCutOff_( cfg.getParameter<double>( "lowPtHighPtCutOff") ), 
+    lowPtLinearSubtraction_( cfg.getParameter<double>( "lowPtLinearSubtraction") ), 
+    idMapName_(cfg.getParameter<std::string>( "idMapSource" ) )  { }
   
   const_iterator begin() const { return selected_.begin(); }
   const_iterator end() const { return selected_.end(); }
   void select(const edm::Handle< collection > &col , const edm::Event &ev , const edm::EventSetup &setup ) {
-    
-    //edm::Handle<edm::ValueMap<float> > id_values;
-    //ev.getByToken(idMapToken_, id_values);
-    
-    //float slope;
-    //~ int eventNr;
-
-
     selected_.clear();
     for(typename collection::const_iterator it = col.product()->begin(); it != col.product()->end(); ++it ){
-        //const edm::Ptr<pat::Electron> elPtr(col, it - col->begin() );
-        //float mvaValue  = (*id_values)[ elPtr ];
-        //float mvaValue = (*it).userFloat(idMapToken_);
-        float mvaValue = (*it).userFloat(idMapToken_);
+        float mvaValue = (*it).userFloat(idMapName_);
         //for (const auto &userF : it->userFloatNames()){
             //std::cout << userF << std::endl;
         //}
@@ -58,22 +48,22 @@ struct eleMVAIDSelector {
         float eta = fabs((*it).superCluster()->eta());
         
         if (eta < 0.8) {
-            if (pt < 25){
-                workingPoint = workingPointCentralBarrelLowPt_ + workingPointCentralBarrelLowPtLinear_ * (pt-10);
+            if (pt < lowPtHighPtCutOff_){
+                workingPoint = workingPointCentralBarrelLowPt_ + workingPointCentralBarrelLowPtLinear_ * (pt-lowPtLinearSubtraction_);
             }else{
                 workingPoint = workingPointCentralBarrelHighPt_;
             }
         }
         else if (eta > 0.8 && eta < 1.479) {
-            if (pt < 25){
-                workingPoint = workingPointOuterBarrelLowPt_ + workingPointOuterBarrelLowPtLinear_ * (pt-10);
+            if (pt < lowPtHighPtCutOff_){
+                workingPoint = workingPointOuterBarrelLowPt_ + workingPointOuterBarrelLowPtLinear_ * (pt-lowPtLinearSubtraction_);
             }else{
                 workingPoint = workingPointOuterBarrelHighPt_;
             }
         }
         else {
-            if (pt < 25){
-                workingPoint = workingPointEndcapLowPt_ + workingPointEndcapLowPtLinear_ * (pt-10);
+            if (pt < lowPtHighPtCutOff_){
+                workingPoint = workingPointEndcapLowPt_ + workingPointEndcapLowPtLinear_ * (pt-lowPtLinearSubtraction_);
             }else{
                 workingPoint = workingPointEndcapHighPt_;
             }
@@ -99,8 +89,9 @@ private:
   float workingPointEndcapHighPt_;
   float workingPointEndcapLowPt_;
   float workingPointEndcapLowPtLinear_;
-  //edm::EDGetTokenT<edm::ValueMap<float> > idMapToken_;
-  std::string idMapToken_;
+  float lowPtHighPtCutOff_;
+  float lowPtLinearSubtraction_;
+  std::string idMapName_;
 };
 
 #endif

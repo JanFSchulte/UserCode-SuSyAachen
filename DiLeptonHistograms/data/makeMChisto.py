@@ -37,5 +37,7 @@ if __name__ == "__main__":
     hists.append( generateHistoFromMixingModule( "mix_2016_25ns_SpringMC_PUScenarioV1_PoissonOOTPU" ) )
     hists.append( generateHistoFromMixingModule( "mix_2016_25ns_Moriond17MC_PoissonOOTPU" ) )
     hists.append( generateHistoFromMixingModule( "mix_2017_25ns_WinterMC_PUScenarioV1_PoissonOOTPU" ) )
+    hists.append( generateHistoFromMixingModule( "mix_2018_25ns_JuneProjectionFull18_PoissonOOTPU" ) )
+    hists.append( generateHistoFromMixingModule( "mix_2018_25ns_ProjectedPileup_PoissonOOTPU" ) )
 
 writeObjectsToFile( hists, filename )

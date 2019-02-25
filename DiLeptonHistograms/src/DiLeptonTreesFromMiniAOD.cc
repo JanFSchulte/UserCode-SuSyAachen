@@ -135,6 +135,7 @@ private:
   edm::EDGetTokenT< double > prefweightup_token;
   edm::EDGetTokenT< double > prefweightdown_token;
   
+  edm::EDGetTokenT< bool >ecalBadCalibFilterUpdate_token ;
   edm::EDGetTokenT<edm::TriggerResults>           metFilterToken_;
   
 
@@ -175,6 +176,7 @@ private:
   bool writeTrigger_;
   bool metUncert_;  
   bool storeMetFilters_;
+  
   std::vector<std::string> metFilterNames_;
   std::vector<std::string> eeTriggerNames_;
   std::vector<std::string> emTriggerNames_;
@@ -257,6 +259,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   debug = false; 
   writeTrigger_ = iConfig.getUntrackedParameter<bool>("writeTrigger");
   storeMetFilters_ = iConfig.getUntrackedParameter<bool>("storeMetFilters");
+  ecalBadCalibFilterUpdate_token= consumes< bool >(edm::InputTag("ecalBadCalibReducedMINIAODFilter"));
   metUncert_ = iConfig.getUntrackedParameter<bool>("doMETUncert");  
   
   consumes<std::vector< PileupSummaryInfo > >(edm::InputTag("slimmedAddPileupInfo"));
@@ -392,6 +395,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initIntBranch( "triggerSummaryHT" );
   initIntBranch( "triggerSummaryMET" );
   initIntBranch( "metFilterSummary" );
+  initIntBranch( "ecalBadCalibReducedMINIAODFilter" );
   
   if (storeMetFilters_){
   
@@ -706,6 +710,16 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   
   int metFilterSummary = 1;
   if (storeMetFilters_){ 
+    edm::Handle< bool > passecalBadCalibFilterUpdate ;
+    iEvent.getByToken(ecalBadCalibFilterUpdate_token,passecalBadCalibFilterUpdate);
+    bool    _passecalBadCalibFilterUpdate =  (*passecalBadCalibFilterUpdate );
+    
+    if (not _passecalBadCalibFilterUpdate){
+      metFilterSummary = 0;
+      intEventProperties["ecalBadCalibReducedMINIAODFilter"] = 0;     
+    }else{
+      intEventProperties["ecalBadCalibReducedMINIAODFilter"] = 1;
+    }
     
     for (std::string const &filterName : metFilterNames_){
       const unsigned index = allFilterNames.triggerIndex(filterName);

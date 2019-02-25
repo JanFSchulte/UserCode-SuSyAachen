@@ -34,14 +34,14 @@ from SuSyAachen.DiLeptonHistograms.isolationFunctor_cfi import *
 effectiveAreaIsoElectrons = cms.EDFilter("PATElectronEffectiveAreaSelector", filter = cms.bool(True),
                                            src = cms.InputTag("cleanElectrons"),
                                            rhoSource = cms.InputTag("fixedGridRhoFastjetAll"),
-                                           isolationDefinitions = isolationDefinitions,
+                                           isolationDefinitions = isolationDefinitions2017,
                                            isoMin = cms.double(-1.),
                                            isoMax = cms.double(0.09),                                         
                                            )
                                            
 isoElectrons = cms.EDFilter("PATElectronIsolationSelector", filter = cms.bool(True),
                                            src = cms.InputTag("cleanElectrons"),
-                                           isolationDefinitions = isolationDefinitions,
+                                           isolationDefinitions = isolationDefinitions2017,
                                            method = cms.string("miniIsoEA"),                                           
                                            isoMin = cms.double(-1.),
                                            isoMax = cms.double(0.1),                                         
