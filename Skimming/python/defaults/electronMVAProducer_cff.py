@@ -19,8 +19,6 @@ def electronMVAProducer17(process):
         process.seqelectronMVAProducer17 = cms.Sequence(process.egammaPostRecoSeq)
         process.electronMVAPath = cms.Path(process.seqelectronMVAProducer17)
 
-
-
 def electronMVAProducer18(process):
         from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
         setupEgammaPostRecoSeq( process,
