@@ -358,7 +358,8 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initIntBranch( "nGenVertices" );
   initIntBranch( "nLightLeptons" );
   initIntBranch( "nLooseLeptons" );
-  initIntBranch( "nIsoTracksLept" );
+  initIntBranch( "nIsoTracksEl" );
+  initIntBranch( "nIsoTracksMu" );
   initIntBranch( "nIsoTracksHad" );
   initFloatBranch( "jet1pt" );
   initFloatBranch( "jet2pt" );
@@ -1330,7 +1331,8 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
     *(floatBranches_[treeName]["pt3"]) = leptonPts[0];   
   }
   
-  int nIsoTracksLept = 0;
+  int nIsoTracksEl = 0;
+  int nIsoTracksMu = 0;
   int nIsoTracksHad = 0;
   //double absIso = 0.;
   
@@ -1339,9 +1341,18 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
   for(auto const &track : isoTracks){
     //std::cout << pdgId << std::endl;
     int pdgId = track.pdgId();
-    if (abs(pdgId) == 11 || abs(pdgId) == 13){
-      nIsoTracksLept++;
+    if (abs(pdgId) == 11){
+      nIsoTracksEl++;
+    }else if(abs(pdgId) == 13){
+      nIsoTracksMu++;
     }else{
+      double dEta = (aVec.Eta()-track.eta());
+      double dPhi = (aVec.Phi()-track.phi());
+      if (dEta*dEta + dPhi*dPhi < 0.2*0.2) continue;
+      dEta = (bVec.Eta()-track.eta());
+      dPhi = (bVec.Phi()-track.phi());
+      if (dEta*dEta + dPhi*dPhi < 0.2*0.2) continue;
+      //std::cout << track.pt() << " " << track.eta();
       nIsoTracksHad++;
     }
 
@@ -1349,8 +1360,9 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
 
   }
   *(intBranches_[treeName]["nIsoTracksHad"]) = nIsoTracksHad;
-  *(intBranches_[treeName]["nIsoTracksLept"]) = nIsoTracksLept;
-  if (nIsoTracksLept+nIsoTracksHad > 0) *(floatBranches_[treeName]["ptTrack3"]) = *std::max_element(std::begin(trackPts),std::end(trackPts));
+  *(intBranches_[treeName]["nIsoTracksEl"]) = nIsoTracksEl;
+  *(intBranches_[treeName]["nIsoTracksMu"]) = nIsoTracksMu;
+  if (nIsoTracksEl+nIsoTracksMu+nIsoTracksHad > 0) *(floatBranches_[treeName]["ptTrack3"]) = *std::max_element(std::begin(trackPts),std::end(trackPts));
   else *(floatBranches_[treeName]["ptTrack3"]) = 0.;
   
           

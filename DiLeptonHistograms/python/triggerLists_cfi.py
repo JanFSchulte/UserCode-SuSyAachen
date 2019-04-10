@@ -5,6 +5,7 @@ eeTriggerNames2017=cms.untracked.vstring(
     "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v",
     "HLT_DoubleEle33_CaloIdL_MW_v",
     "HLT_DoubleEle25_CaloIdL_MW_v",
+    "HLT_DoubleEle27_CaloIdL_MW_Edge",
 )
    
 emTriggerNames2017=cms.untracked.vstring(

@@ -35,6 +35,7 @@ public:
             //std::string dataMCScaleFactorFile_mu_SIP3D_ = params.getParameter<std::string>("dataMCScaleFactorFile_mu_SIP3D");
             
             std::string dataMCScaleFactorFile_ele_ = params.getParameter<std::string>("dataMCScaleFactorFile_ele");
+            std::string dataMCScaleFactorFile_ele_Reco_ = params.getParameter<std::string>("dataMCScaleFactorFile_ele_Reco");
             //std::string dataMCScaleFactorFile_ele_Track_ = params.getParameter<std::string>("dataMCScaleFactorFile_ele_Track");
             
             std::string dataMCScaleFactorHisto_mu_ID_ = params.getParameter<std::string>("dataMCScaleFactorHisto_mu_ID");
@@ -43,6 +44,7 @@ public:
             //std::string dataMCScaleFactorHisto_mu_Track_ = params.getParameter<std::string>("dataMCScaleFactorHisto_mu_Track");
             //std::string dataMCScaleFactorHisto_mu_SIP3D_ = params.getParameter<std::string>("dataMCScaleFactorHisto_mu_SIP3D");
             
+            std::string dataMCScaleFactorHisto_ele_Reco_ = params.getParameter<std::string>("dataMCScaleFactorHisto_ele_Reco");
             std::string dataMCScaleFactorHisto_ele_ID_ = params.getParameter<std::string>("dataMCScaleFactorHisto_ele_ID");
             std::string dataMCScaleFactorHisto_ele_Iso_ = params.getParameter<std::string>("dataMCScaleFactorHisto_ele_Iso");
             std::string dataMCScaleFactorHisto_ele_ConvHit_ = params.getParameter<std::string>("dataMCScaleFactorHisto_ele_ConvHit");
@@ -57,6 +59,7 @@ public:
                 //dataMCScaleFactorFile_mu_SIP3D_, 
                 
                 dataMCScaleFactorFile_ele_, 
+                dataMCScaleFactorFile_ele_Reco_, 
                 //dataMCScaleFactorFile_ele_Track_, 
                 
                 dataMCScaleFactorHisto_mu_ID_, 
@@ -65,6 +68,7 @@ public:
                 //~ dataMCScaleFactorHisto_mu_Track_, 
                 //dataMCScaleFactorHisto_mu_SIP3D_, 
                 
+                dataMCScaleFactorHisto_ele_Reco_, 
                 dataMCScaleFactorHisto_ele_ID_, 
                 dataMCScaleFactorHisto_ele_Iso_,
                 dataMCScaleFactorHisto_ele_ConvHit_
@@ -85,9 +89,10 @@ public:
     //else if (pt < 25.)tempPtTrack = 26.;
     //else tempPtTrack = pt;
     
-    
+    eta = ele.superCluster()->eta();
     if(pt > 200.) pt= 199.;
     
+    result *= dataMCScaleFactorHisto_ele_Reco_->GetBinContent(dataMCScaleFactorHisto_ele_Reco_->GetXaxis()->FindBin(eta), dataMCScaleFactorHisto_ele_Reco_->GetYaxis()->FindBin(pt));
     result *= dataMCScaleFactorHisto_ele_ID_->GetBinContent(dataMCScaleFactorHisto_ele_ID_->GetXaxis()->FindBin(eta), dataMCScaleFactorHisto_ele_ID_->GetYaxis()->FindBin(pt));
     result *= dataMCScaleFactorHisto_ele_Iso_->GetBinContent(dataMCScaleFactorHisto_ele_Iso_->GetXaxis()->FindBin(eta), dataMCScaleFactorHisto_ele_Iso_->GetYaxis()->FindBin(pt));
     result *= dataMCScaleFactorHisto_ele_ConvHit_->GetBinContent(dataMCScaleFactorHisto_ele_ConvHit_->GetXaxis()->FindBin(eta),dataMCScaleFactorHisto_ele_ConvHit_->GetYaxis()->FindBin(pt));
@@ -125,6 +130,7 @@ private:
               //std::string dataMCScaleFactorFile_mu_SIP3D, 
               
               std::string dataMCScaleFactorFile_ele, 
+              std::string dataMCScaleFactorFile_ele_Reco, 
               //std::string dataMCScaleFactorFile_ele_Track, 
               
               std::string dataMCScaleFactorHisto_mu_ID, 
@@ -133,6 +139,7 @@ private:
               //std::string dataMCScaleFactorHisto_mu_Track, 
               //std::string dataMCScaleFactorHisto_mu_SIP3D, 
               
+              std::string dataMCScaleFactorHisto_ele_Reco, 
               std::string dataMCScaleFactorHisto_ele_ID, 
               std::string dataMCScaleFactorHisto_ele_Iso,
               std::string dataMCScaleFactorHisto_ele_ConvHit
@@ -145,6 +152,7 @@ private:
   //TH2F * dataMCScaleFactorHisto_mu_SIP3D_;
   //TH1F * dataMCScaleFactorHisto_mu_Track_;
   
+  TH2F * dataMCScaleFactorHisto_ele_Reco_;
   TH2F * dataMCScaleFactorHisto_ele_ID_;
   TH2F * dataMCScaleFactorHisto_ele_Iso_;
   TH2F * dataMCScaleFactorHisto_ele_ConvHit_;
