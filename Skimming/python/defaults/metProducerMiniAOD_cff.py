@@ -10,13 +10,13 @@ def metProducerMiniAOD16(process):
 
         #configurable options =======================================================================
         runOnData=True #data/MC switch
-        usePrivateSQlite=False#use external JECs (sqlite file)
+        usePrivateSQlite=True#use external JECs (sqlite file)
         redoPuppi=False # rebuild puppiMET
         #===================================================================
 
         if usePrivateSQlite:
                 import os
-                era="Fall17_17Nov2017_V32_94X_DATA"
+                era="Summer16_07Aug2017All_V11_DATA"
                 
                 from CondCore.CondDB.CondDB_cfi import CondDB
                 CondDBJECFile = CondDB.clone(connect = cms.string('sqlite_file:'+era+'.db'))
@@ -54,7 +54,7 @@ def metProducerMiniAOD16(process):
         # end Run corrected MET maker
 
         
-        process.seqmetProducerMiniAOD16 = cms.Sequence(process.fullPatMetSequence*process.fullPatMetSequenceModifiedMET)
+        process.seqmetProducerMiniAOD16 = cms.Sequence(process.fullPatMetSequence)
         process.seqmetProducerMiniAODPath = cms.Path(process.seqmetProducerMiniAOD16)
 
 
@@ -133,13 +133,13 @@ def metProducerMiniAOD18(process):
 
         #configurable options =======================================================================
         runOnData=True #data/MC switch
-        usePrivateSQlite=False#use external JECs (sqlite file)
+        usePrivateSQlite=True#use external JECs (sqlite file)
         redoPuppi=False # rebuild puppiMET
         #===================================================================
 
         if usePrivateSQlite:
                 import os
-                era=None # none available yet
+                era="Autumn18_RunABCD_V8_DATA" # none available yet
                 
                 from CondCore.CondDB.CondDB_cfi import CondDB
                 CondDBJECFile = CondDB.clone(connect = cms.string('sqlite_file:'+era+'.db'))

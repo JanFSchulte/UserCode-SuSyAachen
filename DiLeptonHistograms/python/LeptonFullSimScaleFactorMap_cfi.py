@@ -1,71 +1,54 @@
 import FWCore.ParameterSet.Config as cms
 
+# order 0: x:pt, y:eta
+# order 1: x:eta, y:pt
+# order 10: x:pt, y:abseta
+# order 11: x:abseta, y:pt
+
 LeptonFullSimScaleFactorMapPars2016 = cms.PSet(
-    dataMCScaleFactorFile_mu_ID = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2016/ScaleFactorMuonID.root'),
-    dataMCScaleFactorFile_mu_Iso = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2016/ScaleFactorMuonMiniIso.root'),
-    dataMCScaleFactorFile_mu_Impact = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2016/ScaleFactorMuonIP2D.root'),
-    #~ dataMCScaleFactorFile_mu_Track = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/muonTrackScaleFactors.root'),
-    dataMCScaleFactorFile_mu_SIP3D = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2016/ScaleFactorMuonSIP3D.root'),
-    
-    dataMCScaleFactorFile_ele = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2016/ScaleFactorsElectrons.root'),
-    dataMCScaleFactorFile_ele_Track = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2016/TrackScaleFactorsElectrons.root'),
-    
-    dataMCScaleFactorHisto_mu_ID = cms.string('SF'),
-    dataMCScaleFactorHisto_mu_Iso = cms.string('SF'),
-    dataMCScaleFactorHisto_mu_Impact = cms.string('SF'),
-    #~ dataMCScaleFactorHisto_mu_Track = cms.string('mutrksfptg10'),
-    dataMCScaleFactorHisto_mu_SIP3D  = cms.string('SF'),
-    
-    dataMCScaleFactorHisto_ele_ID = cms.string('GsfElectronToMVATightTightIP2DSIP3D4'),
-    dataMCScaleFactorHisto_ele_Iso = cms.string('MVAVLooseElectronToMini'),
-    dataMCScaleFactorHisto_ele_ConvHit = cms.string('MVATightElectronToConvVetoIHit0'),
-    dataMCScaleFactorHisto_ele_Track = cms.string('EGamma_SF2D')
+    electronPtThreshold = cms.double(500.0),
+    muonPtThreshold = cms.double(120.0),
+    electronScaleFactors = cms.VPSet(
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2016/ElectronScaleFactors_Run2016.root'), histName = cms.string('Run2016_MVATightTightIP2D3D'), order = cms.int32(1) ),
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2016/ElectronScaleFactors_Run2016.root'), histName = cms.string('Run2016_Mini'), order = cms.int32(1) ),
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2016/ElectronScaleFactors_Run2016.root'), histName = cms.string('Run2016_ConvIHit0'), order = cms.int32(1) ),
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2016/EGM2D_BtoH_GT20GeV_RecoSF_Legacy2016.root'), histName = cms.string('EGamma_SF2D'), order = cms.int32(1) ),
+    ),
+    muonScaleFactors = cms.VPSet(
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2016/ScaleFactorMuonID.root'), histName = cms.string('SF'), order = cms.int32(10) ),
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2016/ScaleFactorMuonMiniIso.root'), histName = cms.string('SF'), order = cms.int32(10) ),
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2016/ScaleFactorMuonIP2D.root'), histName = cms.string('SF'), order = cms.int32(10) ),
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2016/ScaleFactorMuonSIP3D.root'), histName = cms.string('SF'), order = cms.int32(10) ),
+    )
 )
 
 LeptonFullSimScaleFactorMapPars2017 = cms.PSet(
-    dataMCScaleFactorFile_mu_ID = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/ScaleFactorMuonID.root'),
-    dataMCScaleFactorFile_mu_Iso = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/ScaleFactorMuonMiniIso.root'),
-    #dataMCScaleFactorFile_mu_Impact = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/ScaleFactorMuonIP2D.root'),
-    #dataMCScaleFactorFile_mu_Track = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/muonTrackScaleFactors.root'),
-    #dataMCScaleFactorFile_mu_SIP3D = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/ScaleFactorMuonSIP3D.root'),
-    
-    dataMCScaleFactorFile_ele = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/ElectronScaleFactors_Run2017.root'),
-    dataMCScaleFactorFile_ele_Reco = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/EGM2D_runBCDEF_passingRECO.root'),
-    #dataMCScaleFactorFile_ele_Track = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/TrackScaleFactorsElectrons.root'),
-    
-    dataMCScaleFactorHisto_mu_ID = cms.string('NUM_MediumPromptID_DEN_genTracks_pt_abseta'),
-    dataMCScaleFactorHisto_mu_Iso = cms.string('TnP_MC_NUM_MiniIso02Cut_DEN_MediumCutidPromptCut_PAR_pt_eta'),
-    #dataMCScaleFactorHisto_mu_Impact = cms.string('SF'),
-    #dataMCScaleFactorHisto_mu_Track = cms.string('mutrksfptg10'),
-    #dataMCScaleFactorHisto_mu_SIP3D  = cms.string('SF'),
-    
-    dataMCScaleFactorHisto_ele_Reco = cms.string('EGamma_SF2D'),
-    dataMCScaleFactorHisto_ele_ID = cms.string('Run2017_MVATightTightIP2D3D'),
-    dataMCScaleFactorHisto_ele_Iso = cms.string('Run2017_MVAVLooseTightIP2DMini'),
-    dataMCScaleFactorHisto_ele_ConvHit = cms.string('Run2017_ConvIHit0'),
-    #dataMCScaleFactorHisto_ele_Track = cms.string('EGamma_SF2D')
+    electronPtThreshold = cms.double(500.0),
+    muonPtThreshold = cms.double(120.0),
+    electronScaleFactors = cms.VPSet(
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/ElectronScaleFactors_Run2017.root'), histName = cms.string('Run2017_MVATightTightIP2D3D'), order = cms.int32(1) ),
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/ElectronScaleFactors_Run2017.root'), histName = cms.string('Run2017_MVAVLooseTightIP2DMini'), order = cms.int32(1) ),
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/ElectronScaleFactors_Run2017.root'), histName = cms.string('Run2017_ConvIHit0'), order = cms.int32(1) ),
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/EGM2D_runBCDEF_passingRECO.root'), histName = cms.string('EGamma_SF2D'), order = cms.int32(1) ),
+    ),
+    muonScaleFactors = cms.VPSet(
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/ScaleFactorMuonID.root'), histName = cms.string('NUM_MediumPromptID_DEN_genTracks_pt_abseta'), order = cms.int32(10) ),
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/ScaleFactorMuonMiniIso.root'), histName = cms.string('TnP_MC_NUM_MiniIso02Cut_DEN_MediumCutidPromptCut_PAR_pt_eta'), order = cms.int32(10) ),
+    )
 )
 
 LeptonFullSimScaleFactorMapPars2018 = cms.PSet(
-    dataMCScaleFactorFile_mu_ID = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/ScaleFactorMuonID.root'),
-    dataMCScaleFactorFile_mu_Iso = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/ScaleFactorMuonMiniIso.root'),
-    #dataMCScaleFactorFile_mu_Impact = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/ScaleFactorMuonIP2D.root'),
-    #dataMCScaleFactorFile_mu_Track = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/muonTrackScaleFactors.root'),
-    #dataMCScaleFactorFile_mu_SIP3D = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/ScaleFactorMuonSIP3D.root'),
-    
-    dataMCScaleFactorFile_ele = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/ElectronScaleFactors_Run2017.root'),
-    dataMCScaleFactorFile_ele_Reco = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/EGM2D_runBCDEF_passingRECO.root'),
-    #dataMCScaleFactorFile_ele_Track = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/TrackScaleFactorsElectrons.root'),
-    
-    dataMCScaleFactorHisto_mu_ID = cms.string('NUM_MediumPromptID_DEN_genTracks_pt_abseta'),
-    dataMCScaleFactorHisto_mu_Iso = cms.string('TnP_MC_NUM_MiniIso02Cut_DEN_MediumCutidPromptCut_PAR_pt_eta'),
-    #dataMCScaleFactorHisto_mu_Impact = cms.string('SF'),
-    #dataMCScaleFactorHisto_mu_Track = cms.string('mutrksfptg10'),
-    #dataMCScaleFactorHisto_mu_SIP3D  = cms.string('SF'),
-    
-    dataMCScaleFactorHisto_ele_Reco = cms.string('EGamma_SF2D'),
-    dataMCScaleFactorHisto_ele_ID = cms.string('Run2017_MVATightTightIP2D3D'),
-    dataMCScaleFactorHisto_ele_Iso = cms.string('Run2017_MVAVLooseTightIP2DMini'),
-    dataMCScaleFactorHisto_ele_ConvHit = cms.string('Run2017_ConvIHit0'),
-    #dataMCScaleFactorHisto_ele_Track = cms.string('EGamma_SF2D')
+    electronPtThreshold = cms.double(500.0),
+    muonPtThreshold = cms.double(120.0),
+    electronScaleFactors = cms.VPSet(
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2018/ElectronScaleFactors_Run2018.root'), histName = cms.string('Run2018_MVATightTightIP2D3D'), order = cms.int32(1) ),
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2018/ElectronScaleFactors_Run2018.root'), histName = cms.string('Run2018_Mini'), order = cms.int32(1) ),
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2018/ElectronScaleFactors_Run2018.root'), histName = cms.string('Run2018_ConvIHit0'), order = cms.int32(1) ),
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2018/EGM2D_updatedAll.root'), histName = cms.string('EGamma_SF2D'), order = cms.int32(1) ),
+    ),
+    muonScaleFactors = cms.VPSet( # no SF for 2018 until UL, so using 2017 SFs
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/ScaleFactorMuonID.root'), histName = cms.string('NUM_MediumPromptID_DEN_genTracks_pt_abseta'), order = cms.int32(10) ),
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/ScaleFactorMuonMiniIso.root'), histName = cms.string('TnP_MC_NUM_MiniIso02Cut_DEN_MediumCutidPromptCut_PAR_pt_eta'), order = cms.int32(10) ),
+    )
 )
+

@@ -7,13 +7,13 @@ def metProducerMiniAOD_MC16(process):
 
         #configurable options =======================================================================
         runOnData=False #data/MC switch
-        usePrivateSQlite=False #use external JECs (sqlite file)
+        usePrivateSQlite=True #use external JECs (sqlite file)
         redoPuppi=False # rebuild puppiMET
         #===================================================================
 
         if usePrivateSQlite:
                 import os
-                era="Fall17_17Nov2017_V32_94X_MC"
+                era="Summer16_07Aug2017_V11_MC"
                 from CondCore.CondDB.CondDB_cfi import CondDB
                 CondDBJECFile = CondDB.clone(connect = cms.string('sqlite_file:'+era+'.db'))
                 process.jec = cms.ESSource("PoolDBESSource",
@@ -126,7 +126,7 @@ def metProducerMiniAOD_MC18(process):
 
         if usePrivateSQlite:
                 import os
-                era="Autumn18_V3_MC"
+                era="Autumn18_V8_MC"
                 from CondCore.CondDB.CondDB_cfi import CondDB
                 CondDBJECFile = CondDB.clone(connect = cms.string('sqlite_file:'+era+'.db'))
                 process.jec = cms.ESSource("PoolDBESSource",

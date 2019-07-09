@@ -2,9 +2,9 @@ import FWCore.ParameterSet.Config as cms
 
 
 BTagCalibrationPars2016 = cms.PSet(
-    CSVFullSimTagger = cms.string('CSVv2'),
+    CSVFullSimTagger = cms.string('DeepCSV'),
     CSVFastSimTagger = cms.string('CSVv2'),
-    CSVFullSimFileName = cms.string('CSVv2_Moriond17_B_H.csv'),    
+    CSVFullSimFileName = cms.string('DeepCSV_2016LegacySF_V1.csv'),    
     CSVFastSimFileName = cms.string('fastsim_csvv2_ttbar_26_1_2017.csv'),    
 )
 

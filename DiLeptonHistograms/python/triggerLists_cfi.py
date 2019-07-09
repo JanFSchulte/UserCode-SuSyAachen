@@ -1,5 +1,55 @@
 import FWCore.ParameterSet.Config as cms
 
+eeTriggerNames2016 = cms.untracked.vstring( 
+              "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",  
+              "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
+              "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v",   
+              "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_MW_v"
+)
+mmTriggerNames2016 = cms.untracked.vstring(  
+              "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v",           
+              "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v",            
+              "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",           
+              "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",            
+              "HLT_TkMu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",          
+              "HLT_Mu27_TkMu8_v",                          
+              "HLT_Mu30_TkMu11_v"
+)
+emTriggerNames2016 = cms.untracked.vstring(
+              "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",  
+              "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v",   
+              "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ_v",   
+              "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",  
+              "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",  
+              "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",            
+              "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",         
+              "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",            
+              "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",        
+              "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",        
+              "HLT_Mu30_Ele30_CaloIdL_GsfTrkIdVL_v",          
+              "HLT_Mu33_Ele33_CaloIdL_GsfTrkIdVL_v"
+)
+htTriggerNames2016 = cms.untracked.vstring(
+              "HLT_PFHT125_v",
+              "HLT_PFHT200_v",
+              "HLT_PFHT250_v",
+              "HLT_PFHT300_v",
+              "HLT_PFHT350_v", 
+              "HLT_PFHT400_v",
+              "HLT_PFHT475_v",
+              "HLT_PFHT600_v",
+              "HLT_PFHT650_v",
+              "HLT_PFHT800_v",
+              "HLT_PFHT900_v",
+              
+)
+
+metTriggerNames2016=cms.untracked.vstring(
+    "HLT_PFMET120_PFMHT90_IDTight_v",
+    "HLT_PFMET120_PFMHT100_IDTight_v",
+    "HLT_PFMET120_PFMHT110_IDTight_v",
+    "HLT_PFMET120_PFMHT120_IDTight_v",
+)
 
 eeTriggerNames2017=cms.untracked.vstring( 
     "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v",
