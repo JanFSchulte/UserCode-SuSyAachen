@@ -120,7 +120,7 @@ def metProducerMiniAOD_MC18(process):
 
         #configurable options =======================================================================
         runOnData=False #data/MC switch
-        usePrivateSQlite=True #use external JECs (sqlite file)
+        usePrivateSQlite=False #use external JECs (sqlite file)
         redoPuppi=False # rebuild puppiMET
         #===================================================================
 

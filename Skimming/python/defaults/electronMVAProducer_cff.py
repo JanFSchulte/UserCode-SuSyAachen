@@ -22,6 +22,7 @@ def electronMVAProducer17(process):
 def electronMVAProducer18(process):
         from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
         setupEgammaPostRecoSeq( process,
+                                isMiniAOD=True,
                                 runEnergyCorrections=False,
                                 era="2018-Prompt")
         process.seqelectronMVAProducer18 = cms.Sequence(process.egammaPostRecoSeq)

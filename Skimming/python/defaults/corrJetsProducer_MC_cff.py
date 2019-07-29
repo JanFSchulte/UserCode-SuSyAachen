@@ -53,5 +53,5 @@ def corrJetsProducer_MC17(process):
         process.seqcorrJetsPath_MC = cms.Path(process.seqcorrJetsProducer_MC17)
 
 def corrJetsProducer_MC18(process):
-        process.seqcorrJetsProducer_MC18 = corrJetsProd(process, True, "Autumn18_V8_MC")
+        process.seqcorrJetsProducer_MC18 = corrJetsProd(process, False, "Autumn18_V8_MC")
         process.seqcorrJetsPath_MC = cms.Path(process.seqcorrJetsProducer_MC18)
