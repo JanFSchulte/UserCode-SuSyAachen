@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
-from SuSyAachen.Skimming.metProducerMiniAOD_cff import metProducerMiniAOD
+from SuSyAachen.Skimming.defaults.metProducerMiniAOD_cff import metProducerMiniAOD
 from SuSyAachen.DiLeptonHistograms.jecToUse_cfi import *
 
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
-from SuSyAachen.Skimming.corrJetsProducer_cff import corrJetsProd
+from SuSyAachen.Skimming.defaults.corrJetsProducer_cff import corrJetsProd
 from SuSyAachen.DiLeptonHistograms.jecToUse_cfi import *
 
 def corrJetsProducer_MC16(process):
