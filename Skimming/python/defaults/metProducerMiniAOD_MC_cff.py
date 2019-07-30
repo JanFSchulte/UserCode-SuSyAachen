@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
 from SuSyAachen.Skimming.metProducerMiniAOD_cff import metProducerMiniAOD
-from SuSyAachen.DileptonHistograms.jecToUse_cfi import *
+from SuSyAachen.DiLeptonHistograms.jecToUse_cfi import *
 
 
 def metProducerMiniAOD_MC16(process):

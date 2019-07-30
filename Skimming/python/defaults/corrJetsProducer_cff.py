@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
-
-from SuSyAachen.DileptonHistograms.jecToUse_cfi import *
+from SuSyAachen.DiLeptonHistograms.jecToUse_cfi import *
 
 def corrJetsProd(process, year, runOnData=True, usePrivateSQlite=False, era=None):
         if usePrivateSQlite:

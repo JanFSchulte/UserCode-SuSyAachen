@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
 from SuSyAachen.Skimming.corrJetsProducer_cff import corrJetsProd
-from SuSyAachen.DileptonHistograms.jecToUse_cfi import *
+from SuSyAachen.DiLeptonHistograms.jecToUse_cfi import *
 
 def corrJetsProducer_MC16(process):
         process.seqcorrJetsProducer_MC16 = corrJetsProd(process, "2016", False, mcUseDB["2016"], mcDB["2016"])
