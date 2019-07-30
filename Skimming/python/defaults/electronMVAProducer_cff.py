@@ -3,8 +3,7 @@ import FWCore.ParameterSet.Config as cms
 def electronMVAProducer16(process):
         from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
         setupEgammaPostRecoSeq( process,
-                                isMiniAOD=True,
-                                applyEnergyCorrections=False,
+                                runEnergyCorrections=False,
                                 applyVIDOnCorrectedEgamma=False,
                                 era="2016-Legacy"
         )
@@ -14,6 +13,7 @@ def electronMVAProducer16(process):
 def electronMVAProducer17(process):
         from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
         setupEgammaPostRecoSeq( process,
+                                runEnergyCorrections=False,
                                 era="2017-Nov17ReReco"
         )
         process.seqelectronMVAProducer17 = cms.Sequence(process.egammaPostRecoSeq)

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import FWCore.ParameterSet.Config as cms
 
+from SuSyAachen.DileptonHistograms.jecToUse_cfi import *
 
-def corrJetsProd(process, usePrivateSQlite=False, era=None):
+def corrJetsProd(process, year, runOnData=True, usePrivateSQlite=False, era=None):
         if usePrivateSQlite:
                 from CondCore.CondDB.CondDB_cfi import CondDB
                 CondDBJECFile = CondDB.clone(connect = cms.string('sqlite_file:'+era+'.db'))
@@ -44,18 +45,19 @@ def corrJetsProd(process, usePrivateSQlite=False, era=None):
         
         return cms.Sequence(process.patJetCorrFactorsUpdatedJEC * process.updatedPatJetsUpdatedJEC * process.patJetCorrFactorsAK8 * process.updatedPatJetsAK8)
 
+
 def corrJetsProducer16(process):       
-        process.seqcorrJetsProducer16 = corrJetsProd(process, True, "Summer16_07Aug2017All_V11_DATA")
+        process.seqcorrJetsProducer16 = corrJetsProd(process, "2016", True, dataUseDB["2016"], dataDB["2016"])
         process.seqcorrJetsPath = cms.Path(process.seqcorrJetsProducer16)
 
 
 def corrJetsProducer17(process):       
-        process.seqcorrJetsProducer17 = corrJetsProd(process, True, "Fall17_17Nov2017_V32_94X_DATA")
+        process.seqcorrJetsProducer17 = corrJetsProd(process, "2017", True, dataUseDB["2017"], dataDB["2017"])
         process.seqcorrJetsPath = cms.Path(process.seqcorrJetsProducer17)
 
 
 def corrJetsProducer18(process):       
-        process.seqcorrJetsProducer18 = corrJetsProd(process, False, "Autumn18_RunABCD_V8_DATA")
+        process.seqcorrJetsProducer18 = corrJetsProd(process, "2018", True, dataUseDB["2018"], dataDB["2018"])
         process.seqcorrJetsPath = cms.Path(process.seqcorrJetsProducer18)
 
 
