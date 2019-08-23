@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 isolationDefinitions2016 = cms.PSet(
-    rhoSource = cms.InputTag("fixedGridRhoFastjetCentralNeutral"),
+    rhoSource = cms.InputTag("fixedGridRhoFastjetAll"),
     candSource = cms.InputTag("packedPFCandidates"),
     effAreaElectronEta = cms.vdouble(  0.0,     1.0,    1.479,  2.0,    2.2,    2.3,    2.4),
     effAreaElectronValue = cms.vdouble(0.1752,  0.1862, 0.1411, 0.1534, 0.1903, 0.2243, 0.2687),

@@ -1,6 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 # central place to edit used JEC so it is always consistent
-# don't forget to also add the DB files to additional import files for crab
+# don't forget to also add/remove the DB files to/from additional input
+# files for crab
 
 
 # whether to load from GT or from DB file
