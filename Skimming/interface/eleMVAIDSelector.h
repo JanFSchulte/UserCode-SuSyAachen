@@ -68,6 +68,7 @@ struct eleMVAIDSelector {
                 workingPoint = workingPointEndcapHighPt_;
             }
         }
+        //std::cout << pt << " " << eta << " " << workingPoint << " " << mvaValue << std::endl;
         if (mvaValue > workingPoint){
             selected_.push_back( & (*it) );
         }

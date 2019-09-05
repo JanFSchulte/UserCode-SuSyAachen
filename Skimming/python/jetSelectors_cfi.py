@@ -9,7 +9,8 @@ patPFJetIDFilter = cms.EDFilter("PATPFJetIDSelector",
   filter = cms.bool(True),
   src = cms.InputTag("basicJets"),
   version = cms.string('FIRSTDATA'),
-  quality = cms.string('LOOSE')
+  quality = cms.string('LOOSE'),
+  year = cms.int32(2017),
 )
 
 jetMuonCleaner = cms.EDProducer('jetMuonCleaner',

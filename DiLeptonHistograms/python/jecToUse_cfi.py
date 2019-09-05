@@ -20,7 +20,7 @@ dataDB["2018"] = "Autumn18_RunABCD_V8_DATA"
 mcUseDB = {}
 mcUseDB["2016"] = True
 mcUseDB["2017"] = True
-mcUseDB["2018"] = False
+mcUseDB["2018"] = True
 
 # db name, can be empty string if not used
 mcDB = {}

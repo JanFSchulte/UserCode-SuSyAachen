@@ -18,7 +18,8 @@ struct jetIDSelector {
   typedef collectionType collection;
   typedef containerType container;
   typedef typename container::const_iterator const_iterator;
-  jetIDSelector ( const edm::ParameterSet & cfg, edm::ConsumesCollector ) {}
+  jetIDSelector ( const edm::ParameterSet & cfg, edm::ConsumesCollector ):
+  year_( cfg.getParameter<int>( "year") ) {}
   
   const_iterator begin() const { return selected_.begin(); }
   const_iterator end() const { return selected_.end(); }
@@ -28,19 +29,46 @@ struct jetIDSelector {
 
     selected_.clear();
 
-    //~ double etaValue;
     for(typename collection::const_iterator it = col.product()->begin(); it != col.product()->end(); ++it ){
 
 
     bool isPass = true;
-    //double energy = (*it).chargedHadronEnergy() + (*it).neutralHadronEnergy() + (*it).photonEnergy() + (*it).electronEnergy() + (*it).muonEnergy() +  (*it).HFEMEnergy();
-
-    // TIGHT Jet ID now recommended https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2017
-    if (((*it).chargedHadronEnergyFraction()) == 0 && fabs((*it).eta()) < 2.4 ) {isPass = false; }   
-    if (((*it).chargedMultiplicity()) == 0 && fabs((*it).eta() < 2.4 )){ isPass = false;} 
-    if (((*it).neutralHadronEnergyFraction()) >= 0.90) {isPass = false; }     
-    if (((*it).neutralEmEnergyFraction()) >= 0.90) {isPass = false;}            
-    if (((*it).numberOfDaughters()) < 2) {isPass = false;  }
+    auto NHF  = it->neutralHadronEnergyFraction();
+    auto NEMF = it->neutralEmEnergyFraction();
+    auto CHF  = it->chargedHadronEnergyFraction();
+    //auto MUF  = it->muonEnergyFraction();
+    auto CEMF = it->chargedEmEnergyFraction();
+    auto NumConst = it->chargedMultiplicity()+it->neutralMultiplicity();
+    //auto NumNeutralParticles =it->neutralMultiplicity();
+    auto CHM      = it->chargedMultiplicity();
+    
+    if (year_ == 2016){
+      // Using loose Jet ID https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2016
+      isPass =  (NHF < 0.99) && 
+                (NEMF < 0.99) && 
+                (NumConst > 1) && 
+                (CHF > 0) && 
+                (CHM > 0) && 
+                (CEMF < 0.99);
+    }
+    
+    if (year_ == 2017){
+      // Tight Jet ID now recommended https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2017
+      isPass =  (NHF < 0.90) && 
+                (NEMF < 0.90) && 
+                (NumConst > 1) && 
+                (CHF > 0) && 
+                (CHM > 0);
+    }
+    
+    if (year_ == 2018){
+      // Only 1 Jet ID available https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2018
+      isPass =  (NHF < 0.90) && 
+                (NEMF < 0.90) && 
+                (NumConst > 1) && 
+                (CHF > 0) && 
+                (CHM > 0);
+    }
     if (isPass){
       
       selected_.push_back( & (*it) );
@@ -53,6 +81,7 @@ struct jetIDSelector {
   size_t size() const { return selected_.size(); }
 private:
   container selected_;
+  int year_;
 };
 
 #endif
