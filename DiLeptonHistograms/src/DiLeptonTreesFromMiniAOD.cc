@@ -121,7 +121,8 @@ private:
   edm::EDGetTokenT< std::vector< pat::Jet > >       jetToken_;
   edm::EDGetTokenT< std::vector< reco::GenJet > >     genJetToken_;
   edm::EDGetTokenT< std::vector< pat::Jet > >       looseBJetToken_;
-  //edm::EDGetTokenT< std::vector< pat::Jet > >       allJetToken_;
+  //edm::EDGetTokenT< std::vector< pat::Jet > >       allJetToken_; ///////////////////////
+  //edm::EDGetTokenT< std::vector< pat::Jet > >       allJetTokenU_; ///////////////////////
   edm::EDGetTokenT< std::vector< pat::Jet > >       bJetToken_;
   edm::EDGetTokenT< std::vector< pat::Jet > >       bJet35Token_;
   edm::EDGetTokenT< std::vector< pat::MET > >         metToken_;
@@ -214,6 +215,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   genJetToken_        (consumes< std::vector< reco::GenJet  > >   (iConfig.getParameter<edm::InputTag>("genJets"))),
   looseBJetToken_        (consumes< std::vector< pat::Jet > >      (iConfig.getParameter<edm::InputTag>("looseBJets"))),
   //allJetToken_        (consumes< std::vector< pat::Jet > >      (edm::InputTag("updatedPatJetsUpdatedJEC"))),
+  //allJetTokenU_        (consumes< std::vector< pat::Jet > >      (edm::InputTag("slimmedJets"))),
   bJetToken_        (consumes< std::vector< pat::Jet > >      (iConfig.getParameter<edm::InputTag>("bJets"))),
   bJet35Token_        (consumes< std::vector< pat::Jet > >      (iConfig.getParameter<edm::InputTag>("bJets35"))),
   metToken_         (consumes< std::vector< pat::MET > >      (iConfig.getParameter<edm::InputTag>("met"))),
@@ -614,6 +616,8 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   //
   //edm::Handle< std::vector< pat::Jet > > allJets;
   //iEvent.getByToken(allJetToken_, allJets);
+  //edm::Handle< std::vector< pat::Jet > > allJetsU;
+  //iEvent.getByToken(allJetTokenU_, allJetsU);
   //
   
   iEvent.getByToken(jetToken_, jets);
@@ -812,11 +816,17 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   //
   //std::cout << longIntEventProperties["eventNr"] << std::endl;
   //std::cout << "met " <<  floatEventProperties["met"] << " rawmet " << floatEventProperties["uncorrectedMet"] << std::endl;
+  //std::cout << "met phi" <<  metVector.Phi() << std::endl;
+  //std::cout << "raw met phi" <<  uncorrectedMetVector.Phi() << std::endl;
   //std::cout << jets->size() << std::endl;
   
-  
+  //std::cout << "corrected jets" << std::endl;
   //for (std::vector<pat::Jet>::const_iterator it = allJets->begin(); it != allJets->end(); it++) {
-    //std::cout << "pt " << it->pt() << " eta " << it->eta() << std::endl;
+    //std::cout << "pt " << it->pt() << " eta " << it->eta() << " phi " << it->phi() << std::endl;
+  //}
+  //std::cout << "uncorrected jets" << std::endl;
+  //for (std::vector<pat::Jet>::const_iterator it = allJetsU->begin(); it != allJetsU->end(); it++) {
+    //std::cout << "pt " << it->pt() << " eta " << it->eta() << " phi " << it->phi() << std::endl;
   //}
   //
   pat::METCollection const& metsForUncert = *mets;  
@@ -1215,6 +1225,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
       pt1 = (*electrons).at(it).pt();
       leptonFlavor1 = "Ele";
       leptonNr1 = it;
+      
     }
   }
   for(std::size_t it = 0; it < (*muons).size() ; ++it){
@@ -1367,8 +1378,8 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
   
   
   // find sfoc lepton pairs in loose leptons
-  unsigned int comb1_i = -1;
-  unsigned int comb1_j = -1;
+  int comb1_i = -1;
+  int comb1_j = -1;
   int whichFlavor = -1;
   double highestPt = 0;
 
@@ -1383,7 +1394,7 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
           tempVector.SetPxPyPzE(looseElectrons.at(i).px()+looseElectrons.at(j).px(), looseElectrons.at(i).py()+looseElectrons.at(j).py(), looseElectrons.at(i).pz()+looseElectrons.at(j).pz(), looseElectrons.at(i).energy()+looseElectrons.at(j).energy());
           if (tempVector.Pt() > highestPt){
             highestPt = tempVector.Pt();
-            zCandVector = tempVector;
+            zCandVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pt(), tempVector.Energy());
             comb1_i = i;
             comb1_j = j;
             whichFlavor = 11;
@@ -1397,7 +1408,7 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
           tempVector.SetPxPyPzE(looseMuons.at(i).px()+looseMuons.at(j).px(), looseMuons.at(i).py()+looseMuons.at(j).py(), looseMuons.at(i).pz()+looseMuons.at(j).pz(), looseMuons.at(i).energy()+looseMuons.at(j).energy());
           if (tempVector.Pt() > highestPt){
             highestPt = tempVector.Pt();
-            zCandVector = tempVector;
+            zCandVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pt(), tempVector.Energy());
             comb1_i = i;
             comb1_j = j;
             whichFlavor = 13;
@@ -1412,19 +1423,19 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
   TLorentzVector wCandVector(0,0,0,0);
   if (*(intBranches_[treeName]["nLooseLeptons"]) >= 3){
     for(unsigned int i = 0; i < looseElectrons.size(); i++){
-      if (whichFlavor == 11 && (i==comb1_i || comb1_j==i)) continue;
+      if (whichFlavor == 11 && ((int)i==comb1_i || comb1_j==(int)i)) continue;
       tempVector.SetPxPyPzE(looseElectrons.at(i).px(), looseElectrons.at(i).py(), looseElectrons.at(i).pz(), looseElectrons.at(i).energy());
       if (tempVector.Pt() > wLepPt){
         wLepPt = tempVector.Pt();
-        wLepVector = tempVector;
+        wLepVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pt(), tempVector.Energy());
       }
     }
     for(unsigned int i = 0; i < looseMuons.size(); i++){
-      if (whichFlavor == 13 && (i==comb1_i || comb1_j==i)) continue;
+      if (whichFlavor == 13 && ((int)i==comb1_i || comb1_j==(int)i)) continue;
       tempVector.SetPxPyPzE(looseMuons.at(i).px(), looseMuons.at(i).py(), looseMuons.at(i).pz(), looseMuons.at(i).energy());
       if (tempVector.Pt() > wLepPt){
         wLepPt = tempVector.Pt();
-        wLepVector = tempVector;
+        wLepVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pt(), tempVector.Energy());
       }
     }
     wCandVector = wLepVector + met;
@@ -1433,8 +1444,8 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
   *(tLorentzVectorBranches_[treeName]["wlep"]) = wLepVector;
   *(floatBranches_[treeName]["wcandMT"]) = transverseMass(wLepVector, met);
   
-  unsigned int comb2_i = -1;
-  unsigned int comb2_j = -1;
+  int comb2_i = -1;
+  int comb2_j = -1;
   TLorentzVector zCand2Vector(0,0,0,0);
   int whichFlavor2 = -1;
   double secondHighestPt = 0;
@@ -1442,13 +1453,13 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
     for(unsigned int i = 0; i < looseElectrons.size(); i++){
       for(unsigned int j = 0; j < looseElectrons.size(); j++){
         if (i != j && looseElectrons.at(i).charge()*looseElectrons.at(j).charge() < 0){
-          if (whichFlavor == 11 && (i == comb1_i || j == comb1_j)){ // already used in matching
+          if (whichFlavor == 11 && ( (int)i == comb1_j || (int)i == comb1_i || (int)j == comb1_j || (int)j == comb1_i)){ // already used in matching
             continue;
           }
           tempVector.SetPxPyPzE(looseElectrons.at(i).px()+looseElectrons.at(j).px(), looseElectrons.at(i).py()+looseElectrons.at(j).py(), looseElectrons.at(i).pz()+looseElectrons.at(j).pz(), looseElectrons.at(i).energy()+looseElectrons.at(j).energy());
           if (tempVector.Pt() > secondHighestPt){
             secondHighestPt = tempVector.Pt();
-            zCand2Vector = tempVector;
+            zCand2Vector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pt(), tempVector.Energy());
             comb2_i = i;
             comb2_j = j;
             whichFlavor2 = 11;
@@ -1459,13 +1470,13 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
     for(unsigned int i = 0; i < looseMuons.size(); i++){
       for(unsigned int j = 0; j < looseMuons.size(); j++){
         if (i != j && looseMuons.at(i).charge()*looseMuons.at(j).charge() < 0){
-          if (whichFlavor == 13 && (i == comb1_i || j == comb1_j)){ // already used in matching
+          if (whichFlavor == 13 && ( (int)i == comb1_j || (int)i == comb1_i || (int)j == comb1_j || (int)j == comb1_i)){ // already used in matching
             continue;
           }
           tempVector.SetPxPyPzE(looseMuons.at(i).px()+looseMuons.at(j).px(), looseMuons.at(i).py()+looseMuons.at(j).py(), looseMuons.at(i).pz()+looseMuons.at(j).pz(), looseMuons.at(i).energy()+looseMuons.at(j).energy());
           if (tempVector.Pt() > secondHighestPt){
             secondHighestPt = tempVector.Pt();
-            zCand2Vector = tempVector;
+            zCand2Vector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pt(), tempVector.Energy());
             comb2_i = i;
             comb2_j = j;
             whichFlavor2 = 13;
@@ -1474,6 +1485,11 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
       }
     }
   }
+  //if (whichFlavor != -1 && whichFlavor2 != -1){
+    //std::cout << zCandVector.M()-zCand2Vector.M() << std::endl;
+    //std::cout << comb1_i << " " << comb1_j << std::endl;
+    //std::cout << comb2_i << " " << comb2_j << std::endl;
+  //}
   *(tLorentzVectorBranches_[treeName]["zcand"]) = zCandVector;
   *(tLorentzVectorBranches_[treeName]["zcand2"]) = zCand2Vector;
   TLorentzVector zeroVector(0,0,0,0);
