@@ -1,8 +1,8 @@
 /*
  * LeptonScaleFactorMapFunctor.h
  *
- *  Created on: 04.12.2015
- *      Author: cschomak
+ *  Created on: 18.10.2019
+ *      Author: teroerde
  */
 
 #ifndef LEPTONFASTSIMSCALEFACTORMAPFUNCTOR_H_
@@ -30,79 +30,109 @@ public:
             
 
             
-            std::string FastSimScaleFactorFile_mu_Id_ = params.getParameter<std::string>("FastSimScaleFactorFile_mu_Id");
-            std::string FastSimScaleFactorFile_mu_Iso_ = params.getParameter<std::string>("FastSimScaleFactorFile_mu_Iso");
-            std::string FastSimScaleFactorFile_mu_Impact_ = params.getParameter<std::string>("FastSimScaleFactorFile_mu_Impact");
-            std::string FastSimScaleFactorFile_mu_SIP3D_ = params.getParameter<std::string>("FastSimScaleFactorFile_mu_SIP3D");
+    std::vector<edm::ParameterSet> electronSFNames = params.getParameter< std::vector<edm::ParameterSet> >("electronScaleFactors");
+    std::vector<edm::ParameterSet> muonSFNames = params.getParameter< std::vector<edm::ParameterSet> >("muonScaleFactors");
+    
+    electronPtThreshold = params.getParameter< double >("electronPtThreshold");
+    muonPtThreshold = params.getParameter< double >("muonPtThreshold");
+    
+    TH2F* hist;
+    for (auto sf : electronSFNames){
+      std::string fileName = sf.getParameter< std::string >("fileName");
+      TFile file(fileName.c_str());
+      std::string histName = sf.getParameter< std::string >("histName");
+      int order = sf.getParameter< int >("order");
+      hist = (TH2F*)file.Get(histName.c_str());
+      electronScaleFactorHists.push_back(hist);
+      electronOrder.push_back(order);
+      
+    }
+    for (auto sf : muonSFNames){
+      std::string fileName = sf.getParameter< std::string >("fileName");
+      TFile file(fileName.c_str());
+      std::string histName = sf.getParameter< std::string >("histName");
+      int order = sf.getParameter< int >("order");
+      hist = (TH2F*)file.Get(histName.c_str());
+      muonScaleFactorHists.push_back(hist);
+      muonOrder.push_back(order);
+      
+    }
+    hist = nullptr;
             
-            std::string FastSimScaleFactorFile_ele_Id_ = params.getParameter<std::string>("FastSimScaleFactorFile_ele_Id");
-            std::string FastSimScaleFactorFile_ele_Iso_ = params.getParameter<std::string>("FastSimScaleFactorFile_ele_Iso");
-            std::string FastSimScaleFactorFile_ele_ConvHit_ = params.getParameter<std::string>("FastSimScaleFactorFile_ele_ConvHit");
-            
-            std::string FastSimScaleFactorHisto_mu_Id_ = params.getParameter<std::string>("FastSimScaleFactorHisto_mu_Id");
-            std::string FastSimScaleFactorHisto_mu_Iso_ = params.getParameter<std::string>("FastSimScaleFactorHisto_mu_Iso");
-            std::string FastSimScaleFactorHisto_mu_Impact_ = params.getParameter<std::string>("FastSimScaleFactorHisto_mu_Impact");
-            std::string FastSimScaleFactorHisto_mu_SIP3D_ = params.getParameter<std::string>("FastSimScaleFactorHisto_mu_SIP3D");
-            
-            std::string FastSimScaleFactorHisto_ele_Id_ = params.getParameter<std::string>("FastSimScaleFactorHisto_ele_Id");
-            std::string FastSimScaleFactorHisto_ele_Iso_ = params.getParameter<std::string>("FastSimScaleFactorHisto_ele_Iso");
-            std::string FastSimScaleFactorHisto_ele_ConvHit_ = params.getParameter<std::string>("FastSimScaleFactorHisto_ele_ConvHit");
-            
-            
-			
-			getFastSimScaleFactorHistos(
-								FastSimScaleFactorFile_mu_Id_, 
-								FastSimScaleFactorFile_mu_Iso_, 
-								FastSimScaleFactorFile_mu_Impact_, 
-								FastSimScaleFactorFile_mu_SIP3D_, 
-								
-								FastSimScaleFactorFile_ele_Id_, 
-								FastSimScaleFactorFile_ele_Iso_, 
-								FastSimScaleFactorFile_ele_ConvHit_, 
-								
-								FastSimScaleFactorHisto_mu_Id_, 
-								FastSimScaleFactorHisto_mu_Iso_, 
-								FastSimScaleFactorHisto_mu_Impact_, 
-								FastSimScaleFactorHisto_mu_SIP3D_, 
-								
-								FastSimScaleFactorHisto_ele_Id_,
-								FastSimScaleFactorHisto_ele_Iso_,
-								FastSimScaleFactorHisto_ele_ConvHit_
-											);
     
   }
   
   
   
   //~ const double operator()(const  pat::Electron &ele, double pt, double absEta, double nVertices){
-  const double operator()(const  pat::Electron &ele, double pt, double absEta){
+  const std::pair<double, double> operator()(const  pat::Electron &ele, double pt, double eta){
 
-	  float result = 1.0;
-	  
-	  if(pt > 200.) pt= 199.;
-	  
-	  //~ result *= FastSimScaleFactorHisto_ele_->GetBinContent(FastSimScaleFactorHisto_ele_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_ele_->GetYaxis()->FindBin(absEta),FastSimScaleFactorHisto_ele_->GetZaxis()->FindBin(nVertices));
-	  result *= FastSimScaleFactorHisto_ele_Id_->GetBinContent(FastSimScaleFactorHisto_ele_Id_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_ele_Id_->GetYaxis()->FindBin(absEta));
-	  result *= FastSimScaleFactorHisto_ele_Iso_->GetBinContent(FastSimScaleFactorHisto_ele_Iso_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_ele_Iso_->GetYaxis()->FindBin(absEta));
-	  result *= FastSimScaleFactorHisto_ele_ConvHit_->GetBinContent(FastSimScaleFactorHisto_ele_ConvHit_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_ele_ConvHit_->GetYaxis()->FindBin(absEta));
-	  
-	  return result;
+    float result = 1.0;
+    float error = 0.0;
+    eta = ele.superCluster()->eta();
+    if(pt > electronPtThreshold ) pt= electronPtThreshold-1.0;
+  
+    float firstVar = 0;
+    float secondVar = 0;
+  
+    for(unsigned int i=0; i < electronScaleFactorHists.size(); i++){
+      if (electronOrder[i] == 1){
+        firstVar = eta;
+        secondVar = pt;
+      }else if (electronOrder[i] == 11){
+        firstVar = fabs(eta);
+        secondVar = pt;
+      }else if (electronOrder[i] == 0){
+        firstVar = pt;
+        secondVar = eta;
+      }else if (electronOrder[i] == 10){
+        firstVar = pt;
+        secondVar = fabs(eta);
+      }
+      result *= electronScaleFactorHists[i]->GetBinContent(electronScaleFactorHists[i]->GetXaxis()->FindBin(firstVar), electronScaleFactorHists[i]->GetYaxis()->FindBin(secondVar) );
+      error += std::pow(electronScaleFactorHists[i]->GetBinError(electronScaleFactorHists[i]->GetXaxis()->FindBin(firstVar), electronScaleFactorHists[i]->GetYaxis()->FindBin(secondVar) ), 2);
+      
+    }
+    //error += std::pow(0.01, 2);
+    error = std::sqrt(error);
+    
+
+    return std::pair<double, double>(result, error);
   }
   
   //~ const double operator()(const  pat::Muon &mu, double pt, double absEta, double nVertices){
-  const double operator()(const  pat::Muon &mu, double pt, double absEta){
+  const std::pair<double, double> operator()(const  pat::Muon &mu, double pt, double eta){
 
-	  float result = 1.0;
-	  
-	  if(pt > 120.) pt= 119.;
-	  
-	  //~ result *= FastSimScaleFactorHisto_mu_Id_->GetBinContent(FastSimScaleFactorHisto_mu_Id_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_mu_Id_->GetYaxis()->FindBin(absEta),FastSimScaleFactorHisto_mu_->GetZaxis()->FindBin(nVertices));
-	  result *= FastSimScaleFactorHisto_mu_Id_->GetBinContent(FastSimScaleFactorHisto_mu_Id_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_mu_Id_->GetYaxis()->FindBin(absEta));
-	  result *= FastSimScaleFactorHisto_mu_Iso_->GetBinContent(FastSimScaleFactorHisto_mu_Iso_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_mu_Iso_->GetYaxis()->FindBin(absEta));
-	  result *= FastSimScaleFactorHisto_mu_Impact_->GetBinContent(FastSimScaleFactorHisto_mu_Impact_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_mu_Impact_->GetYaxis()->FindBin(absEta));
-	  result *= FastSimScaleFactorHisto_mu_SIP3D_->GetBinContent(FastSimScaleFactorHisto_mu_SIP3D_->GetXaxis()->FindBin(pt),FastSimScaleFactorHisto_mu_SIP3D_->GetYaxis()->FindBin(absEta));
-	  
-	  return result;
+    float result = 1.0;
+    float error = 0.0;
+    if(pt > muonPtThreshold) {
+      pt= muonPtThreshold-1.0;
+    }
+
+    float firstVar  = 0;
+    float secondVar = 0;
+    
+    for(unsigned int i=0; i < muonScaleFactorHists.size(); i++){
+      if (muonOrder[i] == 1){
+        firstVar = eta;
+        secondVar = pt;
+      }else if (muonOrder[i] == 11){
+        firstVar = fabs(eta);
+        secondVar = pt;
+      }else if (muonOrder[i] == 0){
+        firstVar = pt;
+        secondVar = eta;
+      }else if (muonOrder[i] == 10){
+        firstVar = pt;
+        secondVar = fabs(eta);
+      }
+      result *= muonScaleFactorHists[i]->GetBinContent(muonScaleFactorHists[i]->GetXaxis()->FindBin(firstVar), muonScaleFactorHists[i]->GetYaxis()->FindBin(fabs(secondVar)) );
+    }
+    error = 0.03;
+    
+    
+    
+    return std::pair<double, double>(result, error);
   }
 
   
@@ -110,38 +140,14 @@ public:
 private:
 
   bool useFastSim_;
-  
-  void getFastSimScaleFactorHistos(
-							std::string FastSimScaleFactorFile_mu_Id, 
-							std::string FastSimScaleFactorFile_mu_Iso, 
-							std::string FastSimScaleFactorFile_mu_Impact, 
-							std::string FastSimScaleFactorFile_mu_SIP3D, 
-							
-							std::string FastSimScaleFactorFile_ele_Id,
-							std::string FastSimScaleFactorFile_ele_Iso,
-							std::string FastSimScaleFactorFile_ele_ConvHit,
-							 
-							std::string FastSimScaleFactorHisto_mu_Id, 
-							std::string FastSimScaleFactorHisto_mu_Iso, 
-							std::string FastSimScaleFactorHisto_mu_Impact, 
-							std::string FastSimScaleFactorHisto_mu_SIP3D, 
-							
-							std::string FastSimScaleFactorHisto_ele_Id,
-							std::string FastSimScaleFactorHisto_ele_Iso,
-							std::string FastSimScaleFactorHisto_ele_ConvHit
-							);
 
+  double electronPtThreshold;
+  double muonPtThreshold;
   
-  //~ TH3F * FastSimScaleFactorHisto_mu_;
-  //~ TH3F * FastSimScaleFactorHisto_ele_;
-//~ };
-  TH2D * FastSimScaleFactorHisto_mu_Id_;
-  TH2D * FastSimScaleFactorHisto_mu_Iso_;
-  TH2D * FastSimScaleFactorHisto_mu_Impact_;
-  TH2D * FastSimScaleFactorHisto_mu_SIP3D_;
-  TH2D * FastSimScaleFactorHisto_ele_Id_;
-  TH2D * FastSimScaleFactorHisto_ele_Iso_;
-  TH2D * FastSimScaleFactorHisto_ele_ConvHit_;
+  std::vector<TH2F*> electronScaleFactorHists;
+  std::vector<int> electronOrder;
+  std::vector<TH2F*> muonScaleFactorHists;
+  std::vector<int> muonOrder;
 };
 
 #endif /* LEPTONFASTSIMSCALEFACTORMAPFUNCTOR_H_ */

@@ -121,13 +121,10 @@ private:
   edm::EDGetTokenT< std::vector< pat::Jet > >       jetToken_;
   edm::EDGetTokenT< std::vector< reco::GenJet > >     genJetToken_;
   edm::EDGetTokenT< std::vector< pat::Jet > >       looseBJetToken_;
-  //edm::EDGetTokenT< std::vector< pat::Jet > >       allJetToken_; ///////////////////////
-  //edm::EDGetTokenT< std::vector< pat::Jet > >       allJetTokenU_; ///////////////////////
   edm::EDGetTokenT< std::vector< pat::Jet > >       bJetToken_;
   edm::EDGetTokenT< std::vector< pat::Jet > >       bJet35Token_;
   edm::EDGetTokenT< std::vector< pat::MET > >         metToken_;
   edm::EDGetTokenT< reco::VertexCollection >          vertexToken_;
-  //edm::EDGetTokenT< std::vector< pat::IsolatedTrack >  >  isoTrackToken_;
   edm::EDGetTokenT< std::vector<reco::LeafCandidate>  >  isoTrackToken_;
   edm::EDGetTokenT< std::vector< reco::GenParticle > >    genParticleToken_;
   edm::EDGetTokenT<GenEventInfoProduct>           genEventInfoToken_;
@@ -142,7 +139,6 @@ private:
   edm::EDGetTokenT<edm::TriggerResults>           metFilterToken_;
   
 
-  std::map<double, double> electronCorrections_;
   //data
   std::map<std::string, TTree*> trees_;  
   std::map<std::string, std::map< std::string, float*> > floatBranches_; 
@@ -214,8 +210,6 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   jetToken_         (consumes< std::vector< pat::Jet > >      (iConfig.getParameter<edm::InputTag>("jets"))),
   genJetToken_        (consumes< std::vector< reco::GenJet  > >   (iConfig.getParameter<edm::InputTag>("genJets"))),
   looseBJetToken_        (consumes< std::vector< pat::Jet > >      (iConfig.getParameter<edm::InputTag>("looseBJets"))),
-  //allJetToken_        (consumes< std::vector< pat::Jet > >      (edm::InputTag("updatedPatJetsUpdatedJEC"))),
-  //allJetTokenU_        (consumes< std::vector< pat::Jet > >      (edm::InputTag("slimmedJets"))),
   bJetToken_        (consumes< std::vector< pat::Jet > >      (iConfig.getParameter<edm::InputTag>("bJets"))),
   bJet35Token_        (consumes< std::vector< pat::Jet > >      (iConfig.getParameter<edm::InputTag>("bJets35"))),
   metToken_         (consumes< std::vector< pat::MET > >      (iConfig.getParameter<edm::InputTag>("met"))),
@@ -605,20 +599,11 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   edm::Handle< std::vector< pat::Muon > > looseMuons;
   iEvent.getByToken(looseMuonToken_, looseMuons);
 
-
   edm::Handle< std::vector<reco::LeafCandidate>  > isoTracks;
   iEvent.getByToken(isoTrackToken_, isoTracks); 
 
-  
   edm::Handle< std::vector< pat::Jet > > fatJets;
   iEvent.getByToken(fatJetToken_, fatJets);
-  
-  //
-  //edm::Handle< std::vector< pat::Jet > > allJets;
-  //iEvent.getByToken(allJetToken_, allJets);
-  //edm::Handle< std::vector< pat::Jet > > allJetsU;
-  //iEvent.getByToken(allJetTokenU_, allJetsU);
-  //
   
   iEvent.getByToken(jetToken_, jets);
 
@@ -782,7 +767,6 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   }
   intEventProperties["metFilterSummary"] = metFilterSummary; 
 
-
   intEventProperties["nLooseBJets"] = looseBJets->size();
   intEventProperties["nBJets"] = bJets->size();
   intEventProperties["nBJets35"] = bJets35->size();
@@ -803,32 +787,12 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   TLorentzVector uncorrectedMetVector;
   uncorrectedMetVector.SetPtEtaPhiE(met.uncorPt(), 0, met.uncorPhi(), met.uncorPt());
 
-  
-  
   floatEventProperties["met"] = metVector.Pt();
   tLorentzVectorEventProperties["vMet"] = metVector; 
   
-  //~ tLorentzVectorEventProperties["vMetUncorrected"] = uncorrectedMetVector;
   floatEventProperties["uncorrectedMet"] = uncorrectedMetVector.Pt();
-
   floatEventProperties["caloMet"] = met.caloMETPt();
     
-  //
-  //std::cout << longIntEventProperties["eventNr"] << std::endl;
-  //std::cout << "met " <<  floatEventProperties["met"] << " rawmet " << floatEventProperties["uncorrectedMet"] << std::endl;
-  //std::cout << "met phi" <<  metVector.Phi() << std::endl;
-  //std::cout << "raw met phi" <<  uncorrectedMetVector.Phi() << std::endl;
-  //std::cout << jets->size() << std::endl;
-  
-  //std::cout << "corrected jets" << std::endl;
-  //for (std::vector<pat::Jet>::const_iterator it = allJets->begin(); it != allJets->end(); it++) {
-    //std::cout << "pt " << it->pt() << " eta " << it->eta() << " phi " << it->phi() << std::endl;
-  //}
-  //std::cout << "uncorrected jets" << std::endl;
-  //for (std::vector<pat::Jet>::const_iterator it = allJetsU->begin(); it != allJetsU->end(); it++) {
-    //std::cout << "pt " << it->pt() << " eta " << it->eta() << " phi " << it->phi() << std::endl;
-  //}
-  //
   pat::METCollection const& metsForUncert = *mets;  
     
   if (metUncert_){
@@ -1485,11 +1449,7 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
       }
     }
   }
-  //if (whichFlavor != -1 && whichFlavor2 != -1){
-    //std::cout << zCandVector.M()-zCand2Vector.M() << std::endl;
-    //std::cout << comb1_i << " " << comb1_j << std::endl;
-    //std::cout << comb2_i << " " << comb2_j << std::endl;
-  //}
+
   *(tLorentzVectorBranches_[treeName]["zcand"]) = zCandVector;
   *(tLorentzVectorBranches_[treeName]["zcand2"]) = zCand2Vector;
   TLorentzVector zeroVector(0,0,0,0);

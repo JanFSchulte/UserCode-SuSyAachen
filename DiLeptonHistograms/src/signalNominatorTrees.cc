@@ -128,6 +128,7 @@ signalNominatorTrees::signalNominatorTrees(const edm::ParameterSet& iConfig):
   trees_["Tree"] = file->make<TTree>("Tree", "Tree");
  
   initFloatBranch( "mSbottom" );
+  initFloatBranch( "mLightSquarks" );
   initFloatBranch( "mNeutralino2" );
   initFloatBranch( "ISRCorrection" );
   initFloatBranch( "ISRUncertainty" );
@@ -254,6 +255,7 @@ signalNominatorTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 
   
   floatEventProperties["mSbottom"] = -1;
+  floatEventProperties["mLightSquarks"] = -1;
   floatEventProperties["mNeutralino2"] = -1;
   
   if (genParticles.isValid()){
@@ -266,6 +268,9 @@ signalNominatorTrees::analyze(const edm::Event& iEvent, const edm::EventSetup& i
     }
     if ((*itGenParticle).pdgId()== 1000023 ){
       floatEventProperties["mNeutralino2"] = (*itGenParticle).mass();
+    }
+    if (abs((*itGenParticle).pdgId())== 1000001 || abs((*itGenParticle).pdgId())== 1000002 || abs((*itGenParticle).pdgId())== 1000003 || abs((*itGenParticle).pdgId())== 1000004 || abs((*itGenParticle).pdgId())== 2000001 || abs((*itGenParticle).pdgId())== 2000002 || abs((*itGenParticle).pdgId())== 2000003 || abs((*itGenParticle).pdgId())== 2000004){
+        floatEventProperties["mLightSquarks"] = (*itGenParticle).mass();
     }
 
 

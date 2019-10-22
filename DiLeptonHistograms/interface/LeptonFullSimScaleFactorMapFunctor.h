@@ -68,21 +68,26 @@ public:
     float error = 0.0;
     eta = ele.superCluster()->eta();
     if(pt > electronPtThreshold ) pt= electronPtThreshold-1.0;
-
+    
+    float firstVar  = 0;
+    float secondVar = 0;
+    
     for(unsigned int i=0; i < electronScaleFactorHists.size(); i++){
       if (electronOrder[i] == 1){
-        result *= electronScaleFactorHists[i]->GetBinContent(electronScaleFactorHists[i]->GetXaxis()->FindBin(eta), electronScaleFactorHists[i]->GetYaxis()->FindBin(pt) );
-        error += std::pow(electronScaleFactorHists[i]->GetBinError(electronScaleFactorHists[i]->GetXaxis()->FindBin(eta), electronScaleFactorHists[i]->GetYaxis()->FindBin(pt) ), 2);
+        firstVar = eta;
+        secondVar = pt;
       }else if (electronOrder[i] == 11){
-        result *= electronScaleFactorHists[i]->GetBinContent(electronScaleFactorHists[i]->GetXaxis()->FindBin(fabs(eta)), electronScaleFactorHists[i]->GetYaxis()->FindBin(pt) );
-        error += std::pow(electronScaleFactorHists[i]->GetBinError(electronScaleFactorHists[i]->GetXaxis()->FindBin(fabs(eta)), electronScaleFactorHists[i]->GetYaxis()->FindBin(pt) ), 2);
+        firstVar = fabs(eta);
+        secondVar = pt;
       }else if (electronOrder[i] == 0){
-        result *= electronScaleFactorHists[i]->GetBinContent(electronScaleFactorHists[i]->GetXaxis()->FindBin(pt), electronScaleFactorHists[i]->GetYaxis()->FindBin(eta) );
-        error += std::pow(electronScaleFactorHists[i]->GetBinError(electronScaleFactorHists[i]->GetXaxis()->FindBin(pt), electronScaleFactorHists[i]->GetYaxis()->FindBin(eta) ), 2);
+        firstVar = pt;
+        secondVar = eta;
       }else if (electronOrder[i] == 10){
-        result *= electronScaleFactorHists[i]->GetBinContent(electronScaleFactorHists[i]->GetXaxis()->FindBin(pt), electronScaleFactorHists[i]->GetYaxis()->FindBin(fabs(eta)) );
-        error += std::pow(electronScaleFactorHists[i]->GetBinError(electronScaleFactorHists[i]->GetXaxis()->FindBin(pt), electronScaleFactorHists[i]->GetYaxis()->FindBin(fabs(eta))), 2);
+        firstVar = pt;
+        secondVar = fabs(eta);
       }
+      result *= electronScaleFactorHists[i]->GetBinContent(electronScaleFactorHists[i]->GetXaxis()->FindBin(firstVar), electronScaleFactorHists[i]->GetYaxis()->FindBin(secondVar) );
+      error += std::pow(electronScaleFactorHists[i]->GetBinError(electronScaleFactorHists[i]->GetXaxis()->FindBin(firstVar), electronScaleFactorHists[i]->GetYaxis()->FindBin(secondVar) ), 2);
       
     }
     //error += std::pow(0.01, 2);
@@ -100,18 +105,25 @@ public:
     if(pt > muonPtThreshold) {
       pt= muonPtThreshold-1.0;
     }
-
+    
+    float firstVar  = 0;
+    float secondVar = 0;
+    
     for(unsigned int i=0; i < muonScaleFactorHists.size(); i++){
       if (muonOrder[i] == 1){
-        result *= muonScaleFactorHists[i]->GetBinContent(muonScaleFactorHists[i]->GetXaxis()->FindBin(eta), muonScaleFactorHists[i]->GetYaxis()->FindBin(pt) );
+        firstVar = eta;
+        secondVar = pt;
       }else if (muonOrder[i] == 11){
-        result *= muonScaleFactorHists[i]->GetBinContent(muonScaleFactorHists[i]->GetXaxis()->FindBin(fabs(eta)), muonScaleFactorHists[i]->GetYaxis()->FindBin(pt) );
+        firstVar = fabs(eta);
+        secondVar = pt;
       }else if (muonOrder[i] == 0){
-        result *= muonScaleFactorHists[i]->GetBinContent(muonScaleFactorHists[i]->GetXaxis()->FindBin(pt), muonScaleFactorHists[i]->GetYaxis()->FindBin(eta) );
+        firstVar = pt;
+        secondVar = eta;
       }else if (muonOrder[i] == 10){
-        result *= muonScaleFactorHists[i]->GetBinContent(muonScaleFactorHists[i]->GetXaxis()->FindBin(pt), muonScaleFactorHists[i]->GetYaxis()->FindBin(fabs(eta)) );
+        firstVar = pt;
+        secondVar = fabs(eta);
       }
-      
+      result *= muonScaleFactorHists[i]->GetBinContent(muonScaleFactorHists[i]->GetXaxis()->FindBin(firstVar), muonScaleFactorHists[i]->GetYaxis()->FindBin(fabs(secondVar)) );
     }
     error = 0.03;
     

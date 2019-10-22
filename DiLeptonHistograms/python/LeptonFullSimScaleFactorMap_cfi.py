@@ -47,8 +47,8 @@ LeptonFullSimScaleFactorMapPars2018 = cms.PSet(
         cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2018/EGM2D_updatedAll.root'), histName = cms.string('EGamma_SF2D'), order = cms.int32(1) ),
     ),
     muonScaleFactors = cms.VPSet( # no SF for 2018 until UL, so using 2017 SFs
-        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/ScaleFactorMuonID.root'), histName = cms.string('NUM_MediumPromptID_DEN_genTracks_pt_abseta'), order = cms.int32(10) ),
-        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2017/ScaleFactorMuonMiniIso.root'), histName = cms.string('TnP_MC_NUM_MiniIso02Cut_DEN_MediumCutidPromptCut_PAR_pt_eta'), order = cms.int32(10) ),
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2018/ScaleFactorMuonID.root'), histName = cms.string('NUM_MediumPromptID_DEN_genTracks_pt_abseta'), order = cms.int32(10) ),
+        cms.PSet( fileName = cms.string('${CMSSW_BASE}/src/SuSyAachen/DiLeptonHistograms/data/2018/ScaleFactorMuonMiniIso.root'), histName = cms.string('TnP_MC_NUM_MiniIso02Cut_DEN_MediumCutidPromptCut_PAR_pt_eta'), order = cms.int32(10) ),
     )
 )
 
