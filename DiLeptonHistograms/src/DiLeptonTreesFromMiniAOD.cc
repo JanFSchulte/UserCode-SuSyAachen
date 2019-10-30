@@ -741,7 +741,9 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
     bool    _passecalBadCalibFilterUpdate =  (*passecalBadCalibFilterUpdate );
     
     if (not _passecalBadCalibFilterUpdate){
-      metFilterSummary = 0;
+      if (iEvent.id().run() >= 294645){ // not for 2016
+        metFilterSummary = 0;
+      }
       intEventProperties["ecalBadCalibReducedMINIAODFilter"] = 0;     
     }else{
       intEventProperties["ecalBadCalibReducedMINIAODFilter"] = 1;
@@ -1243,6 +1245,7 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   intEventProperties["triggerSummaryHT"]  = htTriggerSummary;
   intEventProperties["triggerSummaryMET"] = metTriggerSummary;
   
+  //std::cout << iEvent.id().event() << std::endl;
   //std::cout << leptonFlavor1 << leptonFlavor2 << std::endl;
   
  
@@ -1358,7 +1361,7 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
           tempVector.SetPxPyPzE(looseElectrons.at(i).px()+looseElectrons.at(j).px(), looseElectrons.at(i).py()+looseElectrons.at(j).py(), looseElectrons.at(i).pz()+looseElectrons.at(j).pz(), looseElectrons.at(i).energy()+looseElectrons.at(j).energy());
           if (tempVector.Pt() > highestPt){
             highestPt = tempVector.Pt();
-            zCandVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pt(), tempVector.Energy());
+            zCandVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pz(), tempVector.Energy());
             comb1_i = i;
             comb1_j = j;
             whichFlavor = 11;
@@ -1372,7 +1375,7 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
           tempVector.SetPxPyPzE(looseMuons.at(i).px()+looseMuons.at(j).px(), looseMuons.at(i).py()+looseMuons.at(j).py(), looseMuons.at(i).pz()+looseMuons.at(j).pz(), looseMuons.at(i).energy()+looseMuons.at(j).energy());
           if (tempVector.Pt() > highestPt){
             highestPt = tempVector.Pt();
-            zCandVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pt(), tempVector.Energy());
+            zCandVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pz(), tempVector.Energy());
             comb1_i = i;
             comb1_j = j;
             whichFlavor = 13;
@@ -1391,7 +1394,7 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
       tempVector.SetPxPyPzE(looseElectrons.at(i).px(), looseElectrons.at(i).py(), looseElectrons.at(i).pz(), looseElectrons.at(i).energy());
       if (tempVector.Pt() > wLepPt){
         wLepPt = tempVector.Pt();
-        wLepVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pt(), tempVector.Energy());
+        wLepVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pz(), tempVector.Energy());
       }
     }
     for(unsigned int i = 0; i < looseMuons.size(); i++){
@@ -1399,7 +1402,7 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
       tempVector.SetPxPyPzE(looseMuons.at(i).px(), looseMuons.at(i).py(), looseMuons.at(i).pz(), looseMuons.at(i).energy());
       if (tempVector.Pt() > wLepPt){
         wLepPt = tempVector.Pt();
-        wLepVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pt(), tempVector.Energy());
+        wLepVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pz(), tempVector.Energy());
       }
     }
     wCandVector = wLepVector + met;
@@ -1423,7 +1426,7 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
           tempVector.SetPxPyPzE(looseElectrons.at(i).px()+looseElectrons.at(j).px(), looseElectrons.at(i).py()+looseElectrons.at(j).py(), looseElectrons.at(i).pz()+looseElectrons.at(j).pz(), looseElectrons.at(i).energy()+looseElectrons.at(j).energy());
           if (tempVector.Pt() > secondHighestPt){
             secondHighestPt = tempVector.Pt();
-            zCand2Vector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pt(), tempVector.Energy());
+            zCand2Vector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pz(), tempVector.Energy());
             comb2_i = i;
             comb2_j = j;
             whichFlavor2 = 11;
@@ -1440,7 +1443,7 @@ DiLeptonTreesFromMiniAOD::fillTree(const edm::Event &iEvent, const std::string &
           tempVector.SetPxPyPzE(looseMuons.at(i).px()+looseMuons.at(j).px(), looseMuons.at(i).py()+looseMuons.at(j).py(), looseMuons.at(i).pz()+looseMuons.at(j).pz(), looseMuons.at(i).energy()+looseMuons.at(j).energy());
           if (tempVector.Pt() > secondHighestPt){
             secondHighestPt = tempVector.Pt();
-            zCand2Vector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pt(), tempVector.Energy());
+            zCand2Vector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pz(), tempVector.Energy());
             comb2_i = i;
             comb2_j = j;
             whichFlavor2 = 13;

@@ -34,6 +34,6 @@ fastSimUseDB["2017"] = True
 fastSimUseDB["2018"] = True
 
 fastSimDB =  {}
-fastSimDB["2016"] = "Spring16_25nsFastSimV1_MC"
+fastSimDB["2016"] = "Spring16_25nsFastSimMC_V1"
 fastSimDB["2017"] = "Fall17_FastSimV1_MC"
 fastSimDB["2018"] = "Autumn18_FastSimV1_MC"

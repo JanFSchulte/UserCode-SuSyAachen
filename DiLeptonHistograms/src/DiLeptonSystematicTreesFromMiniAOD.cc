@@ -1479,7 +1479,8 @@ DiLeptonSystematicTreesFromMiniAOD::fillTree( const std::string &treeName, const
 
   TLorentzVector tempVector;
   TLorentzVector zCandVector(0,0,0,0);
-
+  
+  
   if (*(intBranches_[treeName]["nLooseLeptons"]) >= 2) {  
     for(unsigned int i = 0; i < looseElectrons.size(); i++){
       for(unsigned int j = 0; j < looseElectrons.size(); j++){
@@ -1487,7 +1488,7 @@ DiLeptonSystematicTreesFromMiniAOD::fillTree( const std::string &treeName, const
           tempVector.SetPxPyPzE(looseElectrons.at(i).px()+looseElectrons.at(j).px(), looseElectrons.at(i).py()+looseElectrons.at(j).py(), looseElectrons.at(i).pz()+looseElectrons.at(j).pz(), looseElectrons.at(i).energy()+looseElectrons.at(j).energy());
           if (tempVector.Pt() > highestPt){
             highestPt = tempVector.Pt();
-            zCandVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pt(), tempVector.Energy());
+            zCandVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pz(), tempVector.Energy());
             comb1_i = i;
             comb1_j = j;
             whichFlavor = 11;
@@ -1501,7 +1502,7 @@ DiLeptonSystematicTreesFromMiniAOD::fillTree( const std::string &treeName, const
           tempVector.SetPxPyPzE(looseMuons.at(i).px()+looseMuons.at(j).px(), looseMuons.at(i).py()+looseMuons.at(j).py(), looseMuons.at(i).pz()+looseMuons.at(j).pz(), looseMuons.at(i).energy()+looseMuons.at(j).energy());
           if (tempVector.Pt() > highestPt){
             highestPt = tempVector.Pt();
-            zCandVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pt(), tempVector.Energy());
+            zCandVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pz(), tempVector.Energy());
             comb1_i = i;
             comb1_j = j;
             whichFlavor = 13;
@@ -1520,7 +1521,7 @@ DiLeptonSystematicTreesFromMiniAOD::fillTree( const std::string &treeName, const
       tempVector.SetPxPyPzE(looseElectrons.at(i).px(), looseElectrons.at(i).py(), looseElectrons.at(i).pz(), looseElectrons.at(i).energy());
       if (tempVector.Pt() > wLepPt){
         wLepPt = tempVector.Pt();
-        wLepVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pt(), tempVector.Energy());
+        wLepVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pz(), tempVector.Energy());
       }
     }
     for(unsigned int i = 0; i < looseMuons.size(); i++){
@@ -1528,7 +1529,7 @@ DiLeptonSystematicTreesFromMiniAOD::fillTree( const std::string &treeName, const
       tempVector.SetPxPyPzE(looseMuons.at(i).px(), looseMuons.at(i).py(), looseMuons.at(i).pz(), looseMuons.at(i).energy());
       if (tempVector.Pt() > wLepPt){
         wLepPt = tempVector.Pt();
-        wLepVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pt(), tempVector.Energy());
+        wLepVector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pz(), tempVector.Energy());
       }
     }
     wCandVector = wLepVector + met;
@@ -1536,7 +1537,7 @@ DiLeptonSystematicTreesFromMiniAOD::fillTree( const std::string &treeName, const
   *(tLorentzVectorBranches_[treeName]["wcand"]) = wCandVector;
   *(tLorentzVectorBranches_[treeName]["wlep"]) = wLepVector;
   *(floatBranches_[treeName]["wcandMT"]) = transverseMass(wLepVector, met);
-
+  
   int comb2_i = -1;
   int comb2_j = -1;
   TLorentzVector zCand2Vector(0,0,0,0);
@@ -1552,7 +1553,7 @@ DiLeptonSystematicTreesFromMiniAOD::fillTree( const std::string &treeName, const
           tempVector.SetPxPyPzE(looseElectrons.at(i).px()+looseElectrons.at(j).px(), looseElectrons.at(i).py()+looseElectrons.at(j).py(), looseElectrons.at(i).pz()+looseElectrons.at(j).pz(), looseElectrons.at(i).energy()+looseElectrons.at(j).energy());
           if (tempVector.Pt() > secondHighestPt){
             secondHighestPt = tempVector.Pt();
-            zCand2Vector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pt(), tempVector.Energy());
+            zCand2Vector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pz(), tempVector.Energy());
             comb2_i = i;
             comb2_j = j;
             whichFlavor2 = 11;
@@ -1569,7 +1570,7 @@ DiLeptonSystematicTreesFromMiniAOD::fillTree( const std::string &treeName, const
           tempVector.SetPxPyPzE(looseMuons.at(i).px()+looseMuons.at(j).px(), looseMuons.at(i).py()+looseMuons.at(j).py(), looseMuons.at(i).pz()+looseMuons.at(j).pz(), looseMuons.at(i).energy()+looseMuons.at(j).energy());
           if (tempVector.Pt() > secondHighestPt){
             secondHighestPt = tempVector.Pt();
-            zCand2Vector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pt(), tempVector.Energy());
+            zCand2Vector.SetPxPyPzE(tempVector.Px(), tempVector.Py(), tempVector.Pz(), tempVector.Energy());
             comb2_i = i;
             comb2_j = j;
             whichFlavor2 = 13;
@@ -1630,6 +1631,7 @@ DiLeptonSystematicTreesFromMiniAOD::fillTree( const std::string &treeName, const
     *(intBranches_[treeName]["pdgIdz2lep1"]) = -9999;
     *(intBranches_[treeName]["pdgIdz2lep2"]) = -9999;
   }
+
 
   // Iso track selection
   

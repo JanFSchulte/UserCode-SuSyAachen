@@ -42,7 +42,8 @@ def corrJetsProd(process, year, runOnData=True, usePrivateSQlite=False, era=None
            jetCorrections = ('AK8PFPuppi', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']), 'None')  # Update: Safe to always add 'L2L3Residual' as MC contains dummy L2L3Residual corrections (always set to 1)
         )
         
-        return cms.Sequence(process.patJetCorrFactorsUpdatedJEC * process.updatedPatJetsUpdatedJEC * process.patJetCorrFactorsAK8 * process.updatedPatJetsAK8)
+        #  
+        return cms.Sequence(process.patJetCorrFactorsUpdatedJEC * process.updatedPatJetsUpdatedJEC* process.patJetCorrFactorsAK8 * process.updatedPatJetsAK8)
 
 
 def corrJetsProducer16(process):       
