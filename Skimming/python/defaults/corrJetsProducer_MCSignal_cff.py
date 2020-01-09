@@ -4,7 +4,7 @@ from SuSyAachen.Skimming.defaults.corrJetsProducer_cff import corrJetsProd
 from SuSyAachen.DiLeptonHistograms.jecToUse_cfi import *
 
 def corrJetsProducer_MCSignal16(process):
-        process.seqcorrJetsProducer_MCSignal16 = corrJetsProd(process, "2016", False, fastSimUseDB["2016"], fastSimDB["2016"])
+        process.seqcorrJetsProducer_MCSignal16 = corrJetsProd(process, "2016", False, fastSimUseDB["2016"], fastSimDB["2016"], special="AK8PFchs")
         process.seqcorrJetsPath_MCSignal = cms.Path(process.seqcorrJetsProducer_MCSignal16)
 
 def corrJetsProducer_MCSignal17(process):

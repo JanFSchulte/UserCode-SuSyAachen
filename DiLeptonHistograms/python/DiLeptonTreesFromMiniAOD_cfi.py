@@ -45,6 +45,8 @@ DiLeptonTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonTreesFromMiniAOD",
    writeTrigger = cms.untracked.bool(True),
    doMETUncert = cms.untracked.bool(False),
    
+   era = cms.string("2017"),
+   
    eeTriggerNames=eeTriggerNames2017,
    emTriggerNames=emTriggerNames2017,
    mmTriggerNames=mmTriggerNames2017,  

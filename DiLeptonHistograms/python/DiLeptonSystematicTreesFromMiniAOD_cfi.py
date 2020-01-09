@@ -45,6 +45,8 @@ DiLeptonSystematicTreesFromMiniAODNoTaus = cms.EDAnalyzer("DiLeptonSystematicTre
    writeID = cms.untracked.bool(False), 
    doMETUncert = cms.untracked.bool(True),
    
+   era = cms.string("2017"),
+   
    storeMetFilters = cms.untracked.bool(True),
    metFilterNames=metFilterNamesFastSim2017,
 )

@@ -134,6 +134,7 @@ private:
   edm::EDGetTokenT< double > prefweight_token;
   edm::EDGetTokenT< double > prefweightup_token;
   edm::EDGetTokenT< double > prefweightdown_token;
+  std::string era;
   
   edm::EDGetTokenT< bool >ecalBadCalibFilterUpdate_token ;
   edm::EDGetTokenT<edm::TriggerResults>           metFilterToken_;
@@ -267,6 +268,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   prefweight_token = consumes< double >(edm::InputTag("prefiringweight:nonPrefiringProb"));
   prefweightup_token = consumes< double >(edm::InputTag("prefiringweight:nonPrefiringProbUp"));
   prefweightdown_token = consumes< double >(edm::InputTag("prefiringweight:nonPrefiringProbDown"));
+  era = iConfig.getParameter<std::string>("era");
   
   consumes<edm::TriggerResults>(edm::InputTag("TriggerResults","","HLT"));
   consumes<edm::TriggerResults>(edm::InputTag("TriggerResults","",edm::InputTag::kSkipCurrentProcess));
@@ -283,6 +285,8 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initFloatBranch( "mll" );   
   initFloatBranch( "genWeight" );  
   initFloatBranch( "prefireWeight" );   
+  initFloatBranch( "prefireWeightUp" );
+  initFloatBranch( "prefireWeightDown" );
   initFloatBranch( "genWeightAbsValue" );    
   initFloatBranch( "weight" );
   initFloatBranch( "weightUp" );
@@ -312,6 +316,7 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initTLorentzVectorBranch( "bJet1" );
   initTLorentzVectorBranch( "bJet2" );
   initTLorentzVectorBranch( "vMet" );   
+  initTLorentzVectorBranch( "vMetHEM" );   
   initTLorentzVectorBranch( "vGenMet" );  
   initFloatBranch( "rho" );
   initFloatBranch( "pt" );
@@ -341,12 +346,14 @@ DiLeptonTreesFromMiniAOD::DiLeptonTreesFromMiniAOD(const edm::ParameterSet& iCon
   initFloatBranch( "htJESDown" ); 
   initFloatBranch( "mht" );
   initFloatBranch( "met" );
+  initFloatBranch( "metHEM" );
   initFloatBranch( "caloMet" );
   initFloatBranch( "genMet" );
   initFloatBranch( "uncorrectedMet" ); 
   initFloatBranch( "metJESUp" );
   initFloatBranch( "metJESDown" );
   initIntBranch( "nJets" );
+  initIntBranch( "nJetsHEM" );
   initIntBranch( "nFatJets" );
   initIntBranch( "nGenJets" );
   initIntBranch( "nBadMuonJets" );
@@ -665,10 +672,24 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   edm::Handle< double > theprefweight;
   iEvent.getByToken(prefweight_token, theprefweight ) ;
   double _prefiringweight =(*theprefweight);
-  if (isMC){
+  
+  edm::Handle< double > theprefweightup;
+  iEvent.getByToken(prefweightup_token, theprefweightup ) ;
+  double _prefiringweightup =(*theprefweightup);
+
+  edm::Handle< double > theprefweightdown;
+  iEvent.getByToken(prefweightdown_token, theprefweightdown ) ;
+  double _prefiringweightdown =(*theprefweightdown);
+  
+  
+  if (isMC and era != "2018"){
     floatEventProperties["prefireWeight"] = _prefiringweight;
+    floatEventProperties["prefireWeightUp"] = _prefiringweightup;
+    floatEventProperties["prefireWeightDown"] = _prefiringweightdown;
   }else{
     floatEventProperties["prefireWeight"] = 1.0;
+    floatEventProperties["prefireWeightUp"] = 1.0;
+    floatEventProperties["prefireWeightDown"] = 1.0;
   }
   
   
@@ -920,11 +941,13 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   }
   
   int nJets=0;
+  int nJetsHEM=0;
   int nFatJets=0;
   int nBadMuonJets=0;
   int nGenJets=0;
 
-  
+  TLorentzVector metHEM;
+  metHEM.SetPxPyPzE(metVector.Px(), metVector.Py(), metVector.Pz(), metVector.E()); 
   for(std::vector<pat::Jet>::const_iterator it = jets->begin(); it != jets->end() ; ++it){
     if (it->pt() >=35.0 && fabs(it->eta())<2.4){
       nJets++;
@@ -937,7 +960,28 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
       }
       
     }
+    
+    // HEM15/16 recipe for MC
+    if (isMC && it->eta() > -2.5 && it->eta() < -1.3 && it->phi() > -1.57 && it->phi() < -0.87 && era == "2018"){
+      TLorentzVector jetHEM;
+      TLorentzVector jetHEMUnshifted;
+      jetHEMUnshifted.SetPtEtaPhiE(it->pt(), it->eta(), it->phi(), it->energy());
+      jetHEM.SetPtEtaPhiE(it->pt()*0.8, it->eta(), it->phi(), it->energy());
+      
+      //std::cout << jetHEM.Pt() << " vs " << jetHEMUnshifted.Pt() << std::endl;
+      
+      metHEM += (jetHEMUnshifted-jetHEM);
+      if (jetHEM.Pt() >=35.0 && fabs(jetHEM.Eta())<2.4){
+        nJetsHEM++;
+      }
+      
+    }else{
+      if (it->pt() >=35.0 && fabs(it->eta())<2.4){
+        nJetsHEM++;
+      }
+    }
   }
+  
   for(std::vector<pat::Jet>::const_iterator it = fatJets->begin(); it != fatJets->end() ; ++it){
     float sd_mass = it->groomedMass("SoftDropPuppi");
     float tau21 = it->userFloat("NjettinessAK8Puppi:tau2")/it->userFloat("NjettinessAK8Puppi:tau1");
@@ -960,6 +1004,10 @@ DiLeptonTreesFromMiniAOD::analyze(const edm::Event& iEvent, const edm::EventSetu
   
   intEventProperties["nJets"] = nJets;
   intEventProperties["nBadMuonJets"] = nBadMuonJets;
+  
+  intEventProperties["nJetsHEM"] = nJetsHEM;
+  floatEventProperties["metHEM"] = metHEM.Pt();
+  tLorentzVectorEventProperties["vMetHEM"] = metHEM;
     
   float genHT = 0.;
   std::vector<const reco::GenJet*> genJetsCleaned;
